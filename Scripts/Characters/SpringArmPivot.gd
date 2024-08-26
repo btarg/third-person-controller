@@ -39,7 +39,7 @@ func _ready() -> void:
     Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
     print(spring_arm_clamp)
 
-func _unhandled_input(event) -> void:
+func unhandled_input_update(event) -> void:
     if enabled:
         if event is InputEventMouseMotion and mouse_locked:
             rotate_y(-event.relative.x * 0.005)
@@ -55,7 +55,7 @@ func _unhandled_input(event) -> void:
                     mouse_locked = true
 
 
-func _physics_process(_delta) -> void:
+func camera_physics_process(_delta) -> void:
     if not enabled or not mouse_locked:
         return
 

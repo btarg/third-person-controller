@@ -129,7 +129,9 @@ func input_update(event) -> void:
         elif event.is_pressed() and event.keycode == KEY_A:
             var enemy_instance = test_enemy.instantiate()
             add_child(enemy_instance)
-            enemy_instance.name = "Spawned Enemy"
             enemy_instance.global_position = player.global_position
             var enemy_battle_character := enemy_instance.get_node("BattleCharacter") as BattleCharacter
             enter_battle(enemy_battle_character)
+
+func unhandled_input_update(_event) -> void:
+    pass

@@ -28,8 +28,11 @@ func _process(delta : float) -> void:
 func _physics_process(delta : float) -> void:
 	current_state.physics_update(delta)
 
-func _input(event):
+func _input(event) -> void:
 	current_state.input_update(event)
+
+func _unhandled_input(event: InputEvent) -> void:
+	current_state.unhandled_input_update(event)
 
 func on_state_transitioned(state : State, new_state_name : String) -> void:
 	if state != current_state:

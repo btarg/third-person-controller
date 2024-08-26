@@ -11,23 +11,23 @@ func hello(message: String) -> void:
 func enter() -> void:
     print("Exploration entered")
     player.enabled = true
-    spring_arm_pivot.enabled = true
 
 # Runs when the state is exited
 func exit() -> void:
     player.enabled = false
-    spring_arm_pivot.enabled = false
 
 # Updates every _process() update (When state is active)
 func update(_delta) -> void:
     pass
 
 # Updates every _physics_process() update (When state is active)
-func physics_update(_delta) -> void:
-    pass
-
+func physics_update(delta) -> void:
+    spring_arm_pivot.camera_physics_process(delta)
 
 func input_update(event) -> void:
     if event is InputEventKey and active:
         if event.is_pressed() and not event.is_echo() and event.keycode == KEY_R:
             Transitioned.emit(self, "BattleState")
+
+func unhandled_input_update(event) -> void:
+    spring_arm_pivot.unhandled_input_update(event)

@@ -29,7 +29,7 @@ var spring_arm_clamp := deg_to_rad(spring_arm_clamp_degrees)
 const CAMERA_BLEND : float = 0.1
 
 @onready var spring_arm : SpringArm3D = $SpringArm3D
-@onready var camera : Camera3D = $SpringArm3D/Camera3D
+@onready var camera : Camera3D = $SpringArm3D/FreelookCamera
 
 var enabled : bool = true
 var mouse_locked: bool = true
@@ -38,6 +38,7 @@ var mouse_locked: bool = true
 func _ready() -> void:
     Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
     print(spring_arm_clamp)
+    camera.make_current()
 
 func unhandled_input_update(event) -> void:
     if enabled:

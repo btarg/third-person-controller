@@ -49,11 +49,13 @@ func enter_battle(character: BattleCharacter) -> void:
         # Give the character a unique name
         if not character_counts.has(character_name):
             character_counts[character_name] = 0
+
         var count: int = character_counts[character_name]
         character_counts[character_name] += 1
-        character_name += " " + Util.get_letter(count)
-        # Set node name
-        character.get_parent().name = character_name
+        if count > 1:
+            character_name += " " + Util.get_letter(count)
+            # Set node name
+            character.get_parent().name = character_name
 
         enemy_units.append(character)
     else:
@@ -127,7 +129,7 @@ func input_update(event) -> void:
         elif event.is_pressed() and event.keycode == KEY_P:
             print_turn_order()
         elif event.is_pressed() and event.keycode == KEY_A:
-            var enemy_instance = test_enemy.instantiate()
+            var enemy_instance := test_enemy.instantiate()
             add_child(enemy_instance)
             enemy_instance.global_position = player.global_position
             var enemy_battle_character := enemy_instance.get_node("BattleCharacter") as BattleCharacter

@@ -1,11 +1,8 @@
 extends State
 class_name ExplorationState
 
-@onready var player := get_tree().get_nodes_in_group("Player")[0] as PlayerController
-@onready var spring_arm_pivot := player.get_node("SpringArmPivot")
-
-func hello(message: String) -> void:
-    print(message)
+@onready var player := get_tree().get_nodes_in_group("Player").front() as PlayerController
+@onready var spring_arm_pivot := player.get_node("FreelookPivot")
 
 # Runs when the state is entered
 func enter() -> void:

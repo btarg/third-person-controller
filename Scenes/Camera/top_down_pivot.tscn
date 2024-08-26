@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://m6ntkjjojwa0"]
+
+[node name="TopDownPivot" type="Node3D"]
+
+[node name="SpringArm3D" type="SpringArm3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.45, 0)
+spring_length = 2.0
+margin = 0.2
+
+[node name="TopDownCamera" type="Camera3D" parent="SpringArm3D"]

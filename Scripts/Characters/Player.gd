@@ -15,17 +15,20 @@ var speed : float
 const ANIMATION_BLEND : float = 7.0
 
 @onready var player_mesh : Node3D = $Mesh
-@onready var spring_arm_pivot : Node3D = $SpringArmPivot
+@onready var spring_arm_pivot : Node3D = $FreelookPivot
 @onready var animator : AnimationTree = $AnimationTree
+
 
 @export var enabled : bool:
     get:
         return enabled
     set(value):
         enabled = value
-        if not enabled:
+        if animator != null and not enabled:
             reset_to_idle()
-
+        if spring_arm_pivot != null:
+            spring_arm_pivot.enabled = enabled
+            
 func reset_to_idle() -> void:
     animator.set("parameters/ground_air_transition/transition_request", "grounded")
     
@@ -33,7 +36,7 @@ func reset_to_idle() -> void:
     tween.tween_property(animator, "parameters/iwr_blend/blend_amount", -1.0, 0.25)
 
 func _physics_process(delta) -> void:
-    if not enabled:
+    if not enabled or spring_arm_pivot == null:
         return
 
     var move_direction : Vector3 = Vector3.ZERO

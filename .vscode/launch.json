@@ -1,0 +1,19 @@
+{
+    "name": "Launch Project",
+    "type": "cppvsdbg",
+    "request": "launch",
+    "program": "c:\\Program Files (x86)\\Steam\\steamapps\\common\\Godot Engine\\godot.windows.opt.tools.64.exe",
+    // Change the arguments below for the project you want to test with.
+    // To run the project instead of editing it, remove the "--editor" argument.
+    "args": [
+        "--editor",
+        "--path",
+        "C:\\Users\\BenTa\\Documents\\third-person-controller"
+    ],
+    "stopAtEntry": false,
+    "cwd": "${workspaceFolder}",
+    "environment": [],
+    "console": "internalConsole",
+    "visualizerFile": "${workspaceFolder}/platform/windows/godot.natvis",
+    "preLaunchTask": "build"
+}

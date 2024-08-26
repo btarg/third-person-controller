@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://dx7xo5kutl8rv"]
+
+[ext_resource type="Script" path="res://Scripts/BattleSystem/BattleCharacter.gd" id="1_fdfp1"]
+
+[node name="TestEnemy" type="CSGSphere3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.69273, 0.629783, 3.63427)
+
+[node name="BattleCharacter" type="Node" parent="." groups=["BattleCharacter"]]
+script = ExtResource("1_fdfp1")
+character_type = 3

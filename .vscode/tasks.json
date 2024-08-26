@@ -1,0 +1,11 @@
+{
+    "label": "build",
+    "group": "build",
+    "type": "shell",
+    "command": "scons",
+    "args": [
+        // enable for debugging with breakpoints
+        "dev_build=yes",
+    ],
+    "problemMatcher": "$msCompile"
+}

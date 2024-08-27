@@ -5,7 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://cr2ersq7g6q6f" path="res://Scenes/Characters/player.tscn" id="2_1g73n"]
 [ext_resource type="Texture2D" uid="uid://gwt4mrbmdv01" path="res://Assets/Textures/Orange.png" id="2_087ax"]
 [ext_resource type="Texture2D" uid="uid://dkpqh8de7tb3n" path="res://Assets/Textures/Green.png" id="3_qkav0"]
-[ext_resource type="PackedScene" uid="uid://m6ntkjjojwa0" path="res://Scenes/Camera/top_down_pivot.tscn" id="5_kwyn1"]
+[ext_resource type="PackedScene" uid="uid://m6ntkjjojwa0" path="res://Scenes/Camera/top_down_player.tscn" id="5_kwyn1"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_6c4vd"]
 panorama = ExtResource("1_rrvcb")

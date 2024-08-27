@@ -29,6 +29,9 @@ const ANIMATION_BLEND : float = 7.0
         if spring_arm_pivot != null:
             spring_arm_pivot.enabled = enabled
             
+func _ready() -> void:
+    spring_arm_pivot.enabled = enabled
+
 func reset_to_idle() -> void:
     animator.set("parameters/ground_air_transition/transition_request", "grounded")
     

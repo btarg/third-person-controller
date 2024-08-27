@@ -1,4 +1,5 @@
 extends Node3D
+class_name SpringArmCameraPivot
 
 @export_group("Rotation")
 @export var max_sensitivity : float = 0.15
@@ -31,33 +32,33 @@ const CAMERA_BLEND : float = 0.1
 @onready var spring_arm : SpringArm3D = $SpringArm3D
 @onready var camera : Camera3D = $SpringArm3D/FreelookCamera
 
-var enabled : bool = true
-var mouse_locked: bool = true
+@onready var mouse_lock_manager := get_node("/root/MouseLockManager") as MouseLockManager
 
+@export var enabled : bool:
+    get:
+        return enabled
+    set(value):
+        enabled = value
+        if enabled and camera != null:
+            _setup_camera()
 
 func _ready() -> void:
-    Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-    print(spring_arm_clamp)
-    camera.make_current()
+    _setup_camera()
+
+func _setup_camera() -> void:
+    if enabled:
+        camera.make_current()
 
 func unhandled_input_update(event) -> void:
     if enabled:
-        if event is InputEventMouseMotion and mouse_locked:
+        if event is InputEventMouseMotion and mouse_lock_manager.mouse_locked:
             rotate_y(-event.relative.x * 0.005)
             spring_arm.rotate_x(-event.relative.y * 0.005)
             spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)
-        elif event is InputEventKey:
-            if event.is_pressed() and event.keycode == KEY_ESCAPE:
-                if mouse_locked:
-                    Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-                    mouse_locked = false
-                else:
-                    Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-                    mouse_locked = true
 
 
 func camera_physics_process(_delta) -> void:
-    if not enabled or not mouse_locked:
+    if not enabled or not mouse_lock_manager.mouse_locked:
         return
 
     if change_fov_on_run:

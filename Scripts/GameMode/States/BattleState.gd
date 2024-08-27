@@ -6,6 +6,7 @@ var turn_order: Array[BattleCharacter] = []
 
 # get player from group
 @onready var player := get_tree().get_nodes_in_group("Player")[0] as PlayerController
+@onready var top_down_player := get_tree().get_nodes_in_group("TopDownPlayer").front() as TopDownPlayerController
 var test_enemy := preload("res://Scenes/Characters/Enemies/test_enemy.tscn") as PackedScene
 
 var enemy_units: Array[BattleCharacter] = []
@@ -19,7 +20,7 @@ var character_counts: Dictionary = {}
         return not turn_order.is_empty()
 
 
-func enter_battle(character: BattleCharacter) -> void:
+func add_to_battle(character: BattleCharacter) -> void:
     if not active:
         print("Inactive")
         return
@@ -82,11 +83,12 @@ func leave_battle(character: BattleCharacter) -> void:
     # TODO: victory/defeat conditions
 
 func enter() -> void:
-    print("Battle entered")
+    top_down_player.enabled = true
+    print("Battle state entered")
     for child in get_tree().get_nodes_in_group("BattleCharacter"):
         if child is BattleCharacter:
             if child.active:
-                enter_battle(child as BattleCharacter)
+                add_to_battle(child as BattleCharacter)
             else:
                 printerr(child.name + " is inactive")
         else:
@@ -99,6 +101,8 @@ func exit() -> void:
     player_units.clear()
     enemy_units.clear()
     character_counts.clear()
+
+    top_down_player.enabled = false
 
 func update(_delta) -> void:
     pass
@@ -135,7 +139,7 @@ func input_update(event) -> void:
             add_child(enemy_instance)
             enemy_instance.global_position = player.global_position
             var enemy_battle_character := enemy_instance.get_node("BattleCharacter") as BattleCharacter
-            enter_battle(enemy_battle_character)
+            add_to_battle(enemy_battle_character)
 
-func unhandled_input_update(_event) -> void:
-    pass
+func unhandled_input_update(event) -> void:
+    top_down_player.unhandled_input_update(event)

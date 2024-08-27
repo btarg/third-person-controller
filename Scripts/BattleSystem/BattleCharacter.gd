@@ -27,11 +27,11 @@ func roll_initiative() -> int:
 func _ready() -> void:
     get_parent().name = character_name
 
-    if character_type == CharacterType.FRIENDLY:
-        print(self.get_parent().name + " is a friendly character")
-    elif character_type == CharacterType.ENEMY:
-        print(self.get_parent().name + " is an enemy character")
-    elif character_type == CharacterType.PLAYER:
-        print(self.get_parent().name + " is a player character")
-    else:
-        print(self.get_parent().name + " is a neutral character")
+    # if character_type == CharacterType.FRIENDLY:
+    #     print(self.get_parent().name + " is a friendly character")
+    # elif character_type == CharacterType.ENEMY:
+    #     print(self.get_parent().name + " is an enemy character")
+    # elif character_type == CharacterType.PLAYER:
+    #     print(self.get_parent().name + " is a player character")
+    # else:
+    #     print(self.get_parent().name + " is a neutral character")

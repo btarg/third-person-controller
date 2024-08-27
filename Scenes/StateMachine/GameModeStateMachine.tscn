@@ -12,4 +12,3 @@ script = ExtResource("3_ek5qm")
 
 [node name="BattleState" type="Node" parent="."]
 script = ExtResource("2_soqi2")
-is_in_battle = null

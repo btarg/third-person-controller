@@ -29,10 +29,10 @@ var spring_arm_clamp := deg_to_rad(spring_arm_clamp_degrees)
 
 const CAMERA_BLEND : float = 0.1
 
+
 @onready var spring_arm : SpringArm3D = $SpringArm3D
 @onready var camera : Camera3D = $SpringArm3D/FreelookCamera
-
-@onready var mouse_lock_manager := get_node("/root/MouseLockManager") as MouseLockManager
+@onready var player := owner as CharacterBody3D
 
 @export var enabled : bool:
     get:
@@ -41,6 +41,7 @@ const CAMERA_BLEND : float = 0.1
         enabled = value
         if enabled and camera != null:
             _setup_camera()
+            Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 func _ready() -> void:
     _setup_camera()
@@ -51,18 +52,18 @@ func _setup_camera() -> void:
 
 func unhandled_input_update(event) -> void:
     if enabled:
-        if event is InputEventMouseMotion and mouse_lock_manager.mouse_locked:
+        if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
             rotate_y(-event.relative.x * 0.005)
             spring_arm.rotate_x(-event.relative.y * 0.005)
             spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)
 
 
 func camera_physics_process(_delta) -> void:
-    if not enabled or not mouse_lock_manager.mouse_locked:
+    if not enabled or not Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
         return
 
     if change_fov_on_run:
-        if owner.is_on_floor():
+        if player.is_on_floor() and player.velocity.length() > 0:
             if Input.is_action_pressed("run"):
                 camera.fov = lerp(camera.fov, run_fov, CAMERA_BLEND)
             else:

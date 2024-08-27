@@ -83,6 +83,8 @@ func leave_battle(character: BattleCharacter) -> void:
     # TODO: victory/defeat conditions
 
 func enter() -> void:
+    Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+
     top_down_player.enabled = true
     print("Battle state entered")
     for child in get_tree().get_nodes_in_group("BattleCharacter"):
@@ -107,8 +109,8 @@ func exit() -> void:
 func update(_delta) -> void:
     pass
 
-func physics_update(_delta) -> void:
-    pass
+func physics_update(delta) -> void:
+    top_down_player.player_process(delta)
 
 func print_turn_order() -> void:
     if not turn_order.is_empty():
@@ -134,7 +136,7 @@ func input_update(event) -> void:
             Transitioned.emit(self, "ExplorationState")
         elif event.is_pressed() and event.keycode == KEY_P:
             print_turn_order()
-        elif event.is_pressed() and event.keycode == KEY_A:
+        elif event.is_pressed() and event.keycode == KEY_1:
             var enemy_instance := test_enemy.instantiate()
             add_child(enemy_instance)
             enemy_instance.global_position = player.global_position

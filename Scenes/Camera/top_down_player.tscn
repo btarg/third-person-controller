@@ -1,13 +1,15 @@
-[gd_scene load_steps=2 format=3 uid="uid://m6ntkjjojwa0"]
+[gd_scene load_steps=4 format=3 uid="uid://yfkuk4d0rodi"]
 
 [ext_resource type="Script" path="res://Scripts/Camera/TopDownPlayer.gd" id="1_2afxu"]
+[ext_resource type="PackedScene" uid="uid://m6ntkjjojwa0" path="res://Scenes/Camera/top_down_player_pivot.tscn" id="2_cwmnp"]
 
-[node name="TopDownPlayer" type="Node3D" groups=["TopDownPlayer"]]
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_43k4c"]
+
+[node name="TopDownPlayer" type="CharacterBody3D" groups=["TopDownPlayer"]]
 script = ExtResource("1_2afxu")
 
-[node name="SpringArm3D" type="SpringArm3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.45, 0)
-spring_length = 2.0
-margin = 0.2
+[node name="TopDownPlayerPivot" parent="." instance=ExtResource("2_cwmnp")]
 
-[node name="TopDownCamera" type="Camera3D" parent="SpringArm3D"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_43k4c")

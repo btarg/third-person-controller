@@ -18,7 +18,6 @@ config/icon="res://icon.svg"
 [autoload]
 
 GameModeStateMachine="*res://Scenes/StateMachine/GameModeStateMachine.tscn"
-MouseLockManager="*res://Scripts/Autoload/MouseLockManager.gd"
 
 [display]
 

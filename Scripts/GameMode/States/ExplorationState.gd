@@ -2,7 +2,6 @@ extends State
 class_name ExplorationState
 
 @onready var player := get_tree().get_nodes_in_group("Player").front() as PlayerController
-@onready var spring_arm_pivot := player.get_node("FreelookPivot")
 
 # Runs when the state is entered
 func enter() -> void:
@@ -13,13 +12,11 @@ func enter() -> void:
 func exit() -> void:
     player.enabled = false
 
-# Updates every _process() update (When state is active)
 func update(_delta) -> void:
     pass
 
-# Updates every _physics_process() update (When state is active)
 func physics_update(delta) -> void:
-    spring_arm_pivot.camera_physics_process(delta)
+    player.player_process(delta)
 
 func input_update(event) -> void:
     if event is InputEventKey and active:
@@ -27,4 +24,4 @@ func input_update(event) -> void:
             Transitioned.emit(self, "BattleState")
 
 func unhandled_input_update(event) -> void:
-    spring_arm_pivot.unhandled_input_update(event)
+    player.unhandled_input_update(event)

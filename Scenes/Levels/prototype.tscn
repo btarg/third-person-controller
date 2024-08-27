@@ -5,7 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://cr2ersq7g6q6f" path="res://Scenes/Characters/player.tscn" id="2_1g73n"]
 [ext_resource type="Texture2D" uid="uid://gwt4mrbmdv01" path="res://Assets/Textures/Orange.png" id="2_087ax"]
 [ext_resource type="Texture2D" uid="uid://dkpqh8de7tb3n" path="res://Assets/Textures/Green.png" id="3_qkav0"]
-[ext_resource type="PackedScene" uid="uid://m6ntkjjojwa0" path="res://Scenes/Camera/top_down_player.tscn" id="5_kwyn1"]
+[ext_resource type="PackedScene" uid="uid://yfkuk4d0rodi" path="res://Scenes/Camera/top_down_player.tscn" id="5_kwyn1"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_6c4vd"]
 panorama = ExtResource("1_rrvcb")
@@ -88,7 +88,7 @@ surface_material_override/0 = SubResource("StandardMaterial3D_pfpgv")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Slope/StaticBody3D"]
 shape = SubResource("ConcavePolygonShape3D_rit6o")
 
-[node name="TopDownPivot" parent="." instance=ExtResource("5_kwyn1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.62238, 0, 6.73368)
-
 [node name="Player" parent="." instance=ExtResource("2_1g73n")]
+
+[node name="TopDownPlayer" parent="." instance=ExtResource("5_kwyn1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.2782, 0, 9.35357)

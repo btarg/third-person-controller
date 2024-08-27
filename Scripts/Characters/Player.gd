@@ -15,9 +15,10 @@ var speed : float
 const ANIMATION_BLEND : float = 7.0
 
 @onready var player_mesh : Node3D = $Mesh
-@onready var spring_arm_pivot : Node3D = $FreelookPivot
+@onready var spring_arm_pivot := $FreelookPivot as SpringArmCameraPivot
 @onready var animator : AnimationTree = $AnimationTree
 
+@onready var tween := create_tween()
 
 @export var enabled : bool:
     get:
@@ -33,14 +34,20 @@ func _ready() -> void:
     spring_arm_pivot.enabled = enabled
 
 func reset_to_idle() -> void:
+    print("Resetting to idle")
     animator.set("parameters/ground_air_transition/transition_request", "grounded")
-    
-    var tween := create_tween()
     tween.tween_property(animator, "parameters/iwr_blend/blend_amount", -1.0, 0.25)
 
-func _physics_process(delta) -> void:
+## Called from state
+func unhandled_input_update(event: InputEvent) -> void:
+    spring_arm_pivot.unhandled_input_update(event)
+
+## Called from state
+func player_process(delta) -> void:
     if not enabled or spring_arm_pivot == null:
         return
+
+    spring_arm_pivot.camera_physics_process(delta)
 
     var move_direction : Vector3 = Vector3.ZERO
     move_direction.x = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")

@@ -3,11 +3,12 @@ class_name BattleCharacter
 
 enum CharacterType {
     PLAYER,
-    FRIENDLY_BY_DEFAULT,
+    FRIENDLY,
     NEUTRAL,
-    ENEMY_BY_DEFAULT
+    ENEMY
 }
 @export var character_type : CharacterType = CharacterType.PLAYER
+@export var character_name : String = "Test Enemy"
 @export var max_hp: int = 100
 @export var current_hp: int = 100
 @export var vitality : int = 10
@@ -24,9 +25,11 @@ func roll_initiative() -> int:
     return initiative
 
 func _ready() -> void:
-    if character_type == CharacterType.FRIENDLY_BY_DEFAULT:
+    get_parent().name = character_name
+
+    if character_type == CharacterType.FRIENDLY:
         print(self.get_parent().name + " is a friendly character")
-    elif character_type == CharacterType.ENEMY_BY_DEFAULT:
+    elif character_type == CharacterType.ENEMY:
         print(self.get_parent().name + " is an enemy character")
     elif character_type == CharacterType.PLAYER:
         print(self.get_parent().name + " is a player character")

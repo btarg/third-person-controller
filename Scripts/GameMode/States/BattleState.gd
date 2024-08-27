@@ -24,7 +24,7 @@ func enter_battle(character: BattleCharacter) -> void:
         print("Inactive")
         return
 
-    var character_name := character.get_parent().name
+    var character_name := character.character_name
 
     if turn_order.has(character):
         print(character_name + " already in turn order")
@@ -45,21 +45,23 @@ func enter_battle(character: BattleCharacter) -> void:
         if not inserted:
             turn_order.append(character)
 
-    if character.character_type != BattleCharacter.CharacterType.PLAYER:
-        # Give the character a unique name
-        if not character_counts.has(character_name):
-            character_counts[character_name] = 0
-
-        var count: int = character_counts[character_name]
-        character_counts[character_name] += 1
-        if count > 1:
-            character_name += " " + Util.get_letter(count)
-            # Set node name
-            character.get_parent().name = character_name
-
+    if character.character_type == BattleCharacter.CharacterType.ENEMY:
         enemy_units.append(character)
-    else:
+
+        # initialise count for character name
+        if not character_counts.has(character_name):
+            character_counts.get_or_add(character_name, 0)
+
+        # Give the enemy a unique name if there are multiple enemies with the same name
+        character_counts[character_name] += 1
+        var count: int = character_counts[character_name]
+        character_name += " " + Util.get_letter(count)
+
+
+    elif character.character_type == BattleCharacter.CharacterType.PLAYER:
         player_units.append(character)
+
+    character.get_parent().name = character_name
 
     print(character_name + " entered the battle with initiative " + str(initiative))
     

@@ -29,7 +29,6 @@ var spring_arm_clamp := deg_to_rad(spring_arm_clamp_degrees)
 
 const CAMERA_BLEND : float = 0.1
 
-
 @onready var spring_arm : SpringArm3D = $SpringArm3D
 @onready var camera : Camera3D = $SpringArm3D/FreelookCamera
 @onready var player := owner as CharacterBody3D

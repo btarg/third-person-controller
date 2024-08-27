@@ -1,6 +1,7 @@
 extends CharacterBody3D
 class_name TopDownPlayerController
 
+@onready var player := get_tree().get_nodes_in_group("Player")[0] as PlayerController
 @onready var spring_arm_pivot := $TopDownPlayerPivot as Node3D
 @onready var spring_arm := spring_arm_pivot.get_node("SpringArm3D") as SpringArm3D
 @onready var camera := spring_arm.get_node("TopDownCamera") as Camera3D
@@ -15,7 +16,8 @@ const LERP_VALUE : float = 0.15
 var speed: float = 7.0
 var acceleration: float = 0.1
 var deceleration: float = 0.2
-
+var focus_acceleration: float = 0.01
+@onready var focused_node: Node3D = player
 @onready var target_spring_length := spring_arm.spring_length
 
 @export var enabled : bool:
@@ -61,6 +63,15 @@ func player_process(_delta) -> void:
 
     # Lerp the spring length
     spring_arm.spring_length = lerp(spring_arm.spring_length, target_spring_length, LERP_VALUE)
+    
+    # Keep the same Y level as the focused node
+    if focused_node:
+        var target_y := focused_node.global_transform.origin.y
+        var current_y := global_transform.origin.y
+        var new_y : float = lerp(current_y, target_y, focus_acceleration)
+        global_transform.origin.y = new_y
+    else:
+        printerr("No focused node set!")
 
     move_and_slide()
 
@@ -74,3 +85,5 @@ func unhandled_input_update(event) -> void:
             target_spring_length = clamp(spring_arm.spring_length- spring_arm_scroll_speed, min_spring_arm_length, max_spring_arm_length)
         elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
             target_spring_length = clamp(spring_arm.spring_length + spring_arm_scroll_speed, min_spring_arm_length, max_spring_arm_length)
+        elif event is InputEventKey and event.is_pressed() and event.keycode == KEY_F:
+            position.y += 10.0

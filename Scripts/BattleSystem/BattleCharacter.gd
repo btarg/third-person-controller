@@ -7,8 +7,17 @@ enum CharacterType {
     NEUTRAL,
     ENEMY
 }
+
 @export var character_type : CharacterType = CharacterType.PLAYER
-@export var character_name : String = "Test Enemy"
+
+@export var character_name : String = "Test Enemy":
+    get:
+        return character_name
+    set(value):
+        character_name = value
+        get_parent().name = character_name
+
+
 @export var max_hp: int = 100
 @export var current_hp: int = 100
 @export var vitality : int = 10
@@ -18,20 +27,41 @@ enum CharacterType {
 
 var initiative: int = 0
 
-@export var active := true
+@export var active := false
+
+func _ready() -> void:
+    battle_state.TurnStarted.connect(_on_turn_started)
+
+func disconnect_signals() -> void:
+    battle_state.TurnStarted.disconnect(_on_turn_started)
+
+func _on_turn_started(character: BattleCharacter) -> void:
+    if character == self:
+        start_turn()
+    elif active:
+        # end turn if we were the last active character
+        end_turn()
+
+func start_turn() -> void:
+    print(character_name + " is starting their turn")
+    active = true
+func end_turn() -> void:
+    print(character_name + " has ended their turn")
+    active = false
+
+func take_turn() -> void:
+    print(character_name + " Attacks!")
+    battle_state.ready_next_turn()
 
 func roll_initiative() -> int:
     initiative = DiceRoller.roll_flat(20, 1)
     return initiative
 
-func _ready() -> void:
-    get_parent().name = character_name
+func battle_input(event) -> void:
+    if not active:
+        return
 
-    # if character_type == CharacterType.FRIENDLY:
-    #     print(self.get_parent().name + " is a friendly character")
-    # elif character_type == CharacterType.ENEMY:
-    #     print(self.get_parent().name + " is an enemy character")
-    # elif character_type == CharacterType.PLAYER:
-    #     print(self.get_parent().name + " is a player character")
-    # else:
-    #     print(self.get_parent().name + " is a neutral character")
+    if event.is_action_pressed("ui_select"):
+        take_turn()
+    elif event.is_action_pressed("ui_cancel"):
+        battle_state.leave_battle(self)

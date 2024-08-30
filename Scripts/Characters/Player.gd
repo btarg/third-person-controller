@@ -18,8 +18,6 @@ const ANIMATION_BLEND : float = 7.0
 @onready var spring_arm_pivot := $FreelookPivot as SpringArmCameraPivot
 @onready var animator : AnimationTree = $AnimationTree
 
-@onready var tween := create_tween()
-
 @export var enabled : bool:
     get:
         return enabled
@@ -36,6 +34,7 @@ func _ready() -> void:
 func reset_to_idle() -> void:
     print("Resetting to idle")
     animator.set("parameters/ground_air_transition/transition_request", "grounded")
+    var tween := create_tween()
     tween.tween_property(animator, "parameters/iwr_blend/blend_amount", -1.0, 0.25)
 
 ## Called from state

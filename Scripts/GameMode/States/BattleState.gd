@@ -5,7 +5,8 @@ signal EndedBattle
 var turn_order: Array[BattleCharacter] = []
 
 # get player from group
-@onready var player := get_tree().get_nodes_in_group("Player")[0] as PlayerController
+@onready var player := get_tree().get_nodes_in_group("Player").front() as PlayerController
+# top down player is used for the camera in battle
 @onready var top_down_player := get_tree().get_nodes_in_group("TopDownPlayer").front() as TopDownPlayerController
 var test_enemy := preload("res://Scenes/Characters/Enemies/test_enemy.tscn") as PackedScene
 
@@ -14,6 +15,11 @@ var player_units: Array[BattleCharacter] = []
 
 # String : int
 var character_counts: Dictionary = {}
+
+var current_character_index: int = 0
+var current_character: BattleCharacter
+
+signal TurnStarted(character: BattleCharacter)
 
 @export var is_in_battle : bool = false:
     get:
@@ -62,13 +68,10 @@ func add_to_battle(character: BattleCharacter) -> void:
     elif character.character_type == BattleCharacter.CharacterType.PLAYER:
         player_units.append(character)
 
-    character.get_parent().name = character_name
-
+    # set the name in the script so the character instance knows its proper name in battle
+    character.character_name = character_name
     print(character_name + " entered the battle with initiative " + str(initiative))
     
-    print("==COUNTS==")
-    print(character_counts)
-
     print_turn_order()
 
 func leave_battle(character: BattleCharacter) -> void:
@@ -80,22 +83,41 @@ func leave_battle(character: BattleCharacter) -> void:
     print(character.get_parent().name + " left the battle")
     print(turn_order)
 
+    # disconnect signal
+    character.disconnect_signals()
+
+    # if the current turn order index is out of bounds, reset it
+    if current_character_index >= turn_order.size():
+        current_character_index = 0
+
     # TODO: victory/defeat conditions
 
 func enter() -> void:
+    
     Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
     top_down_player.enabled = true
     print("Battle state entered")
     for child in get_tree().get_nodes_in_group("BattleCharacter"):
         if child is BattleCharacter:
-            if child.active:
-                add_to_battle(child as BattleCharacter)
-            else:
-                printerr(child.name + " is inactive")
+            add_to_battle(child as BattleCharacter)
         else:
             printerr(child.name + " should not be tagged as a BattleCharacter!!")
             printerr(child)
+
+    if turn_order.is_empty():
+        return
+
+    # Start the first character's turn
+    current_character_index = -1
+    ready_next_turn()
+
+func ready_next_turn() -> void:
+    current_character_index += 1
+    if current_character_index >= turn_order.size():
+        current_character_index = 0
+    current_character = turn_order[current_character_index % turn_order.size()]
+    TurnStarted.emit(current_character)
 
 func exit() -> void:
     EndedBattle.emit()
@@ -131,7 +153,12 @@ func print_turn_order() -> void:
         print(turn_order[0].get_parent().name + " has the highest initiative")
 
 func input_update(event) -> void:
+
     if event is InputEventKey and not event.is_echo() and active:
+
+        if current_character != null:
+            current_character.battle_input(event)
+
         if event.is_pressed() and event.keycode == KEY_R:
             Transitioned.emit(self, "ExplorationState")
         elif event.is_pressed() and event.keycode == KEY_P:

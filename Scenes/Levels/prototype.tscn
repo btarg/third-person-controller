@@ -88,7 +88,7 @@ surface_material_override/0 = SubResource("StandardMaterial3D_pfpgv")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Slope/StaticBody3D"]
 shape = SubResource("ConcavePolygonShape3D_rit6o")
 
-[node name="Player" parent="." instance=ExtResource("2_1g73n")]
-
 [node name="TopDownPlayer" parent="." instance=ExtResource("5_kwyn1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.2782, 0, 9.35357)
+
+[node name="Player" parent="." instance=ExtResource("2_1g73n")]

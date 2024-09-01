@@ -26,13 +26,14 @@ enum CharacterType {
 @onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
 @onready var exploration_state := get_node("/root/GameModeStateMachine/ExplorationState") as ExplorationState
 
-@onready var behaviour_state_machine := $StateMachine as StateMachine
-@onready var enemy_idle_state := behaviour_state_machine.get_node("IdleState") as EnemyIdleState
+@onready var behaviour_state_machine := self.get_node("StateMachine") as StateMachine
+@onready var idle_state := behaviour_state_machine.get_node("IdleState") as IdleState
 
+signal TurnEnded(character: BattleCharacter)
+
+var active := false
 
 var initiative: int = 0
-
-@export var active := false
 
 func on_joined_battle() -> void:
 	battle_state.TurnStarted.connect(_on_turn_started)
@@ -49,21 +50,17 @@ func _on_turn_started(character: BattleCharacter) -> void:
 		end_turn()
 
 func start_turn() -> void:
+	print("========")
 	print(character_name + " is starting their turn")
+	print("========")
 	active = true
 
-	if character_type == CharacterType.ENEMY:
-		enemy_idle_state.go_to_think_state()
-	else:
-		print("Not thinking")
+	idle_state.go_to_think_state()
 
 func end_turn() -> void:
 	print(character_name + " has ended their turn")
 	active = false
-
-func take_turn() -> void:
-	print(character_name + " Attacks!")
-	battle_state.ready_next_turn()
+	TurnEnded.emit(self)
 
 func roll_initiative() -> int:
 	initiative = DiceRoller.roll_flat(20, 1)
@@ -72,8 +69,5 @@ func roll_initiative() -> int:
 func battle_input(event) -> void:
 	if not active:
 		return
-
-	if event.is_action_pressed("ui_select"):
-		take_turn()
-	elif event.is_action_pressed("ui_cancel"):
+	if event.is_action_pressed("ui_cancel"):
 		battle_state.leave_battle(self)

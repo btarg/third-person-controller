@@ -2,8 +2,8 @@
 
 [ext_resource type="Script" path="res://Scripts/BattleSystem/BattleCharacter.gd" id="1_fdfp1"]
 [ext_resource type="Script" path="res://Scripts/StateMachine/StateMachine.gd" id="2_0pk5e"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Enemy/EnemyIdleState.gd" id="3_kutio"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Enemy/TestEnemy/TestEnemyBattleStartThinkState.gd" id="3_xxa0b"]
+[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Enemy/IdleState.gd" id="3_kutio"]
+[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Enemy/TestEnemy/TestEnemyThinkState.gd" id="3_xxa0b"]
 
 [node name="TestEnemy" type="CSGSphere3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.69273, 0.629783, 3.63427)
@@ -18,5 +18,5 @@ script = ExtResource("2_0pk5e")
 [node name="IdleState" type="Node" parent="BattleCharacter/StateMachine"]
 script = ExtResource("3_kutio")
 
-[node name="BattleStartThinkState" type="Node" parent="BattleCharacter/StateMachine"]
+[node name="ThinkState" type="Node" parent="BattleCharacter/StateMachine"]
 script = ExtResource("3_xxa0b")

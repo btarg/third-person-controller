@@ -37,6 +37,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func on_state_transitioned(state : State, new_state_name : String) -> void:
 	if state != current_state:
 		printerr("Cannot change state from a non-active state")
+		print_stack()
 		return
 	
 	if !current_state:

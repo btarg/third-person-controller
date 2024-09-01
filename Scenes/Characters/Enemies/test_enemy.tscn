@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://dx7xo5kutl8rv"]
+[gd_scene load_steps=5 format=3 uid="uid://dx7xo5kutl8rv"]
 
 [ext_resource type="Script" path="res://Scripts/BattleSystem/BattleCharacter.gd" id="1_fdfp1"]
+[ext_resource type="Script" path="res://Scripts/StateMachine/StateMachine.gd" id="2_0pk5e"]
+[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Enemy/EnemyIdleState.gd" id="3_kutio"]
+[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Enemy/TestEnemy/TestEnemyBattleStartThinkState.gd" id="3_xxa0b"]
 
 [node name="TestEnemy" type="CSGSphere3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.69273, 0.629783, 3.63427)
@@ -8,3 +11,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.69273, 0.629783, 3.63427)
 [node name="BattleCharacter" type="Node" parent="." groups=["BattleCharacter"]]
 script = ExtResource("1_fdfp1")
 character_type = 3
+
+[node name="StateMachine" type="Node" parent="BattleCharacter"]
+script = ExtResource("2_0pk5e")
+
+[node name="IdleState" type="Node" parent="BattleCharacter/StateMachine"]
+script = ExtResource("3_kutio")
+
+[node name="BattleStartThinkState" type="Node" parent="BattleCharacter/StateMachine"]
+script = ExtResource("3_xxa0b")

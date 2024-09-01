@@ -66,6 +66,8 @@ func add_to_battle(character: BattleCharacter) -> void:
     # set the name in the script so the character instance knows its proper name in battle
     character.character_name = character_name
     print(character_name + " entered the battle with initiative " + str(initiative))
+
+    character.on_joined_battle()
     
     print_turn_order()
 
@@ -83,7 +85,7 @@ func leave_battle(character: BattleCharacter) -> void:
     character_counts.erase(character.character_name)
 
     # disconnect signal
-    character.battle_ended()
+    character.on_leave_battle()
 
     # if the current turn order index is out of bounds, reset it
     if current_character_index >= turn_order.size():

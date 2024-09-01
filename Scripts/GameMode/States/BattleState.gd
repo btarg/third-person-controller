@@ -53,21 +53,25 @@ func add_to_battle(character: BattleCharacter) -> void:
             turn_order.append(character)
 
     if character.character_type == BattleCharacter.CharacterType.ENEMY:
-        enemy_units.append(character)
+        
         # Give the enemy a unique name if there are multiple enemies with the same name
         var count: int = character_counts.get_or_add(character_name, 0)
         character_counts[character_name] += 1
         character_name += " " + Util.get_letter(count + 1)
 
-
-    elif character.character_type == BattleCharacter.CharacterType.PLAYER:
-        player_units.append(character)
-
+   
     # set the name in the script so the character instance knows its proper name in battle
     character.character_name = character_name
+
+    if character.character_type == BattleCharacter.CharacterType.PLAYER:
+        player_units.append(character)
+    elif character.character_type == BattleCharacter.CharacterType.ENEMY:
+        enemy_units.append(character)
+
+
     print(character_name + " entered the battle with initiative " + str(initiative))
 
-    character.on_joined_battle()
+    # character.on_joined_battle()
     
     print_turn_order()
 
@@ -84,7 +88,6 @@ func leave_battle(character: BattleCharacter) -> void:
     turn_order.erase(character)
     character_counts.erase(character.character_name)
 
-    # disconnect signal
     character.on_leave_battle()
 
     # if the current turn order index is out of bounds, reset it
@@ -101,6 +104,8 @@ func enter() -> void:
 
     top_down_player.enabled = true
     print("Battle state entered")
+    
+
     for child in get_tree().get_nodes_in_group("BattleCharacter"):
         if child is BattleCharacter:
             add_to_battle(child as BattleCharacter)
@@ -110,6 +115,8 @@ func enter() -> void:
 
     if turn_order.is_empty():
         return
+    elif turn_order.size() == 1:
+        spawn_enemy()
 
     # Start the first character's turn
     current_character_index = -1
@@ -172,11 +179,14 @@ func input_update(event) -> void:
         elif event.is_pressed() and event.keycode == KEY_P:
             print_turn_order()
         elif event.is_pressed() and event.keycode == KEY_1:
-            var enemy_instance := test_enemy.instantiate()
-            add_child(enemy_instance)
-            enemy_instance.global_position = player.global_position
-            var enemy_battle_character := enemy_instance.get_node("BattleCharacter") as BattleCharacter
-            add_to_battle(enemy_battle_character)
+            spawn_enemy()
+
+func spawn_enemy() -> void:
+    var enemy_instance := test_enemy.instantiate()
+    add_child(enemy_instance)
+    enemy_instance.global_position = player.global_position
+    var enemy_battle_character := enemy_instance.get_node("BattleCharacter") as BattleCharacter
+    add_to_battle(enemy_battle_character)
 
 func unhandled_input_update(event) -> void:
     top_down_player.unhandled_input_update(event)

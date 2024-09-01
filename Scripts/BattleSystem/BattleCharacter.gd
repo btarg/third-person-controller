@@ -29,18 +29,18 @@ enum CharacterType {
 @onready var behaviour_state_machine := self.get_node("StateMachine") as StateMachine
 @onready var idle_state := behaviour_state_machine.get_node("IdleState") as IdleState
 
-signal TurnEnded(character: BattleCharacter)
+signal LeaveBattle
 
 var active := false
 
 var initiative: int = 0
 
-func on_joined_battle() -> void:
+func _ready() -> void:
 	battle_state.TurnStarted.connect(_on_turn_started)
-
+	
 func on_leave_battle() -> void:
-	battle_state.TurnStarted.disconnect(_on_turn_started)
 	character_name = default_character_name
+	LeaveBattle.emit()
 
 func _on_turn_started(character: BattleCharacter) -> void:
 	if character == self:
@@ -58,9 +58,8 @@ func start_turn() -> void:
 	idle_state.go_to_think_state()
 
 func end_turn() -> void:
-	print(character_name + " has ended their turn")
+	print(character_name + " has finished processing their turn")
 	active = false
-	TurnEnded.emit(self)
 
 func roll_initiative() -> int:
 	initiative = DiceRoller.roll_flat(20, 1)

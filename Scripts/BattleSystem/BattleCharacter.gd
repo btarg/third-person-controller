@@ -10,7 +10,8 @@ enum CharacterType {
 
 @export var character_type : CharacterType = CharacterType.PLAYER
 
-@export var character_name : String = "Test Enemy":
+@export var default_character_name: String = "Test Enemy"
+var character_name : String = default_character_name:
     get:
         return character_name
     set(value):
@@ -32,8 +33,9 @@ var initiative: int = 0
 func _ready() -> void:
     battle_state.TurnStarted.connect(_on_turn_started)
 
-func disconnect_signals() -> void:
+func battle_ended() -> void:
     battle_state.TurnStarted.disconnect(_on_turn_started)
+    character_name = default_character_name
 
 func _on_turn_started(character: BattleCharacter) -> void:
     if character == self:

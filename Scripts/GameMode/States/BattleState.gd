@@ -54,15 +54,10 @@ func add_to_battle(character: BattleCharacter) -> void:
 
     if character.character_type == BattleCharacter.CharacterType.ENEMY:
         enemy_units.append(character)
-
-        # initialise count for character name
-        if not character_counts.has(character_name):
-            character_counts.get_or_add(character_name, 0)
-
         # Give the enemy a unique name if there are multiple enemies with the same name
+        var count: int = character_counts.get_or_add(character_name, 0)
         character_counts[character_name] += 1
-        var count: int = character_counts[character_name]
-        character_name += " " + Util.get_letter(count)
+        character_name += " " + Util.get_letter(count + 1)
 
 
     elif character.character_type == BattleCharacter.CharacterType.PLAYER:
@@ -78,17 +73,23 @@ func leave_battle(character: BattleCharacter) -> void:
     if not active or not turn_order.has(character):
         return
 
-    # remove character from turn order
+
+    if character.character_type == BattleCharacter.CharacterType.ENEMY:
+        enemy_units.erase(character)
+    elif character.character_type == BattleCharacter.CharacterType.PLAYER:
+        player_units.erase(character)
+
     turn_order.erase(character)
-    print(character.get_parent().name + " left the battle")
-    print(turn_order)
+    character_counts.erase(character.character_name)
 
     # disconnect signal
-    character.disconnect_signals()
+    character.battle_ended()
 
     # if the current turn order index is out of bounds, reset it
     if current_character_index >= turn_order.size():
         current_character_index = 0
+
+    print(character.get_parent().name + " left the battle")
 
     # TODO: victory/defeat conditions
 
@@ -117,9 +118,14 @@ func ready_next_turn() -> void:
     if current_character_index >= turn_order.size():
         current_character_index = 0
     current_character = turn_order[current_character_index % turn_order.size()]
+    top_down_player.focused_node = current_character.get_parent()
     TurnStarted.emit(current_character)
 
 func exit() -> void:
+    for character in turn_order:
+        # make sure we clean up the character
+        leave_battle(character)
+
     EndedBattle.emit()
     turn_order.clear()
     player_units.clear()

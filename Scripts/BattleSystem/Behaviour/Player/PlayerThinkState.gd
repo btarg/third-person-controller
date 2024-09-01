@@ -26,6 +26,6 @@ func physics_update(delta: float) -> void: pass
 func input_update(event: InputEvent) -> void: pass
 
 func unhandled_input_update(event: InputEvent) -> void:
-	if active and event.is_action_pressed("ui_select"):
+	if active and not event.is_echo() and event.is_action_pressed("ui_select"):
 		print("Player attacks!")
 		battle_character.battle_state.ready_next_turn()

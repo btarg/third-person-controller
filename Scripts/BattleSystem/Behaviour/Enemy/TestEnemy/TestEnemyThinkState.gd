@@ -22,9 +22,7 @@ func exit() -> void:
 
 func update(delta: float) -> void: pass
 
-func physics_update(delta: float) -> void:
-    if active:
-        print(battle_character.character_name + " is thinking")
+func physics_update(delta: float) -> void: pass
 
 
 func input_update(event: InputEvent) -> void:

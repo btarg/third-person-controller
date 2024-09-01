@@ -15,10 +15,10 @@ func enter() -> void:
     print(battle_character.character_name + " is thinking about what to do")
 
 func _stop_thinking() -> void:
+    print(battle_character.character_name + " has stopped thinking")
     Transitioned.emit(self, "IdleState")
 
-func exit() -> void:
-    print(battle_character.character_name + " has stopped thinking")
+func exit() -> void: pass
 
 func update(delta: float) -> void: pass
 
@@ -26,8 +26,8 @@ func physics_update(delta: float) -> void: pass
 
 
 func input_update(event: InputEvent) -> void:
-    if event is InputEventKey and not event.is_echo() and event.keycode == KEY_0:
-        print("Enemy attacks!")
+    if event is InputEventKey and not event.is_echo() and event.keycode == KEY_0 and event.is_pressed():
+        print(battle_character.character_name + " attacks!")
         _stop_thinking()
         battle_character.battle_state.ready_next_turn()
 

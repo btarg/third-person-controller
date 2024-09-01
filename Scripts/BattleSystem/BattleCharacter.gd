@@ -45,9 +45,8 @@ func on_leave_battle() -> void:
 func _on_turn_started(character: BattleCharacter) -> void:
 	if character == self:
 		start_turn()
-	elif active:
-		# end turn if we were the last active character
-		end_turn()
+	elif not active:
+		active = false
 
 func start_turn() -> void:
 	print("========")
@@ -57,9 +56,6 @@ func start_turn() -> void:
 
 	idle_state.go_to_think_state()
 
-func end_turn() -> void:
-	print(character_name + " has finished processing their turn")
-	active = false
 
 func roll_initiative() -> int:
 	initiative = DiceRoller.roll_flat(20, 1)

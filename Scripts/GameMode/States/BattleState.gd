@@ -54,25 +54,30 @@ func add_to_battle(character: BattleCharacter) -> void:
 
     if character.character_type == BattleCharacter.CharacterType.ENEMY:
         
-        # Give the enemy a unique name if there are multiple enemies with the same name
-        var count: int = character_counts.get_or_add(character_name, 0)
-        character_counts[character_name] += 1
-        character_name += " " + Util.get_letter(count + 1)
+        enemy_units.append(character)
 
+        # Give the enemy a unique name if there are multiple enemies with the same name
+        character_counts.get_or_add(character_name, 0)
+        # We don't use the get_or_add return value because we want to increment the count
+        # get_letter is 0-indexed so we add 1 after getting the letter
+        var name_suffix := " " + Util.get_letter(character_counts[character_name])
+        character_counts[character_name] += 1
+        # Don't add A to the name if it's the first enemy
+        if character_counts[character_name] > 1:
+            character_name += name_suffix
    
     # set the name in the script so the character instance knows its proper name in battle
     character.character_name = character_name
 
     if character.character_type == BattleCharacter.CharacterType.PLAYER:
         player_units.append(character)
-    elif character.character_type == BattleCharacter.CharacterType.ENEMY:
-        enemy_units.append(character)
+        
 
 
     print(character_name + " entered the battle with initiative " + str(initiative))
 
-    # character.on_joined_battle()
     
+    print(character_counts)
     print_turn_order()
 
 func leave_battle(character: BattleCharacter) -> void:

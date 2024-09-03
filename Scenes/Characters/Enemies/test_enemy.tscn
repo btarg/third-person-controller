@@ -1,9 +1,36 @@
-[gd_scene load_steps=5 format=3 uid="uid://dx7xo5kutl8rv"]
+[gd_scene load_steps=12 format=3 uid="uid://dx7xo5kutl8rv"]
 
 [ext_resource type="Script" path="res://Scripts/BattleSystem/BattleCharacter.gd" id="1_fdfp1"]
 [ext_resource type="Script" path="res://Scripts/StateMachine/StateMachine.gd" id="2_0pk5e"]
 [ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Enemy/IdleState.gd" id="3_kutio"]
 [ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Enemy/TestEnemy/TestEnemyThinkState.gd" id="3_xxa0b"]
+[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/CharacterStats.gd" id="5_gtjtv"]
+[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/CharacterStatEntry.gd" id="6_i5xwa"]
+
+[sub_resource type="Resource" id="Resource_5m16x"]
+script = ExtResource("6_i5xwa")
+stat_key = 0
+stat_value = 100.0
+
+[sub_resource type="Resource" id="Resource_4w5ru"]
+script = ExtResource("6_i5xwa")
+stat_key = 2
+stat_value = 1.0
+
+[sub_resource type="Resource" id="Resource_xokjm"]
+script = ExtResource("6_i5xwa")
+stat_key = 3
+stat_value = 1.0
+
+[sub_resource type="Resource" id="Resource_d7f32"]
+script = ExtResource("6_i5xwa")
+stat_key = 4
+stat_value = 1.0
+
+[sub_resource type="Resource" id="Resource_b0cr8"]
+script = ExtResource("6_i5xwa")
+stat_key = 5
+stat_value = 1.0
 
 [node name="TestEnemy" type="CSGSphere3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.69273, 0.629783, 3.63427)
@@ -20,3 +47,7 @@ script = ExtResource("3_kutio")
 
 [node name="ThinkState" type="Node" parent="BattleCharacter/StateMachine"]
 script = ExtResource("3_xxa0b")
+
+[node name="CharacterStats" type="Node" parent="BattleCharacter"]
+script = ExtResource("5_gtjtv")
+stats = Array[ExtResource("6_i5xwa")]([SubResource("Resource_5m16x"), SubResource("Resource_4w5ru"), SubResource("Resource_xokjm"), SubResource("Resource_d7f32"), SubResource("Resource_b0cr8")])

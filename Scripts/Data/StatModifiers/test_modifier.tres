@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="StatModifier" load_steps=2 format=3 uid="uid://wvskcp8igxua"]
+
+[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/StatModifier.gd" id="1_w0iix"]
+
+[resource]
+script = ExtResource("1_w0iix")
+stat = 0
+name = "Double HP"
+description = "Doubles Max HP indefinitely"
+stat_value = 2.0
+turn_duration = -1
+can_stack = true
+stack_override = false

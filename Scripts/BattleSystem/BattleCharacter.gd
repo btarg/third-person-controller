@@ -22,6 +22,7 @@ enum CharacterType {
 @export var max_hp: int = 100
 @export var current_hp: int = 100
 @export var vitality : int = 10
+@export var evasion: int = 10
 
 @onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
 @onready var exploration_state := get_node("/root/GameModeStateMachine/ExplorationState") as ExplorationState

@@ -38,7 +38,6 @@ func get_stat(stat: CharacterStatEntry.ECharacterStat, with_modifiers: bool = tr
             stat_value = entry.stat_value
             break
     var stat_value_with_modifiers: float = stat_value
-    print(">>> STAT VALUE: " + str(stat_value))
     var stat_modifiers_copy := stat_modifiers
 
     # sort stat modifiers by turns left

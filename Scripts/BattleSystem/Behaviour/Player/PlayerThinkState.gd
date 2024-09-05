@@ -22,9 +22,9 @@ func _stop_thinking() -> void:
 func exit() -> void:
     print(battle_character.character_name + " has stopped thinking")
 
-func update(delta: float) -> void: pass
+func update(_delta: float) -> void: pass
 
-func physics_update(delta: float) -> void: pass
+func physics_update(_delta: float) -> void: pass
 
 func shoot_ray() -> void:
     var camera := battle_state.top_down_player.camera
@@ -62,4 +62,4 @@ func input_update(event: InputEvent) -> void:
         _stop_thinking()
         battle_character.battle_state.ready_next_turn()
 
-func unhandled_input_update(event: InputEvent) -> void: pass
+func unhandled_input_update(_event: InputEvent) -> void: pass

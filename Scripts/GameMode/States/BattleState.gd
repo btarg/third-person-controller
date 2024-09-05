@@ -55,7 +55,7 @@ func add_to_battle(character: BattleCharacter) -> void:
         if not inserted:
             turn_order.append(character)
 
-    if character.character_type == BattleCharacter.CharacterType.ENEMY:
+    if character.character_type == BattleEnums.CharacterType.ENEMY:
         
         enemy_units.append(character)
 
@@ -72,7 +72,7 @@ func add_to_battle(character: BattleCharacter) -> void:
     # set the name in the script so the character instance knows its proper name in battle
     character.character_name = character_name
 
-    if character.character_type == BattleCharacter.CharacterType.PLAYER:
+    if character.character_type == BattleEnums.CharacterType.PLAYER:
         player_units.append(character)
     
 
@@ -84,9 +84,9 @@ func leave_battle(character: BattleCharacter) -> void:
         return
 
 
-    if character.character_type == BattleCharacter.CharacterType.ENEMY:
+    if character.character_type == BattleEnums.CharacterType.ENEMY:
         enemy_units.erase(character)
-    elif character.character_type == BattleCharacter.CharacterType.PLAYER:
+    elif character.character_type == BattleEnums.CharacterType.PLAYER:
         player_units.erase(character)
 
     turn_order.erase(character)
@@ -146,6 +146,8 @@ func exit() -> void:
     character_counts.clear()
 
     top_down_player.enabled = false
+
+    print("Battle State left")
 
 func update(_delta) -> void:
     pass

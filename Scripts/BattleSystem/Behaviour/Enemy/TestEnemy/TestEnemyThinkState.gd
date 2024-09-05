@@ -16,22 +16,18 @@ func _on_leave_battle() -> void:
 
 func enter() -> void:
     print(battle_character.character_name + " is thinking about what to do")
-    await wait(0.5)
+    await wait(0.75)
 
     _stop_thinking()
     battle_character.battle_state.ready_next_turn()
 
 func _stop_thinking() -> void:
-    print(battle_character.character_name + " has stopped thinking")
     Transitioned.emit(self, "IdleState")
 
-func exit() -> void: pass
-
-func update(delta: float) -> void: pass
-
-func physics_update(delta: float) -> void: pass
-
-
-func input_update(event: InputEvent) -> void: pass
-
-func unhandled_input_update(event: InputEvent) -> void: pass
+func exit() -> void:
+    print(battle_character.character_name + " has stopped thinking")
+    
+func update(_delta: float) -> void: pass
+func physics_update(_delta: float) -> void: pass
+func input_update(_event: InputEvent) -> void: pass
+func unhandled_input_update(_event: InputEvent) -> void: pass

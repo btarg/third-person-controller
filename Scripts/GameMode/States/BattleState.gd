@@ -74,14 +74,10 @@ func add_to_battle(character: BattleCharacter) -> void:
 
     if character.character_type == BattleCharacter.CharacterType.PLAYER:
         player_units.append(character)
-        
-
+    
 
     print(character_name + " entered the battle with initiative " + str(initiative))
 
-    
-    print(character_counts)
-    print_turn_order()
 
 func leave_battle(character: BattleCharacter) -> void:
     if not active or not turn_order.has(character):
@@ -178,7 +174,7 @@ func print_turn_order() -> void:
 func input_update(event) -> void:
     if not active or event.is_echo():
         return
-        
+
     if event is InputEventKey:
         if current_character != null:
             current_character.battle_input(event)
@@ -189,6 +185,8 @@ func input_update(event) -> void:
             print_turn_order()
         elif event.is_pressed() and event.keycode == KEY_1:
             spawn_enemy()
+        elif event.is_pressed() and event.keycode == KEY_2:
+            GameModeStateMachine.override_state("ExplorationState")
 
         is_using_controller = false
 

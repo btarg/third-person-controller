@@ -19,21 +19,18 @@ enum CharacterType {
         get_parent().name = character_name
 
 
-@onready var stats := $CharacterStats as CharacterStats
-
 @onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
 @onready var exploration_state := get_node("/root/GameModeStateMachine/ExplorationState") as ExplorationState
-
 @onready var behaviour_state_machine := self.get_node("StateMachine") as StateMachine
 @onready var idle_state := behaviour_state_machine.get_node("IdleState") as IdleState
 
 
+@onready var stats := $CharacterStats as CharacterStats
 @onready var current_hp: float = stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP)
 
 signal LeaveBattle
 
 var active := false
-
 var initiative: int = 0
 
 func _ready() -> void:

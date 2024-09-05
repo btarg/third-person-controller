@@ -19,6 +19,9 @@ var character_counts: Dictionary = {}
 var current_character_index: int = 0
 var current_character: BattleCharacter
 
+## our best guess at the input method based on the last input update
+var is_using_controller: bool = false
+
 signal TurnStarted(character: BattleCharacter)
 
 @export var is_in_battle : bool = false:
@@ -173,9 +176,10 @@ func print_turn_order() -> void:
         print(turn_order[0].get_parent().name + " has the highest initiative")
 
 func input_update(event) -> void:
-
-    if event is InputEventKey and not event.is_echo() and active:
-
+    if not active or event.is_echo():
+        return
+        
+    if event is InputEventKey:
         if current_character != null:
             current_character.battle_input(event)
 
@@ -186,10 +190,18 @@ func input_update(event) -> void:
         elif event.is_pressed() and event.keycode == KEY_1:
             spawn_enemy()
 
+        is_using_controller = false
+
+    # if the input event is a controller input event, we can assume the player is using a controller
+    elif event is InputEventJoypadMotion or event is InputEventJoypadButton:
+        is_using_controller = true
+    elif event is InputEventMouseMotion or event is InputEventMouseButton:
+        is_using_controller = false
+
 func spawn_enemy() -> void:
     var enemy_instance := test_enemy.instantiate()
     add_child(enemy_instance)
-    enemy_instance.global_position = player.global_position
+    enemy_instance.global_position = player.global_position + Vector3(0, 4, 5)
     var enemy_battle_character := enemy_instance.get_node("BattleCharacter") as BattleCharacter
     add_to_battle(enemy_battle_character)
 

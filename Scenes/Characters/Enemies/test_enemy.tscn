@@ -33,7 +33,7 @@ stat_key = 5
 stat_value = 1.0
 
 [node name="TestEnemy" type="CSGSphere3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.69273, 0.629783, 3.63427)
+use_collision = true
 
 [node name="BattleCharacter" type="Node" parent="." groups=["BattleCharacter"]]
 script = ExtResource("1_fdfp1")

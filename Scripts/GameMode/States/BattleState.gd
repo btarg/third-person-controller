@@ -185,9 +185,6 @@ func input_update(event) -> void:
             print_turn_order()
         elif event.is_pressed() and event.keycode == KEY_1:
             spawn_enemy()
-        elif event.is_pressed() and event.keycode == KEY_2:
-            GameModeStateMachine.override_state("ExplorationState")
-
         is_using_controller = false
 
     # if the input event is a controller input event, we can assume the player is using a controller

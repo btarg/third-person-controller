@@ -58,7 +58,7 @@ func on_state_transitioned(state : State, new_state_name : String) -> void:
 	new_state.enter()
 
 ## Immediately transition to a new state (unsafe!)
-func override_state(new_state: String) -> void:
+func set_state(new_state: String) -> void:
 	if !current_state:
 		printerr("Current state is null, cannot transition")
 		return

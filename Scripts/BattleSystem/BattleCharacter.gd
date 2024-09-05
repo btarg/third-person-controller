@@ -22,7 +22,6 @@ enum CharacterType {
 @onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
 @onready var exploration_state := get_node("/root/GameModeStateMachine/ExplorationState") as ExplorationState
 @onready var behaviour_state_machine := self.get_node("StateMachine") as StateMachine
-@onready var idle_state := behaviour_state_machine.get_node("IdleState") as IdleState
 
 
 @onready var stats := $CharacterStats as CharacterStats
@@ -44,7 +43,7 @@ func on_leave_battle() -> void:
 func _on_turn_started(character: BattleCharacter) -> void:
     if character == self:
         start_turn()
-    elif not active:
+    elif active:
         active = false
 
 func start_turn() -> void:
@@ -53,7 +52,7 @@ func start_turn() -> void:
     print("========")
     active = true
 
-    idle_state.go_to_think_state()
+    behaviour_state_machine.set_state("ThinkState")
 
 
 func roll_initiative() -> int:

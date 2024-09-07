@@ -5,9 +5,15 @@ class_name PlayerChooseTargetState
 
 var can_select_enemies := true
 var can_select_friendlies := true
-
-func _ready():
+    
+func _ready() -> void:
+    battle_state.EndedBattle.connect(_on_battle_ended)
     battle_state.turn_order_ui.connect("item_selected", _select)
+
+func _on_battle_ended() -> void:
+    # return to the default idle state
+    Transitioned.emit(self, "IdleState")
+
 
 func _select(index: int) -> void:
     if not active:
@@ -18,6 +24,9 @@ func _select(index: int) -> void:
     select_character(selected_character)
 
 func shoot_ray() -> void:
+    if not active:
+        return
+
     var camera := battle_state.top_down_player.camera
 
     # center the raycast origin position if using controller
@@ -57,18 +66,21 @@ func enter() -> void:
 
 func exit() -> void:
     battle_state.turn_order_ui.hide()
+
+
 func update(_delta: float) -> void: pass
+
 func physics_update(_delta: float) -> void: pass
 
 func input_update(event: InputEvent) -> void:
-    if event.is_echo():
+    if event.is_echo() or not active:
         return
 
     elif event.is_action_pressed("ui_select"):
         Transitioned.emit(self, "ThinkState") # Go back to thinking state
 
 func unhandled_input_update(event: InputEvent) -> void:
-    if event.is_echo():
+    if event.is_echo() or not active:
         return
     if event.is_action_pressed("left_click"):
         shoot_ray()

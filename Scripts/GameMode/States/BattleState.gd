@@ -173,8 +173,6 @@ func exit() -> void:
     for character in turn_order:
         # make sure we clean up the character
         leave_battle(character)
-
-    EndedBattle.emit()
     turn_order.clear()
     current_character_index = 0
 
@@ -186,6 +184,7 @@ func exit() -> void:
 
     top_down_player.enabled = false
 
+    EndedBattle.emit()
     print("Battle State left")
 
 func update(_delta) -> void:

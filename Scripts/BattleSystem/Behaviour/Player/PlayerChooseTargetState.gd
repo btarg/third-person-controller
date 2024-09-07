@@ -13,8 +13,10 @@ func _select(index: int) -> void:
     if not active:
         return
 
-    var selected_character: BattleCharacter = battle_state.turn_order[index]
-    print("Selecting: " + str(index))
+    var selected_character_index: int = battle_state.turn_order_to_ui_dict[index]
+    var selected_character: BattleCharacter = battle_state.turn_order[selected_character_index]
+    print("Selecting index: " + str(selected_character_index))
+    print("Selecting: " + selected_character.character_name)
     select_character(selected_character)
 
 func shoot_ray() -> void:
@@ -24,12 +26,10 @@ func shoot_ray() -> void:
     var mouse_pos := camera.get_viewport().get_mouse_position() if not battle_state.is_using_controller else Vector2.ZERO
     print("Raycast origin pos: " + str(mouse_pos))
 
-    var from := camera.project_ray_origin(mouse_pos)
-    var to := camera.project_ray_normal(mouse_pos) * 1000
     var space := camera.get_world_3d().direct_space_state
     var ray_query := PhysicsRayQueryParameters3D.new()
-    ray_query.from = from
-    ray_query.to = to
+    ray_query.from = camera.project_ray_origin(mouse_pos)
+    ray_query.to = camera.project_ray_normal(mouse_pos) * 1000
     ray_query.exclude = [battle_state.top_down_player]
     var result := space.intersect_ray(ray_query)
     if result.size() > 0:

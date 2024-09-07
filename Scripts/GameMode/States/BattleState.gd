@@ -28,7 +28,9 @@ signal TurnStarted(character: BattleCharacter)
 ## This is used for attacking enemies etc
 var player_selected_character = null
 
+var turn_order_to_ui_dict: Dictionary = {}  # key = UI index, value = turn order index
 @onready var turn_order_ui := player.get_node("BattleDebugUI/ItemList") as ItemList
+
 
 func _ready() -> void:
     turn_order_ui.hide()
@@ -49,9 +51,12 @@ func add_to_battle(character: BattleCharacter) -> void:
         return
 
     var initiative := character.roll_initiative()
+    var inserted_at := -1
+
     if turn_order.size() == 0:
         # First character entering the battle, just append
         turn_order.append(character)
+        inserted_at = 0
     else:
         # Insert character into the correct position based on initiative
         var inserted := false
@@ -59,9 +64,11 @@ func add_to_battle(character: BattleCharacter) -> void:
             if character.initiative > turn_order[i].initiative:
                 turn_order.insert(i, character)
                 inserted = true
+                inserted_at = i
                 break
         if not inserted:
             turn_order.append(character)
+            inserted_at = turn_order.size() - 1
 
     if character.character_type == BattleEnums.CharacterType.ENEMY:
         
@@ -83,13 +90,16 @@ func add_to_battle(character: BattleCharacter) -> void:
     if character.character_type == BattleEnums.CharacterType.PLAYER:
         player_units.append(character)
         
-    _add_to_turn_order_ui(character)
+    _add_to_turn_order_ui(character, inserted_at)
     print(character_name + " entered the battle with initiative " + str(initiative))
     
 
-func _add_to_turn_order_ui(character: BattleCharacter) -> void:
-    turn_order_ui.add_item(character.character_name + " - " + str(character.initiative), null, true)
-    
+func _add_to_turn_order_ui(character: BattleCharacter, index_in_turn_order: int) -> void:
+    if index_in_turn_order == -1:
+        return
+
+    var ui_index := turn_order_ui.add_item(character.character_name + " - " + str(character.initiative), null, true)
+    turn_order_to_ui_dict.get_or_add(ui_index, index_in_turn_order)
 
 func _remove_from_turn_order_ui(character: BattleCharacter) -> void:
     for i in range(turn_order_ui.get_item_count()):
@@ -164,7 +174,10 @@ func exit() -> void:
 
     EndedBattle.emit()
     turn_order.clear()
+
     turn_order_ui.clear()
+    turn_order_to_ui_dict.clear()
+
     player_units.clear()
     enemy_units.clear()
     character_counts.clear()

@@ -12,10 +12,8 @@ func _ready():
 func _select(index: int) -> void:
     if not active:
         return
-
-    var selected_character_index: int = battle_state.turn_order_to_ui_dict[index]
-    var selected_character: BattleCharacter = battle_state.turn_order[selected_character_index]
-    print("Selecting index: " + str(selected_character_index))
+    var selected_character: BattleCharacter = battle_state.turn_order[index]
+    print("Selecting index: " + str(index))
     print("Selecting: " + selected_character.character_name)
     select_character(selected_character)
 

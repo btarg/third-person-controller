@@ -24,10 +24,18 @@ var is_using_controller: bool = false
 
 signal TurnStarted(character: BattleCharacter)
 
+## The BattleCharacter which the player has targeted
+## This is used for attacking enemies etc
+var player_selected_character = null
+
+@onready var turn_order_ui := player.get_node("BattleDebugUI/ItemList") as ItemList
+
 @export var is_in_battle : bool = false:
     get:
         return not turn_order.is_empty()
 
+func _ready() -> void:
+    turn_order_ui.connect("item_selected", _focus)
 
 func add_to_battle(character: BattleCharacter) -> void:
     if not active:
@@ -74,10 +82,23 @@ func add_to_battle(character: BattleCharacter) -> void:
 
     if character.character_type == BattleEnums.CharacterType.PLAYER:
         player_units.append(character)
-    
-
+        
+    _add_to_turn_order_ui(character)
     print(character_name + " entered the battle with initiative " + str(initiative))
 
+func _focus(index: int) -> void:
+    print("Focusing: " + str(index))
+    top_down_player.focused_node = turn_order[index].get_parent()
+
+func _add_to_turn_order_ui(character: BattleCharacter) -> void:
+    turn_order_ui.add_item(character.character_name + " - " + str(character.initiative), null, true)
+    
+
+func _remove_from_turn_order_ui(character: BattleCharacter) -> void:
+    for i in range(turn_order_ui.get_item_count()):
+        if turn_order_ui.get_item_text(i) == character.character_name + " - " + str(character.initiative):
+            turn_order_ui.remove_item(i)
+            break
 
 func leave_battle(character: BattleCharacter) -> void:
     if not active or not turn_order.has(character):
@@ -90,6 +111,8 @@ func leave_battle(character: BattleCharacter) -> void:
         player_units.erase(character)
 
     turn_order.erase(character)
+    _remove_from_turn_order_ui(character)
+
     character_counts.erase(character.character_name)
 
     character.on_leave_battle()
@@ -127,9 +150,12 @@ func enter() -> void:
     ready_next_turn()
 
 func ready_next_turn() -> void:
+    player_selected_character = null
+
     current_character_index += 1
     if current_character_index >= turn_order.size():
         current_character_index = 0
+
     current_character = turn_order[current_character_index % turn_order.size()]
     top_down_player.focused_node = current_character.get_parent()
     TurnStarted.emit(current_character)
@@ -141,6 +167,7 @@ func exit() -> void:
 
     EndedBattle.emit()
     turn_order.clear()
+    turn_order_ui.clear()
     player_units.clear()
     enemy_units.clear()
     character_counts.clear()
@@ -189,6 +216,7 @@ func input_update(event) -> void:
             spawn_enemy()
         is_using_controller = false
 
+    # TODO: do this in an autoload
     # if the input event is a controller input event, we can assume the player is using a controller
     elif event is InputEventJoypadMotion or event is InputEventJoypadButton:
         is_using_controller = true

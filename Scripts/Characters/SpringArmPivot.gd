@@ -49,7 +49,7 @@ func _setup_camera() -> void:
     if enabled:
         camera.make_current()
 
-func unhandled_input_update(event) -> void:
+func input_update(event) -> void:
     if enabled:
         if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
             rotate_y(-event.relative.x * 0.005)

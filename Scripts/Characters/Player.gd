@@ -38,8 +38,8 @@ func reset_to_idle() -> void:
     tween.tween_property(animator, "parameters/iwr_blend/blend_amount", -1.0, 0.25)
 
 ## Called from state
-func unhandled_input_update(event: InputEvent) -> void:
-    spring_arm_pivot.unhandled_input_update(event)
+func input_update(event: InputEvent) -> void:
+    spring_arm_pivot.input_update(event)
 
 ## Called from state
 func player_process(delta) -> void:

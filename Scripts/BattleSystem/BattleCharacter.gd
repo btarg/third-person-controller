@@ -54,8 +54,4 @@ func roll_initiative() -> int:
     initiative = DiceRoller.roll_flat(20, 1) + int(vitality)
     return initiative
 
-func battle_input(event) -> void:
-    if not active:
-        return
-    if event.is_action_pressed("ui_cancel"):
-        battle_state.leave_battle(self)
+func battle_input(_event) -> void: pass

@@ -96,6 +96,7 @@ func add_to_battle(character: BattleCharacter) -> void:
 
 func _add_to_turn_order_ui(character: BattleCharacter, index_in_turn_order: int) -> void:
     if index_in_turn_order == -1:
+        printerr("Invalid index in turn order")
         return
 
     var ui_index := turn_order_ui.add_item(character.character_name + " - " + str(character.initiative), null, true)
@@ -139,10 +140,11 @@ func enter() -> void:
     top_down_player.enabled = true
     print("Battle state entered")
     
-
+    var added: int = 0
     for child in get_tree().get_nodes_in_group("BattleCharacter"):
         if child is BattleCharacter:
             add_to_battle(child as BattleCharacter)
+            added += 1
         else:
             printerr(child.name + " should not be tagged as a BattleCharacter!!")
             printerr(child)
@@ -154,16 +156,22 @@ func enter() -> void:
 
     # Start the first character's turn
     current_character_index = -1
+    print("added: " + str(added))
     ready_next_turn()
 
 func ready_next_turn() -> void:
     player_selected_character = null
 
+    if turn_order.is_empty():
+        # end battle
+        printerr("Empty turn order!")
+        Transitioned.emit(self, "ExplorationState")
+
     current_character_index += 1
     if current_character_index >= turn_order.size():
         current_character_index = 0
 
-    current_character = turn_order[current_character_index % turn_order.size()]
+    current_character = turn_order[current_character_index]
     top_down_player.focused_node = current_character.get_parent()
     TurnStarted.emit(current_character)
 
@@ -174,6 +182,7 @@ func exit() -> void:
 
     EndedBattle.emit()
     turn_order.clear()
+    current_character_index = 0
 
     turn_order_ui.clear()
     turn_order_to_ui_dict.clear()

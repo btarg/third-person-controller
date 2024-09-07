@@ -140,11 +140,9 @@ func enter() -> void:
     top_down_player.enabled = true
     print("Battle state entered")
     
-    var added: int = 0
     for child in get_tree().get_nodes_in_group("BattleCharacter"):
         if child is BattleCharacter:
             add_to_battle(child as BattleCharacter)
-            added += 1
         else:
             printerr(child.name + " should not be tagged as a BattleCharacter!!")
             printerr(child)
@@ -156,15 +154,17 @@ func enter() -> void:
 
     # Start the first character's turn
     current_character_index = -1
-    print("added: " + str(added))
     ready_next_turn()
 
 func ready_next_turn() -> void:
+    if not active:
+        return
+
     player_selected_character = null
 
-    if turn_order.is_empty():
+    if turn_order.size() < 2:
         # end battle
-        printerr("Empty turn order!")
+        printerr("Invalid turn order!")
         Transitioned.emit(self, "ExplorationState")
 
     current_character_index += 1

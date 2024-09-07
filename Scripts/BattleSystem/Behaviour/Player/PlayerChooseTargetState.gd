@@ -44,6 +44,8 @@ func shoot_ray() -> void:
         var character = result.collider.get_node_or_null("BattleCharacter")
         if character:
             select_character(character as BattleCharacter)
+        else:
+            battle_state.player_selected_character = null
 
 func select_character(character: BattleCharacter) -> void:
     var success := false

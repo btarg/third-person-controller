@@ -1,0 +1,33 @@
+[gd_scene load_steps=2 format=3 uid="uid://k5nbstqmbqve"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_y6igg"]
+font_size = 36
+outline_size = 5
+outline_color = Color(0, 0, 0, 1)
+
+[node name="PlayerThinkUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 866.0
+offset_bottom = 108.0
+text = "Left click to attack an enemy
+Space to lock in / end turn"
+label_settings = SubResource("LabelSettings_y6igg")
+
+[node name="SelectedEnemyLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 144.0
+offset_right = 866.0
+offset_bottom = 247.0
+text = "Selected enemy: "
+label_settings = SubResource("LabelSettings_y6igg")

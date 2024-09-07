@@ -6,6 +6,17 @@ class_name PlayerChooseTargetState
 var can_select_enemies := true
 var can_select_friendlies := true
 
+func _ready():
+    battle_state.turn_order_ui.connect("item_selected", _select)
+
+func _select(index: int) -> void:
+    if not active:
+        return
+
+    var selected_character: BattleCharacter = battle_state.turn_order[index]
+    print("Selecting: " + str(index))
+    select_character(selected_character)
+
 func shoot_ray() -> void:
     var camera := battle_state.top_down_player.camera
 
@@ -39,10 +50,15 @@ func select_character(character: BattleCharacter) -> void:
     else:
         print("Cannot select " + character.character_name)
 
+    # Set the focused node to the selected character
+    battle_state.top_down_player.focused_node = character.get_parent()
+
 func enter() -> void:
     print("Player is choosing a target")
+    battle_state.turn_order_ui.show()
 
-func exit() -> void: pass
+func exit() -> void:
+    battle_state.turn_order_ui.hide()
 func update(_delta: float) -> void: pass
 func physics_update(_delta: float) -> void: pass
 
@@ -50,7 +66,7 @@ func input_update(event: InputEvent) -> void:
     if event.is_echo():
         return
 
-    elif event.is_action_pressed("ui_cancel"):
+    elif event.is_action_pressed("ui_select"):
         Transitioned.emit(self, "ThinkState") # Go back to thinking state
 
 func unhandled_input_update(event: InputEvent) -> void:

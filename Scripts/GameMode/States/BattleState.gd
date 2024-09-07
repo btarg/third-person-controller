@@ -30,12 +30,12 @@ var player_selected_character = null
 
 @onready var turn_order_ui := player.get_node("BattleDebugUI/ItemList") as ItemList
 
+func _ready() -> void:
+    turn_order_ui.hide()
+
 @export var is_in_battle : bool = false:
     get:
         return not turn_order.is_empty()
-
-func _ready() -> void:
-    turn_order_ui.connect("item_selected", _focus)
 
 func add_to_battle(character: BattleCharacter) -> void:
     if not active:
@@ -85,10 +85,7 @@ func add_to_battle(character: BattleCharacter) -> void:
         
     _add_to_turn_order_ui(character)
     print(character_name + " entered the battle with initiative " + str(initiative))
-
-func _focus(index: int) -> void:
-    print("Focusing: " + str(index))
-    top_down_player.focused_node = turn_order[index].get_parent()
+    
 
 func _add_to_turn_order_ui(character: BattleCharacter) -> void:
     turn_order_ui.add_item(character.character_name + " - " + str(character.initiative), null, true)

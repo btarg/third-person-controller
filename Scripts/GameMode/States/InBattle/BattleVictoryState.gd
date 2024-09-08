@@ -5,7 +5,7 @@ func wait(seconds: float) -> void:
     await get_tree().create_timer(seconds).timeout
 
 func enter() -> void:
-    print(">>> WON THE BATTLE")
+    Util.print_rainbow(">>> WON THE BATTLE")
     await wait(1.5)
     Transitioned.emit(self, "ExplorationState")
 

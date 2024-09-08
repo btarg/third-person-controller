@@ -24,6 +24,7 @@ offset_right = 229.0
 grow_vertical = 0
 
 [node name="SelectedEnemyLabel" type="Label" parent="."]
+layout_mode = 0
 offset_left = 232.0
 offset_top = 589.0
 offset_right = 1144.0

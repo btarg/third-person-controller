@@ -18,10 +18,15 @@ config/icon="res://icon.svg"
 [autoload]
 
 GameModeStateMachine="*res://Scenes/StateMachine/GameModeStateMachine.tscn"
+Console="*res://addons/console/console.gd"
 
 [display]
 
 window/stretch/mode="canvas_items"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/console/plugin.cfg")
 
 [global_group]
 

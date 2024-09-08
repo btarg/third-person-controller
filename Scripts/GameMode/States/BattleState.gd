@@ -34,6 +34,32 @@ var player_selected_character = null
 func _ready() -> void:
     turn_order_ui.hide()
     selected_target_label.hide()
+    Console.pause_enabled = true
+
+    Console.add_command("exit_battle", _command_exit_battle)
+    Console.add_command("spawn_enemy", spawn_enemy)
+    Console.add_command("print_turn_order", print_turn_order)
+
+    Console.add_command("damage", _command_damage, 1)
+    Console.add_command("remove", _command_remove_selected)
+    
+func _command_exit_battle() -> void:
+    Transitioned.emit(self, "ExplorationState")
+
+func _command_remove_selected() -> void:
+    if player_selected_character:
+        print("Removing selected character from battle...")
+        leave_battle(player_selected_character)
+
+func _command_damage(amount) -> void:
+    amount = float(amount)
+
+    if player_selected_character and amount:
+        player_selected_character.take_damage(amount)
+        Console.print_line("Dealt " + str(amount) + " damage to " + player_selected_character.character_name)
+    else:
+        Console.print_line("No target selected")
+
 
 @export var is_in_battle : bool = false:
     get:
@@ -210,10 +236,10 @@ func print_turn_order() -> void:
         output += "]"
 
         # Print the constructed string
-        print(output)
+        Console.print_line(output, true)
 
         # Print the entity with the highest initiative
-        print(turn_order[0].get_parent().name + " has the highest initiative")
+        Console.print_line(turn_order[0].get_parent().name + " has the highest initiative", true)
 
 func input_update(event) -> void:
     if not active or event.is_echo():
@@ -225,10 +251,6 @@ func input_update(event) -> void:
 
         if event.is_pressed() and event.keycode == KEY_R:
             Transitioned.emit(self, "ExplorationState")
-        elif event.is_pressed() and event.keycode == KEY_P:
-            print_turn_order()
-        elif event.is_pressed() and event.keycode == KEY_1:
-            spawn_enemy()
         is_using_controller = false
 
     # TODO: do this in an autoload

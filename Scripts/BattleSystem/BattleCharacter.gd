@@ -73,6 +73,7 @@ func take_damage(damage: float) -> void:
     if current_hp <= 0:
         current_hp = 0
         OnDeath.emit()
+        print(character_name + " has died")
         battle_state.leave_battle(self)
 
         # destroy parent object

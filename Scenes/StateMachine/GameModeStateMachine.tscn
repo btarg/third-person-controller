@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://Scripts/GameMode/States/InBattle/BattleVictoryState.gd" id="5_aqrr1"]
 
 [node name="GameModeStateMachine" type="Node"]
+process_mode = 1
 script = ExtResource("1_d4v8q")
 
 [node name="ExplorationState" type="Node" parent="."]

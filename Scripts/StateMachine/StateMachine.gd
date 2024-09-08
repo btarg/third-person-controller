@@ -9,6 +9,7 @@ var current_state : State
 var states : Dictionary = {}
 
 func _ready() -> void:
+
     if initial_state:
         current_state = initial_state
     elif get_child_count() > 0:

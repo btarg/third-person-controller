@@ -29,10 +29,11 @@ signal TurnStarted(character: BattleCharacter)
 var player_selected_character = null
 
 @onready var turn_order_ui := player.get_node("BattleDebugUI/ItemList") as ItemList
-
+@onready var selected_target_label := player.get_node("BattleDebugUI/SelectedEnemyLabel") as Label
 
 func _ready() -> void:
     turn_order_ui.hide()
+    selected_target_label.hide()
 
 @export var is_in_battle : bool = false:
     get:

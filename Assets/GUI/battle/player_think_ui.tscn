@@ -23,11 +23,3 @@ offset_bottom = 108.0
 text = "Left click to attack an enemy
 Space to lock in / end turn"
 label_settings = SubResource("LabelSettings_y6igg")
-
-[node name="SelectedEnemyLabel" type="Label" parent="."]
-layout_mode = 0
-offset_left = 24.0
-offset_top = 144.0
-offset_right = 866.0
-offset_bottom = 247.0
-label_settings = SubResource("LabelSettings_y6igg")

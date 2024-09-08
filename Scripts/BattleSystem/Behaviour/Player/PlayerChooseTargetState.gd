@@ -2,9 +2,10 @@ extends State
 class_name PlayerChooseTargetState
 
 @onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
+@onready var think_state := get_node("../ThinkState") as PlayerThinkState
 
-var can_select_enemies := true
-var can_select_friendlies := true
+var _can_select_enemies := true
+var _can_select_allies := true
     
 func _ready() -> void:
     battle_state.EndedBattle.connect(_on_battle_ended)
@@ -50,25 +51,48 @@ func shoot_ray() -> void:
 
 func select_character(character: BattleCharacter) -> void:
     var success := false
-    if can_select_enemies and character.character_type == BattleEnums.CharacterType.ENEMY:
+    if _can_select_enemies and character.character_type == BattleEnums.CharacterType.ENEMY:
         success = true
-    elif can_select_friendlies and (character.character_type == BattleEnums.CharacterType.PLAYER or character.character_type == BattleEnums.CharacterType.FRIENDLY):
+    elif _can_select_allies and (character.character_type == BattleEnums.CharacterType.PLAYER or character.character_type == BattleEnums.CharacterType.FRIENDLY):
         success = true
 
     if success:
         battle_state.player_selected_character = character
+        battle_state.selected_target_label.text = "Selected: " + character.character_name
+
+        # Set the focused node to the selected character
+        battle_state.top_down_player.focused_node = character.get_parent()
+
     else:
         print("Cannot select " + character.character_name)
-
-    # Set the focused node to the selected character
-    battle_state.top_down_player.focused_node = character.get_parent()
+        battle_state.player_selected_character = null
+        battle_state.selected_target_label.text = "Select a target"
+    
 
 func enter() -> void:
+    if think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_Attack:
+        # TODO: check if the skill itself allows targeting friendlies or not
+        _can_select_enemies = true
+        _can_select_allies = false
+    elif think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_EffectEnemy:
+        _can_select_enemies = true
+        _can_select_allies = false
+    elif think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_EffectAlly:
+        _can_select_enemies = false
+        _can_select_allies = true
+    else:
+        _can_select_enemies = false
+        _can_select_allies = false
+
     print("Player is choosing a target")
     battle_state.turn_order_ui.show()
+    battle_state.selected_target_label.show()
+    battle_state.selected_target_label.text = "Select a target"
+
 
 func exit() -> void:
     battle_state.turn_order_ui.hide()
+    battle_state.selected_target_label.hide()
 
 
 func update(_delta: float) -> void: pass
@@ -80,7 +104,15 @@ func input_update(event: InputEvent) -> void:
         return
 
     elif event.is_action_pressed("ui_select"):
-        Transitioned.emit(self, "ThinkState") # Go back to thinking state
+        if not battle_state.player_selected_character:
+            print("No character selected!")
+            return
+
+        if think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_Attack:
+            print("Player attacks %s!" % battle_state.player_selected_character.character_name)
+            Transitioned.emit(self, "IdleState")
+            battle_state.ready_next_turn()
+
     elif event.is_action_pressed("ui_page_down"):
         print("Removing selected character from battle...")
         if battle_state.player_selected_character:

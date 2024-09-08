@@ -1,4 +1,9 @@
-[gd_scene format=3 uid="uid://bo1r6ikg415qk"]
+[gd_scene load_steps=2 format=3 uid="uid://bo1r6ikg415qk"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_y02v7"]
+font_size = 36
+outline_size = 5
+outline_color = Color(0, 0, 0, 1)
 
 [node name="BattleDebugUI" type="Control"]
 layout_mode = 3
@@ -17,3 +22,10 @@ anchor_bottom = 1.0
 offset_top = -227.0
 offset_right = 229.0
 grow_vertical = 0
+
+[node name="SelectedEnemyLabel" type="Label" parent="."]
+offset_left = 232.0
+offset_top = 589.0
+offset_right = 1144.0
+offset_bottom = 639.0
+label_settings = SubResource("LabelSettings_y02v7")

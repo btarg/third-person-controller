@@ -7,6 +7,8 @@ extends State
 
 @onready var player_think_ui := player.get_node("PlayerThinkUI") as Control
 
+var chosen_action: BattleEnums.EPlayerCombatAction = BattleEnums.EPlayerCombatAction.CA_Defend
+
 func _ready() -> void:
     player_think_ui.hide()
     battle_character.OnLeaveBattle.connect(_on_leave_battle)
@@ -23,10 +25,8 @@ func enter() -> void:
     # remember last selected character
     if battle_state.player_selected_character:
         print("Selected character: " + battle_state.player_selected_character.character_name)
-        player_think_ui.get_node("SelectedEnemyLabel").text = "Selected: " + battle_state.player_selected_character.character_name
     else:
         print("No character selected")
-        player_think_ui.get_node("SelectedEnemyLabel").text = "No character selected"
 
 
 func exit() -> void:
@@ -37,14 +37,16 @@ func update(_delta: float) -> void: pass
 
 func physics_update(_delta: float) -> void: pass
 func input_update(event: InputEvent) -> void:
-    if event.is_echo():
+    if event.is_echo() or not active:
         return
 
     if event.is_action_pressed("left_click"):
+        chosen_action = BattleEnums.EPlayerCombatAction.CA_Attack
         Transitioned.emit(self, "ChooseTargetState")
+
     elif event.is_action_pressed("ui_select"):
         print("Player attacks!")
         _on_leave_battle()
-        battle_character.battle_state.ready_next_turn()
+        battle_state.ready_next_turn()
 
 func unhandled_input_update(_event: InputEvent) -> void: pass

@@ -40,7 +40,7 @@ func _ready() -> void:
     Console.add_command("spawn_enemy", spawn_enemy)
     Console.add_command("print_turn_order", print_turn_order)
 
-    Console.add_command("damage", _command_damage, 1)
+    Console.add_command("damage", _command_damage, 2)
     Console.add_command("remove", _command_remove_selected)
     
 func _command_exit_battle() -> void:
@@ -51,12 +51,15 @@ func _command_remove_selected() -> void:
         print("Removing selected character from battle...")
         leave_battle(player_selected_character)
 
-func _command_damage(amount) -> void:
+func _command_damage(amount, type) -> void:
     amount = float(amount)
+    type = int(type)
+    # get enum from int
+    var damage_type := type as BattleEnums.EAffinityElement
 
     if player_selected_character and amount:
-        player_selected_character.take_damage(amount)
-        Console.print_line("Dealt " + str(amount) + " damage to " + player_selected_character.character_name)
+        player_selected_character.take_damage(null, amount, damage_type)
+        Console.print_line("Dealt %s %s damage to %s" % [amount, Util.get_enum_name(BattleEnums.EAffinityElement, damage_type), player_selected_character.character_name])
     else:
         Console.print_line("No target selected")
 

@@ -75,15 +75,16 @@ func heal(amount: int) -> void:
         # We expect HP to be an int
         current_hp = ceil(max_hp)
 
-func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoller.DiceStatus = DiceRoller.DiceStatus.ROLL_SUCCESS) -> BattleEnums.ESkillResult:
+func take_damage(attacker, damage: int, damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoller.DiceStatus = DiceRoller.DiceStatus.ROLL_SUCCESS) -> BattleEnums.ESkillResult:
     var result := BattleEnums.ESkillResult.SR_SUCCESS
 
     if damage <= 0:
         print(character_name + " took no damage")
         return BattleEnums.ESkillResult.SR_FAIL
 
-    var attacker_strength := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.Strength)
-    damage = ceil(damage * attacker_strength)
+    if attacker != null and attacker is BattleCharacter:
+        var attacker_strength := (attacker as BattleCharacter).stats.get_stat(CharacterStatEntry.ECharacterStat.Strength)
+        damage = ceil(damage * attacker_strength)
 
     if affinities.has(damage_type):
         var affinity_type := affinities[damage_type] as BattleEnums.EAffinityType
@@ -94,7 +95,7 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
             # TODO: add to affinity log 
             print(character_name + " is weak to " + enum_string)
 
-            var crit_multiplier := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.CritMultiplier)
+            var crit_multiplier := (attacker as BattleCharacter).stats.get_stat(CharacterStatEntry.ECharacterStat.CritMultiplier)
             print("[CRIT] Original damage: " + str(damage))
             print("[CRIT] Crit multiplier: " + str(crit_multiplier))
             damage = ceil(damage * crit_multiplier)

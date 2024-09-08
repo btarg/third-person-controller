@@ -80,12 +80,12 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
 
     if damage <= 0:
         print(character_name + " took no damage")
-        return result
+        return BattleEnums.ESkillResult.SR_FAIL
 
     var attacker_strength := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.Strength)
     damage = ceil(damage * attacker_strength)
 
-    if affinities.has(damage_type) and damage_type != BattleEnums.EAffinityElement.ALMIGHTY:
+    if affinities.has(damage_type):
         var affinity_type := affinities[damage_type] as BattleEnums.EAffinityType
         var enum_string := Util.get_enum_name(BattleEnums.EAffinityElement, damage_type)
 
@@ -100,8 +100,9 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
             damage = ceil(damage * crit_multiplier)
             result = BattleEnums.ESkillResult.SR_CRITICAL
 
-        elif (affinity_type == BattleEnums.EAffinityType.RESIST
-        or dice_status == DiceRoller.DiceStatus.ROLL_FAIL):
+        elif ((affinity_type == BattleEnums.EAffinityType.RESIST
+        or dice_status == DiceRoller.DiceStatus.ROLL_FAIL)
+        and damage_type != BattleEnums.EAffinityElement.ALMIGHTY):
             print(character_name + " resists " + enum_string)
             
             # use defense stat to reduce damage
@@ -110,8 +111,9 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
 
             result = BattleEnums.ESkillResult.SR_RESISTED
 
-        elif (affinity_type == BattleEnums.EAffinityType.IMMUNE
-        or dice_status == DiceRoller.DiceStatus.ROLL_CRIT_FAIL):
+        elif ((affinity_type == BattleEnums.EAffinityType.IMMUNE
+        or dice_status == DiceRoller.DiceStatus.ROLL_CRIT_FAIL)
+        and damage_type != BattleEnums.EAffinityElement.ALMIGHTY):
             print(character_name + " is immune to " + enum_string)
             damage = 0
             result = BattleEnums.ESkillResult.SR_IMMUNE

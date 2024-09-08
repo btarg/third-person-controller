@@ -58,8 +58,10 @@ func _command_damage(amount, type) -> void:
     var damage_type := type as BattleEnums.EAffinityElement
 
     if player_selected_character and amount:
-        player_selected_character.take_damage(null, amount, damage_type)
-        Console.print_line("Dealt %s %s damage to %s" % [amount, Util.get_enum_name(BattleEnums.EAffinityElement, damage_type), player_selected_character.character_name])
+        Console.print_line("Attempting to deal %s %s damage to %s" % [amount, Util.get_enum_name(BattleEnums.EAffinityElement, damage_type), player_selected_character.character_name])
+        var result : BattleEnums.ESkillResult = player_selected_character.take_damage(null, amount, damage_type)
+        Console.print_line("Result: " + Util.get_enum_name(BattleEnums.ESkillResult, result))
+        
     else:
         Console.print_line("No target selected")
 

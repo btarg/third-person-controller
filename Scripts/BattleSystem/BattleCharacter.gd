@@ -31,7 +31,7 @@ var initiative: int = 0
 
 func _ready() -> void:
     battle_state.TurnStarted.connect(_on_turn_started)
-    print(character_name + " CURRENT HP: " + str(current_hp))
+    Console.print_line(character_name + " CURRENT HP: " + str(current_hp))
 
     # TODO: set affinities in editor once typed dictionaries are supported in Godot 4.4
     affinities = {
@@ -50,9 +50,9 @@ func _on_turn_started(character: BattleCharacter) -> void:
         active = false
 
 func start_turn() -> void:
-    print("========")
-    print(character_name + " is starting their turn")
-    print("========")
+    Console.print_line("========")
+    Console.print_line(character_name + " is starting their turn")
+    Console.print_line("========")
     active = true
 
     behaviour_state_machine.set_state("ThinkState")
@@ -68,7 +68,7 @@ func roll_initiative() -> int:
     return initiative
 
 func heal(amount: int) -> void:
-    print(character_name + " healed for " + str(amount) + " HP")
+    Console.print_line(character_name + " healed for " + str(amount) + " HP")
     current_hp += amount
     var max_hp := stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP)
     if current_hp > max_hp:
@@ -79,7 +79,7 @@ func take_damage(attacker, damage: int, damage_type: BattleEnums.EAffinityElemen
     var result := BattleEnums.ESkillResult.SR_SUCCESS
 
     if damage <= 0:
-        print(character_name + " took no damage")
+        Console.print_line(character_name + " took no damage")
         return BattleEnums.ESkillResult.SR_FAIL
 
     if attacker != null and attacker is BattleCharacter:
@@ -93,21 +93,23 @@ func take_damage(attacker, damage: int, damage_type: BattleEnums.EAffinityElemen
         if (affinity_type == BattleEnums.EAffinityType.WEAK
         or dice_status == DiceRoller.DiceStatus.ROLL_CRIT_SUCCESS):
             # TODO: add to affinity log 
-            print(character_name + " is weak to " + enum_string)
+            Console.print_line(character_name + " is weak to " + enum_string)
 
             var crit_multiplier := (attacker as BattleCharacter).stats.get_stat(CharacterStatEntry.ECharacterStat.CritMultiplier)
-            print("[CRIT] Original damage: " + str(damage))
-            print("[CRIT] Crit multiplier: " + str(crit_multiplier))
+            Console.print_line("[CRIT] Original damage: " + str(damage))
+            Console.print_line("[CRIT] Crit multiplier: " + str(crit_multiplier))
             damage = ceil(damage * crit_multiplier)
             result = BattleEnums.ESkillResult.SR_CRITICAL
 
         elif ((affinity_type == BattleEnums.EAffinityType.RESIST
         or dice_status == DiceRoller.DiceStatus.ROLL_FAIL)
         and damage_type != BattleEnums.EAffinityElement.ALMIGHTY):
-            print(character_name + " resists " + enum_string)
-            
+            Console.print_line(character_name + " resists " + enum_string)
+
+
             # use defense stat to reduce damage
             var defense := stats.get_stat(CharacterStatEntry.ECharacterStat.Defense)
+            Console.print_line("[RESIST] Defense: " + str(defense))
             damage = ceil(damage * (1.0 - defense));
 
             result = BattleEnums.ESkillResult.SR_RESISTED
@@ -115,17 +117,17 @@ func take_damage(attacker, damage: int, damage_type: BattleEnums.EAffinityElemen
         elif ((affinity_type == BattleEnums.EAffinityType.IMMUNE
         or dice_status == DiceRoller.DiceStatus.ROLL_CRIT_FAIL)
         and damage_type != BattleEnums.EAffinityElement.ALMIGHTY):
-            print(character_name + " is immune to " + enum_string)
+            Console.print_line(character_name + " is immune to " + enum_string)
             damage = 0
             result = BattleEnums.ESkillResult.SR_IMMUNE
     
-    print(character_name + " took " + str(damage) + " damage")
+    Console.print_line(character_name + " took " + str(damage) + " damage")
     current_hp -= damage
     OnTakeDamage.emit(damage)
     if current_hp <= 0:
         current_hp = 0
         OnDeath.emit()
-        print(character_name + " has died")
+        Console.print_line(character_name + " has died")
         battle_state.leave_battle(self)
 
         # destroy parent object

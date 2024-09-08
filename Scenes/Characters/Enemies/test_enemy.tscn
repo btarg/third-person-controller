@@ -20,7 +20,7 @@ stat_value = 1.0
 [sub_resource type="Resource" id="Resource_xokjm"]
 script = ExtResource("6_i5xwa")
 stat_key = 3
-stat_value = 1.0
+stat_value = 0.1
 
 [sub_resource type="Resource" id="Resource_d7f32"]
 script = ExtResource("6_i5xwa")

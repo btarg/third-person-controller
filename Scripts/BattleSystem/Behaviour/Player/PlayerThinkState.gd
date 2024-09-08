@@ -7,7 +7,7 @@ extends State
 
 @onready var player_think_ui := player.get_node("PlayerThinkUI") as Control
 
-var chosen_action: BattleEnums.EPlayerCombatAction = BattleEnums.EPlayerCombatAction.CA_Defend
+var chosen_action: BattleEnums.EPlayerCombatAction = BattleEnums.EPlayerCombatAction.CA_DEFEND
 
 func _ready() -> void:
     player_think_ui.hide()
@@ -43,7 +43,7 @@ func input_update(event: InputEvent) -> void:
         return
     # TODO: pick action properly
     if event.is_action_pressed("left_click"):
-        chosen_action = BattleEnums.EPlayerCombatAction.CA_Attack
+        chosen_action = BattleEnums.EPlayerCombatAction.CA_ATTACK
         Transitioned.emit(self, "ChooseTargetState")
 
     elif event.is_action_pressed("ui_select"):

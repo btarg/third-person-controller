@@ -72,14 +72,14 @@ func select_character(character: BattleCharacter) -> void:
     
 
 func enter() -> void:
-    if think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_Attack:
+    if think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_ATTACK:
         # TODO: check if the skill itself allows targeting friendlies or not
         _can_select_enemies = true
         _can_select_allies = false
-    elif think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_EffectEnemy:
+    elif think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_EFFECT_ENEMY:
         _can_select_enemies = true
         _can_select_allies = false
-    elif think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_EffectAlly:
+    elif think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_EFFECT_ALLY:
         _can_select_enemies = false
         _can_select_allies = true
     else:
@@ -102,7 +102,7 @@ func update(_delta: float) -> void: pass
 func physics_update(_delta: float) -> void: pass
 
 func process_targeting() -> void:
-    if think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_Attack:
+    if think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_ATTACK:
         print("Player attacks %s!" % battle_state.player_selected_character.character_name)
 
         # TODO: calculate damage properly
@@ -112,11 +112,11 @@ func process_targeting() -> void:
             Transitioned.emit(self, "IdleState")
             battle_state.ready_next_turn()
 
-    elif think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_EffectEnemy:
+    elif think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_EFFECT_ENEMY:
         print("Player effects enemy %s!" % battle_state.player_selected_character.character_name)
         Transitioned.emit(self, "IdleState")
         battle_state.ready_next_turn()
-    elif think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_EffectAlly:
+    elif think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_EFFECT_ALLY:
         print("Player effects ally %s!" % battle_state.player_selected_character.character_name)
         Transitioned.emit(self, "IdleState")
         battle_state.ready_next_turn()

@@ -19,7 +19,7 @@ static func roll_flat(die_sides: int, num_rolls: int = 1, bonus: int = 0) -> int
         total_roll += die
     return total_roll
 
-static func roll_dc(die_sides: int, difficulty_class: int, num_rolls: int = 1, crit_behaviour: CritBehaviour = CritBehaviour.CRIT_ON_ANY_NAT, bonus: int = 0) -> Array:
+static func roll_dc(die_sides: int, difficulty_class: int, num_rolls: int = 1, crit_behaviour: CritBehaviour = CritBehaviour.CRIT_ON_ANY_NAT, bonus: int = 0) -> Dictionary:
     var total_roll: int = bonus
     var crits: int = 0
     # roll all dice and add together
@@ -50,4 +50,4 @@ static func roll_dc(die_sides: int, difficulty_class: int, num_rolls: int = 1, c
         else:
             status = DiceStatus.ROLL_SUCCESS
 
-    return [total_roll, crits, status]
+    return {"total_roll": total_roll, "crits": crits, "status": status}

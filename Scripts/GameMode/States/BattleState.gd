@@ -126,6 +126,7 @@ func _remove_from_turn_order_ui(character: BattleCharacter) -> void:
         if turn_order_ui.get_item_text(i) == character.character_name + " - " + str(character.initiative):
             turn_order_ui.remove_item(i)
             break
+            
 
 func leave_battle(character: BattleCharacter, do_result_check: bool = true) -> void:
     if not active or not turn_order.has(character):

@@ -40,7 +40,7 @@ func get_stat(stat: CharacterStatEntry.ECharacterStat, with_modifiers: bool = tr
         if entry.stat_key == stat:
             stat_value = entry.stat_value
             break
-    var stat_value_with_modifiers: float = stat_value
+    var stat_value_with_modifiers := stat_value
     var stat_modifiers_copy := stat_modifiers.duplicate()
 
     # sort stat modifiers by turns left
@@ -63,7 +63,7 @@ func get_stat(stat: CharacterStatEntry.ECharacterStat, with_modifiers: bool = tr
     return stat_value_with_modifiers if with_modifiers else stat_value
 
 ## Change a base stat value (not considering modifiers)
-func set_stat(stat: CharacterStatEntry.ECharacterStat, new_value: float) -> void:
+func set_stat(stat: CharacterStatEntry.ECharacterStat, new_value: int) -> void:
     for i in range(stats.size()):
         if stats[i].stat_key == stat:
             stats[i].stat_value = new_value

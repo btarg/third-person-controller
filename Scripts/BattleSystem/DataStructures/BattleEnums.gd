@@ -16,7 +16,8 @@ enum EAffinityElement {
     LIGHT,
     DARK,
     HEAL,
-    MANA
+    MANA,
+    ALMIGHTY
 }
 
 enum EPlayerCombatAction {
@@ -39,6 +40,7 @@ enum ESkillResult {
     SR_EVADED, ## An attack was evaded by the target
     SR_ABSORBED, ## An attack was absorbed by the target
     SR_REFLECTED, ## An attack was reflected back at the attacker
+    SR_IMMUNE, ## An attack had no effect on the target
     SR_FAIL, ## Generic failure
     SR_NOT_ENOUGH_HP,
     SR_NOT_ENOUGH_SP

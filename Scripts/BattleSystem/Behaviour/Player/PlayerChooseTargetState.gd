@@ -101,12 +101,10 @@ func exit() -> void:
 func update(_delta: float) -> void: pass
 func physics_update(_delta: float) -> void: pass
 
+
 func process_targeting() -> void:
     if think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_ATTACK:
-        print("Player attacks %s!" % battle_state.player_selected_character.character_name)
-
-        # TODO: calculate damage properly
-        battle_state.player_selected_character.take_damage(20.0)
+        BattleManager.process_basic_attack(battle_state.current_character, battle_state.player_selected_character)
         # Check if still active since the battle may have ended
         if active:
             Transitioned.emit(self, "IdleState")

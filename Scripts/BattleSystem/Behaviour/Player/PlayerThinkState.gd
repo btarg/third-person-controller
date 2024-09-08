@@ -16,6 +16,8 @@ func _ready() -> void:
 func _on_leave_battle() -> void:
     if active:
         Transitioned.emit(self, "IdleState")
+    else:
+        exit()
 
 func enter() -> void:
     player_think_ui.show()
@@ -39,9 +41,9 @@ func physics_update(_delta: float) -> void: pass
 func input_update(event: InputEvent) -> void:
     if event.is_echo() or not active:
         return
-
+    # TODO: pick action properly
     if event.is_action_pressed("left_click"):
-        chosen_action = BattleEnums.EPlayerCombatAction.CA_Attack
+        chosen_action = BattleEnums.EPlayerCombatAction.CA_EffectEnemy
         Transitioned.emit(self, "ChooseTargetState")
 
     elif event.is_action_pressed("ui_select"):

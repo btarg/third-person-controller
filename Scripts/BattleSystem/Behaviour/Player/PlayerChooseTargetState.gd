@@ -15,6 +15,8 @@ func _on_battle_ended() -> void:
     # return to the default idle state
     if active:
         Transitioned.emit(self, "IdleState")
+    else:
+        exit()
 
 
 func _select(index: int) -> void:
@@ -96,8 +98,21 @@ func exit() -> void:
 
 
 func update(_delta: float) -> void: pass
-
 func physics_update(_delta: float) -> void: pass
+
+func process_targeting() -> void:
+    if think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_Attack:
+        print("Player attacks %s!" % battle_state.player_selected_character.character_name)
+        Transitioned.emit(self, "IdleState")
+        battle_state.ready_next_turn()
+    elif think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_EffectEnemy:
+        print("Player effects enemy %s!" % battle_state.player_selected_character.character_name)
+        Transitioned.emit(self, "IdleState")
+        battle_state.ready_next_turn()
+    elif think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_EffectAlly:
+        print("Player effects ally %s!" % battle_state.player_selected_character.character_name)
+        Transitioned.emit(self, "IdleState")
+        battle_state.ready_next_turn()
 
 func input_update(event: InputEvent) -> void:
     if event.is_echo() or not active:
@@ -107,11 +122,7 @@ func input_update(event: InputEvent) -> void:
         if not battle_state.player_selected_character:
             print("No character selected!")
             return
-
-        if think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_Attack:
-            print("Player attacks %s!" % battle_state.player_selected_character.character_name)
-            Transitioned.emit(self, "IdleState")
-            battle_state.ready_next_turn()
+        process_targeting()
 
     elif event.is_action_pressed("ui_page_down"):
         print("Removing selected character from battle...")

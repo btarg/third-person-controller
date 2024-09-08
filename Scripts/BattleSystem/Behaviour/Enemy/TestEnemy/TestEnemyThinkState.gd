@@ -8,7 +8,7 @@ func wait(seconds: float) -> void:
     await get_tree().create_timer(seconds).timeout
 
 func _ready() -> void:
-    battle_character.LeaveBattle.connect(_on_leave_battle)
+    battle_character.OnLeaveBattle.connect(_on_leave_battle)
 
 func _on_leave_battle() -> void:
     if active:

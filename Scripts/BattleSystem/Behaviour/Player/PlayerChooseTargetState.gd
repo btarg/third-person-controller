@@ -12,7 +12,8 @@ func _ready() -> void:
 
 func _on_battle_ended() -> void:
     # return to the default idle state
-    Transitioned.emit(self, "IdleState")
+    if active:
+        Transitioned.emit(self, "IdleState")
 
 
 func _select(index: int) -> void:
@@ -80,6 +81,10 @@ func input_update(event: InputEvent) -> void:
 
     elif event.is_action_pressed("ui_select"):
         Transitioned.emit(self, "ThinkState") # Go back to thinking state
+    elif event.is_action_pressed("ui_page_down"):
+        print("Removing selected character from battle...")
+        if battle_state.player_selected_character:
+            battle_state.leave_battle(battle_state.player_selected_character)
 
 func unhandled_input_update(event: InputEvent) -> void:
     if event.is_echo() or not active:

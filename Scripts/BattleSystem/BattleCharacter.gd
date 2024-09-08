@@ -22,7 +22,7 @@ class_name BattleCharacter
 @onready var current_hp: float = stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP)
 @onready var vitality := stats.get_stat(CharacterStatEntry.ECharacterStat.Vitality)
 
-signal LeaveBattle
+signal OnLeaveBattle
 
 var active := false
 var initiative: int = 0
@@ -33,7 +33,7 @@ func _ready() -> void:
 
 func on_leave_battle() -> void:
     character_name = default_character_name
-    LeaveBattle.emit()
+    OnLeaveBattle.emit()
 
 func _on_turn_started(character: BattleCharacter) -> void:
     if character == self:

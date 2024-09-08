@@ -67,9 +67,6 @@ func add_to_battle(character: BattleCharacter) -> void:
             
 
     if character.character_type == BattleEnums.CharacterType.ENEMY:
-        
-        enemy_units.append(character)
-
         # Give the enemy a unique name if there are multiple enemies with the same name
         character_counts.get_or_add(character_name, 0)
         # We don't use the get_or_add return value because we want to increment the count
@@ -79,19 +76,20 @@ func add_to_battle(character: BattleCharacter) -> void:
         # Don't add A to the name if it's the first enemy
         if character_counts[character_name] > 1:
             character_name += name_suffix
-   
+
     # set the name in the script so the character instance knows its proper name in battle
     character.character_name = character_name
 
     if character.character_type == BattleEnums.CharacterType.PLAYER:
         player_units.append(character)
+    elif character.character_type == BattleEnums.CharacterType.ENEMY:
+        enemy_units.append(character)
 
     # add the sorted turn order to the UI
     for c: BattleCharacter in turn_order:
         _add_to_turn_order_ui(c)
 
     print(character_name + " entered the battle with initiative " + str(character.initiative))
-    
 
 func _add_to_turn_order_ui(character: BattleCharacter) -> void:
     turn_order_ui.add_item(character.character_name + " - " + str(character.initiative), null, true)
@@ -102,7 +100,7 @@ func _remove_from_turn_order_ui(character: BattleCharacter) -> void:
             turn_order_ui.remove_item(i)
             break
 
-func leave_battle(character: BattleCharacter) -> void:
+func leave_battle(character: BattleCharacter, do_result_check: bool = true) -> void:
     if not active or not turn_order.has(character):
         return
 
@@ -125,7 +123,12 @@ func leave_battle(character: BattleCharacter) -> void:
 
     print(character.get_parent().name + " left the battle")
 
-    # TODO: victory/defeat conditions
+    if do_result_check:
+        if player_units.is_empty():
+            Transitioned.emit(self, "BattleLostState")
+        elif enemy_units.is_empty():
+            Transitioned.emit(self, "BattleVictoryState")
+
 
 func enter() -> void:
     
@@ -171,8 +174,8 @@ func ready_next_turn() -> void:
 
 func exit() -> void:
     for character in turn_order:
-        # make sure we clean up the character
-        leave_battle(character)
+        # clean up the character without checking win condition again
+        leave_battle(character, false)
     turn_order.clear()
     current_character_index = 0
 

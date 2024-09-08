@@ -1,5 +1,5 @@
-extends State
 class_name PlayerThinkState
+extends State
 
 @onready var player := get_tree().get_nodes_in_group("Player").front() as PlayerController
 @onready var battle_character := player.get_node("BattleCharacter") as BattleCharacter
@@ -9,7 +9,7 @@ class_name PlayerThinkState
 
 func _ready() -> void:
     player_think_ui.hide()
-    battle_character.LeaveBattle.connect(_on_leave_battle)
+    battle_character.OnLeaveBattle.connect(_on_leave_battle)
 
 func _on_leave_battle() -> void:
     if active:

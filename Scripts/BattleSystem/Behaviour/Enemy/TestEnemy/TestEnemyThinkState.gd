@@ -1,8 +1,7 @@
 extends State
 class_name TestEnemyThinkState
 
-# TODO: find a better way to get the BattleCharacter
-@onready var battle_character := get_parent().get_parent() as BattleCharacter
+@onready var battle_character := get_owner().get_node("BattleCharacter") as BattleCharacter
 
 func wait(seconds: float) -> void:
     await get_tree().create_timer(seconds).timeout
@@ -15,6 +14,7 @@ func _on_leave_battle() -> void:
         _stop_thinking()
 
 func enter() -> void:
+    print(battle_character.character_name + " has %s HP" % battle_character.current_hp)
     print(battle_character.character_name + " is thinking about what to do")
     await wait(0.75)
 

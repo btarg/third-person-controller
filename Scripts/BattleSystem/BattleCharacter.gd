@@ -24,6 +24,11 @@ class_name BattleCharacter
 
 signal OnLeaveBattle
 
+
+signal OnTakeDamage
+signal OnDeath
+
+
 var active := false
 var initiative: int = 0
 
@@ -53,5 +58,24 @@ func start_turn() -> void:
 func roll_initiative() -> int:
     initiative = DiceRoller.roll_flat(20, 1) + int(vitality)
     return initiative
+
+func heal(amount: float) -> void:
+    print(character_name + " healed for " + str(amount) + " HP")
+    current_hp += amount
+    var max_hp := stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP)
+    if current_hp > max_hp:
+        current_hp = max_hp
+
+func take_damage(damage: float) -> void:
+    print(character_name + " took " + str(damage) + " damage")
+    current_hp -= damage
+    OnTakeDamage.emit()
+    if current_hp <= 0:
+        current_hp = 0
+        OnDeath.emit()
+        battle_state.leave_battle(self)
+
+        # destroy parent object
+        get_parent().queue_free()
 
 func battle_input(_event) -> void: pass

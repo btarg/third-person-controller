@@ -93,6 +93,7 @@ func enter() -> void:
 
 
 func exit() -> void:
+    print("Exiting target selection")
     battle_state.turn_order_ui.hide()
     battle_state.selected_target_label.hide()
 
@@ -103,8 +104,14 @@ func physics_update(_delta: float) -> void: pass
 func process_targeting() -> void:
     if think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_Attack:
         print("Player attacks %s!" % battle_state.player_selected_character.character_name)
-        Transitioned.emit(self, "IdleState")
-        battle_state.ready_next_turn()
+
+        # TODO: calculate damage properly
+        battle_state.player_selected_character.take_damage(20.0)
+        # Check if still active since the battle may have ended
+        if active:
+            Transitioned.emit(self, "IdleState")
+            battle_state.ready_next_turn()
+
     elif think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_EffectEnemy:
         print("Player effects enemy %s!" % battle_state.player_selected_character.character_name)
         Transitioned.emit(self, "IdleState")
@@ -118,8 +125,8 @@ func input_update(event: InputEvent) -> void:
     if event.is_echo() or not active:
         return
 
-    elif event.is_action_pressed("ui_select"):
-        if not battle_state.player_selected_character:
+    if event.is_action_pressed("ui_select"):
+        if battle_state.player_selected_character == null:
             print("No character selected!")
             return
         process_targeting()

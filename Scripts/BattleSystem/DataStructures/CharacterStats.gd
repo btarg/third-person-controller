@@ -7,6 +7,8 @@ class_name CharacterStats
 # Dictionary of stat modifiers with turns left as integer
 var stat_modifiers_turns_left: Dictionary = {}
 
+signal OnStatChanged(stat: CharacterStatEntry.ECharacterStat, new_value: float)
+
 func add_stat_entry(entry: CharacterStatEntry) -> void:
     stats.append(entry)
 
@@ -14,6 +16,7 @@ func add_modifier(modifier: StatModifier) -> void:
     print(">>> ADDING MODIFIER: " + modifier.name)
     stat_modifiers.append(modifier)
     stat_modifiers_turns_left[modifier] = modifier.turn_duration
+
 
 func remove_modifier(modifier: StatModifier) -> void:
     stat_modifiers.erase(modifier)
@@ -38,7 +41,7 @@ func get_stat(stat: CharacterStatEntry.ECharacterStat, with_modifiers: bool = tr
             stat_value = entry.stat_value
             break
     var stat_value_with_modifiers: float = stat_value
-    var stat_modifiers_copy := stat_modifiers
+    var stat_modifiers_copy := stat_modifiers.duplicate()
 
     # sort stat modifiers by turns left
     stat_modifiers_copy.sort_custom(
@@ -59,6 +62,13 @@ func get_stat(stat: CharacterStatEntry.ECharacterStat, with_modifiers: bool = tr
     
     return stat_value_with_modifiers if with_modifiers else stat_value
 
+## Change a base stat value (not considering modifiers)
+func set_stat(stat: CharacterStatEntry.ECharacterStat, new_value: float) -> void:
+    for i in range(stats.size()):
+        if stats[i].stat_key == stat:
+            stats[i].stat_value = new_value
+            OnStatChanged.emit(stat, new_value)
+            break
 
 # update modifiers when key 7 is pressed
 func _input(event) -> void:

@@ -43,7 +43,7 @@ func input_update(event: InputEvent) -> void:
         return
     # TODO: pick action properly
     if event.is_action_pressed("left_click"):
-        chosen_action = BattleEnums.EPlayerCombatAction.CA_EffectEnemy
+        chosen_action = BattleEnums.EPlayerCombatAction.CA_Attack
         Transitioned.emit(self, "ChooseTargetState")
 
     elif event.is_action_pressed("ui_select"):

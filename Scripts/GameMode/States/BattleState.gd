@@ -42,6 +42,8 @@ func _ready() -> void:
 
     Console.add_command("damage", _command_damage, 2)
     Console.add_command("remove", _command_remove_selected)
+
+    Console.add_command("set_dmg_element", _command_set_dmg_element, 1)
     
 func _command_exit_battle() -> void:
     Transitioned.emit(self, "ExplorationState")
@@ -65,6 +67,14 @@ func _command_damage(amount, type) -> void:
     else:
         Console.print_line("No target selected")
 
+func _command_set_dmg_element(type) -> void:
+    type = int(type)
+    # get enum from int
+    var damage_type := type as BattleEnums.EAffinityElement
+
+    if current_character:
+        Console.print_line("Setting damage element to %s for %s" % [Util.get_enum_name(BattleEnums.EAffinityElement, damage_type), current_character.character_name])
+        current_character.basic_attack_element = damage_type
 
 @export var is_in_battle : bool = false:
     get:
@@ -154,7 +164,7 @@ func leave_battle(character: BattleCharacter, do_result_check: bool = true) -> v
     if current_character_index >= turn_order.size():
         current_character_index = 0
 
-    print(character.get_parent().name + " left the battle")
+    print(character.character_name + " left the battle")
 
     if do_result_check:
         if player_units.is_empty():
@@ -234,7 +244,7 @@ func print_turn_order() -> void:
         # Construct the string in the desired format
         var output := "["
         for i in range(turn_order.size()):
-            var char_name := turn_order[i].get_parent().name
+            var char_name := turn_order[i].character_name
             var initiative := str(turn_order[i].initiative)
             output += char_name + ": " + initiative
             if i < turn_order.size() - 1:
@@ -245,7 +255,7 @@ func print_turn_order() -> void:
         Console.print_line(output, true)
 
         # Print the entity with the highest initiative
-        Console.print_line(turn_order[0].get_parent().name + " has the highest initiative", true)
+        Console.print_line(turn_order.front().character_name + " has the highest initiative", true)
 
 func input_update(event) -> void:
     if not active or event.is_echo():

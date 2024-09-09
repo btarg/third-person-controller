@@ -51,5 +51,6 @@ enum EAffinityType {
     RESIST,
     IMMUNE,
     REFLECT,
-    ABSORB
+    ABSORB,
+    UNKNOWN
 }

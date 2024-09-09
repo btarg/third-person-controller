@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="StatModifier" load_steps=2 format=3 uid="uid://cmgfpyet0c51x"]
+
+[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/StatModifier.gd" id="1_ra1td"]
+
+[resource]
+script = ExtResource("1_ra1td")
+stat = 2
+name = "Double Strength"
+description = "Doubles the character's Strength stat"
+stat_value = 2.0
+turn_duration = -1
+can_stack = true
+stack_override = false

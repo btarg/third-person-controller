@@ -38,6 +38,7 @@ use_collision = true
 [node name="BattleCharacter" type="Node" parent="." groups=["BattleCharacter"]]
 script = ExtResource("1_fdfp1")
 character_type = 3
+default_character_name = "Cool Enemy"
 
 [node name="StateMachine" type="Node" parent="BattleCharacter"]
 script = ExtResource("2_0pk5e")

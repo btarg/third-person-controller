@@ -3,3 +3,8 @@
 
 # Credits
 [Template by WaffleAWT](https://github.com/WaffleAWT/Godot-4.3-Third-Person-Controller)
+
+# TODO
+- Spell casting and drawing
+- inventory for spell items
+

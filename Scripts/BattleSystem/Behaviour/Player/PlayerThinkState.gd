@@ -8,6 +8,8 @@ extends State
 @onready var player_think_ui := player.get_node("PlayerThinkUI") as Control
 
 var chosen_action: BattleEnums.EPlayerCombatAction = BattleEnums.EPlayerCombatAction.CA_DEFEND
+# TODO: pick spell in UI
+@onready var chosen_spell_or_item: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_healing_spell.tres")
 
 func _ready() -> void:
     player_think_ui.hide()
@@ -41,14 +43,9 @@ func physics_update(_delta: float) -> void: pass
 func input_update(event: InputEvent) -> void:
     if event.is_echo() or not active:
         return
-    # TODO: pick action properly
+    # TODO: pick action with UI - add signal to a button
     if event.is_action_pressed("left_click"):
-        chosen_action = BattleEnums.EPlayerCombatAction.CA_ATTACK
+        chosen_action = BattleEnums.EPlayerCombatAction.CA_CAST_SELF
         Transitioned.emit(self, "ChooseTargetState")
-
-    elif event.is_action_pressed("ui_select"):
-        print("Player attacks!")
-        _on_leave_battle()
-        battle_state.ready_next_turn()
 
 func unhandled_input_update(_event: InputEvent) -> void: pass

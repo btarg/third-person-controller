@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SpellItem" load_steps=2 format=3 uid="uid://bmdlkpnpqbx4g"]
+
+[ext_resource type="Script" path="res://Scripts/Inventory/SpellItem.gd" id="1_ea2fr"]
+
+[resource]
+script = ExtResource("1_ea2fr")
+spell_affinity = 7
+spell_power = 10
+die_sides = 20
+num_rolls = 1
+difficulty_class = 10
+crit_behaviour = 2
+power_multiplier_success = 1.0
+power_multiplier_crit_success = 2.0
+power_multiplier_fail = 0.5
+power_multiplier_crit_fail = 0.0
+item_type = 0
+item_id = "heal_spell"
+item_name = "Cure"
+item_description = "Restores a small amount of HP."
+max_stack = 999

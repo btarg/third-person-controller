@@ -47,7 +47,7 @@ const _combat_action_selection_map: Dictionary = {
 }
 
 static func get_combat_action_selection(chosen_action: EPlayerCombatAction) -> Dictionary:
-    var selection := _combat_action_selection_map.get(chosen_action, [false, false]) as Array[bool]
+    var selection: Array = _combat_action_selection_map.get(chosen_action, [false, false])
     return { "can_select_enemies": selection[0], "can_select_allies": selection[1] }
 
 enum ESkillResult {

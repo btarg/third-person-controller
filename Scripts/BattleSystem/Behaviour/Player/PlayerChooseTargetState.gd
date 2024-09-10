@@ -54,9 +54,12 @@ func shoot_ray() -> void:
 func select_character(character: BattleCharacter) -> void:
     var success := false
     if _can_select_enemies and character.character_type == BattleEnums.CharacterType.ENEMY:
-        success = true
-    elif _can_select_allies and (character.character_type == BattleEnums.CharacterType.PLAYER or character.character_type == BattleEnums.CharacterType.FRIENDLY):
-        success = true
+        success = true # can select enemies
+    if _can_select_allies and (character.character_type == BattleEnums.CharacterType.PLAYER
+    or character.character_type == BattleEnums.CharacterType.FRIENDLY):
+        success = true # can select any ally
+    if not (_can_select_allies or _can_select_enemies) and character == battle_state.current_character:
+        success = true # can only select self
 
     if success:
         battle_state.player_selected_character = character
@@ -100,6 +103,7 @@ func process_targeting() -> void:
             Transitioned.emit(self, "IdleState")
             battle_state.ready_next_turn()
 
+    # TODO: other actions in battle
     elif think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_EFFECT_ENEMY:
         print("Player effects enemy %s!" % battle_state.player_selected_character.character_name)
         Transitioned.emit(self, "IdleState")
@@ -108,6 +112,21 @@ func process_targeting() -> void:
         print("Player effects ally %s!" % battle_state.player_selected_character.character_name)
         Transitioned.emit(self, "IdleState")
         battle_state.ready_next_turn()
+
+    # Any casting action should act the same
+    # Spell casting damage is handled on the SpellItem itself
+    elif (think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_CAST_SELF
+    or think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_CAST_ALLY
+    or think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_CAST_ENEMY):
+        var status := think_state.chosen_spell_or_item.use(battle_state.current_character, battle_state.player_selected_character)
+        print("[SPELL] Final cast status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
+
+        Transitioned.emit(self, "IdleState")
+        battle_state.ready_next_turn()
+
+    else:
+        print("No action selected!")
+        Transitioned.emit(self, "IdleState")
 
 func input_update(event: InputEvent) -> void:
     if event.is_echo() or not active:

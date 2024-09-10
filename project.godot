@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Baldur's Basics in Dungeons & Dragons"
+config/name="Project Requiem"
 run/main_scene="res://Scenes/Levels/prototype.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://icon.svg"
@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 GameModeStateMachine="*res://Scenes/StateMachine/GameModeStateMachine.tscn"
 Console="*res://addons/console/console.gd"
 AffinityLog="*res://Scripts/BattleSystem/AffinityLog.gd"
+InventoryManager="*res://Scripts/Inventory/InventoryManager.gd"
 
 [display]
 
@@ -96,6 +97,11 @@ look_right={
 left_click={
 "deadzone": 0.5,
 "events": [Object(InputEventMouseButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"button_mask":0,"position":Vector2(0, 0),"global_position":Vector2(0, 0),"factor":1.0,"button_index":1,"canceled":false,"pressed":false,"double_click":false,"script":null)
+]
+}
+right_click={
+"deadzone": 0.5,
+"events": [Object(InputEventMouseButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"button_mask":2,"position":Vector2(342, 10),"global_position":Vector2(351, 56),"factor":1.0,"button_index":2,"canceled":false,"pressed":true,"double_click":false,"script":null)
 ]
 }
 

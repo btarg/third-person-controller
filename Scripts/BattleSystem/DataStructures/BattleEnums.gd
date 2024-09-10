@@ -40,13 +40,13 @@ static func get_combat_action_selection(chosen_action: EPlayerCombatAction) -> D
     var can_select_allies := false
 
     match chosen_action:
-        (BattleEnums.EPlayerCombatAction.CA_ATTACK
-        or BattleEnums.EPlayerCombatAction.CA_CAST_ENEMY
-        or BattleEnums.EPlayerCombatAction.CA_EFFECT_ENEMY
-        or BattleEnums.EPlayerCombatAction.CA_DRAW):
+        BattleEnums.EPlayerCombatAction.CA_ATTACK,\
+        BattleEnums.EPlayerCombatAction.CA_CAST_ENEMY,\
+        BattleEnums.EPlayerCombatAction.CA_EFFECT_ENEMY,\
+        BattleEnums.EPlayerCombatAction.CA_DRAW:
             can_select_enemies = true
-        (BattleEnums.EPlayerCombatAction.CA_CAST_ALLY
-        or BattleEnums.EPlayerCombatAction.CA_EFFECT_ALLY):
+        BattleEnums.EPlayerCombatAction.CA_CAST_ALLY,\
+        BattleEnums.EPlayerCombatAction.CA_EFFECT_ALLY:
             can_select_allies = true
         BattleEnums.EPlayerCombatAction.CA_CAST_ANY:
             can_select_enemies = true

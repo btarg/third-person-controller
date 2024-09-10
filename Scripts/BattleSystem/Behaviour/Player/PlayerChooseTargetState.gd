@@ -115,11 +115,12 @@ func process_targeting() -> void:
 
     # Any casting action should act the same
     # Spell casting damage is handled on the SpellItem itself
+    # "Casting" is also how items work
     elif (think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_CAST_SELF
     or think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_CAST_ALLY
     or think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_CAST_ENEMY):
         var status := think_state.chosen_spell_or_item.use(battle_state.current_character, battle_state.player_selected_character)
-        print("[SPELL] Final cast status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
+        print("[SPELL/ITEM] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
 
         Transitioned.emit(self, "IdleState")
         battle_state.ready_next_turn()

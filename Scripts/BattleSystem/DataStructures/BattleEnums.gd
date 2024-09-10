@@ -35,20 +35,26 @@ enum EPlayerCombatAction {
     CA_USE_ITEM ## Use an item from inventory
 }
 
-const _combat_action_selection_map: Dictionary = {
-    EPlayerCombatAction.CA_ATTACK: [true, false],
-    EPlayerCombatAction.CA_EFFECT_ENEMY: [true, false],
-    EPlayerCombatAction.CA_EFFECT_ALLY: [false, true],
-    EPlayerCombatAction.CA_DRAW: [true, false],
-    EPlayerCombatAction.CA_CAST_SELF: [false, false],
-    EPlayerCombatAction.CA_CAST_ALLY: [false, true],
-    EPlayerCombatAction.CA_CAST_ENEMY: [true, false],
-    EPlayerCombatAction.CA_CAST_ANY: [true, true],
-}
-
 static func get_combat_action_selection(chosen_action: EPlayerCombatAction) -> Dictionary:
-    var selection: Array = _combat_action_selection_map.get(chosen_action, [false, false])
-    return { "can_select_enemies": selection[0], "can_select_allies": selection[1] }
+    var can_select_enemies := false
+    var can_select_allies := false
+
+    match chosen_action:
+        (BattleEnums.EPlayerCombatAction.CA_ATTACK
+        or BattleEnums.EPlayerCombatAction.CA_CAST_ENEMY
+        or BattleEnums.EPlayerCombatAction.CA_EFFECT_ENEMY
+        or BattleEnums.EPlayerCombatAction.CA_DRAW):
+            can_select_enemies = true
+        (BattleEnums.EPlayerCombatAction.CA_CAST_ALLY
+        or BattleEnums.EPlayerCombatAction.CA_EFFECT_ALLY):
+            can_select_allies = true
+        BattleEnums.EPlayerCombatAction.CA_CAST_ANY:
+            can_select_enemies = true
+            can_select_allies = true
+        _:
+            pass
+
+    return { "can_select_enemies": can_select_enemies, "can_select_allies": can_select_allies }
 
 enum ESkillResult {
     SR_SUCCESS, ## Generic success

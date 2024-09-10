@@ -23,13 +23,13 @@ signal OnTakeDamage(amount: int)
 signal OnHeal(amount: int)
 signal OnDeath
 
-var active := false
+var character_active := false
 var initiative: int = 0
 
 func _ready() -> void:
     print("%s internal name %s" % [character_name, character_internal_name])
 
-    battle_state.TurnStarted.connect(_on_turn_started)
+    battle_state.TurnStarted.connect(_on_battle_turn_started)
     print(character_name + " CURRENT HP: " + str(current_hp))
 
     # TODO: set affinities in editor once typed dictionaries are supported in Godot 4.4
@@ -39,17 +39,17 @@ func on_leave_battle() -> void:
     character_name = default_character_name
     OnLeaveBattle.emit()
 
-func _on_turn_started(character: BattleCharacter) -> void:
+func _on_battle_turn_started(character: BattleCharacter) -> void:
     if character == self:
         start_turn()
-    elif active:
-        active = false
+    elif character_active:
+        character_active = false
 
 func start_turn() -> void:
     print("========")
     print(character_name + " is starting their turn")
     print("========")
-    active = true
+    character_active = true
 
     behaviour_state_machine.set_state("ThinkState")
 

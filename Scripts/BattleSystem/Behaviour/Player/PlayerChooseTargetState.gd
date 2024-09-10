@@ -72,19 +72,9 @@ func select_character(character: BattleCharacter) -> void:
     
 
 func enter() -> void:
-    if think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_ATTACK:
-        # TODO: check if the skill itself allows targeting friendlies or not
-        _can_select_enemies = true
-        _can_select_allies = false
-    elif think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_EFFECT_ENEMY:
-        _can_select_enemies = true
-        _can_select_allies = false
-    elif think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_EFFECT_ALLY:
-        _can_select_enemies = false
-        _can_select_allies = true
-    else:
-        _can_select_enemies = false
-        _can_select_allies = false
+    var selection := BattleEnums.get_combat_action_selection(think_state.chosen_action)
+    _can_select_enemies = selection.can_select_enemies
+    _can_select_allies = selection.can_select_allies
 
     print("Player is choosing a target")
     battle_state.turn_order_ui.show()

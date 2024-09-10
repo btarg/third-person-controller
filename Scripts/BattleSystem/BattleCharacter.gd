@@ -16,10 +16,11 @@ class_name BattleCharacter
 
 @onready var stats := $CharacterStats as CharacterStats
 
-@onready var current_hp: int = stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP)
+@onready var current_hp: int = ceil(stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP))
 
 signal OnLeaveBattle
 signal OnTakeDamage(amount: int)
+signal OnHeal(amount: int)
 signal OnDeath
 
 var active := false
@@ -54,12 +55,12 @@ func start_turn() -> void:
 
 
 func roll_initiative() -> int:
-    var vitality := stats.get_stat(CharacterStatEntry.ECharacterStat.Vitality)
+    var vitality := ceili(stats.get_stat(CharacterStatEntry.ECharacterStat.Vitality))
     if vitality < 0:
         vitality = 0
 
     # make sure to set the initiative value on our character for later reference
-    initiative = DiceRoller.roll_flat(20, 1) + ceil(vitality)
+    initiative = DiceRoller.roll_flat(20, 1) + vitality
     return initiative
 
 func heal(amount: int) -> void:
@@ -68,7 +69,28 @@ func heal(amount: int) -> void:
     var max_hp := stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP)
     if current_hp > max_hp:
         # We expect HP to be an int
-        current_hp = ceil(max_hp)
+        current_hp = ceili(max_hp)
+    
+    # always emit heal signal for animations
+    OnHeal.emit(amount)
+
+func _calculate_crit_damage(attacker: BattleCharacter, damage: int) -> int:
+    var crit_multiplier := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.CritMultiplier)
+    var calculated_damage := ceili(damage * crit_multiplier)
+    print("[CRIT] Crit multiplier: " + str(crit_multiplier))
+    print("[CRIT] Calculated damage: " + str(calculated_damage))
+    return calculated_damage
+    
+func _calculate_resist_damage(damage: int) -> int:
+    # use defense stat to reduce damage
+    var defense := stats.get_stat(CharacterStatEntry.ECharacterStat.Defense)
+    var calculated_damage := ceili(damage * (1.0 - defense))
+    print("[RESIST] Defense: " + str(defense))
+    print("[RESIST] Calculated damage: " + str(calculated_damage))
+    return calculated_damage
+
+
+
 
 func take_damage(attacker, damage: int, damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoller.DiceStatus = DiceRoller.DiceStatus.ROLL_SUCCESS) -> BattleEnums.ESkillResult:
     if damage <= 0:
@@ -92,25 +114,13 @@ func take_damage(attacker, damage: int, damage_type: BattleEnums.EAffinityElemen
 
         if (affinity_type == BattleEnums.EAffinityType.WEAK
         or dice_status == DiceRoller.DiceStatus.ROLL_CRIT_SUCCESS):
-            var crit_multiplier := (attacker as BattleCharacter).stats.get_stat(CharacterStatEntry.ECharacterStat.CritMultiplier)
-            print("[CRIT] Original damage: " + str(damage))
-            print("[CRIT] Crit multiplier: " + str(crit_multiplier))
-            damage = ceil(damage * crit_multiplier)
+            damage = _calculate_crit_damage(attacker as BattleCharacter, damage)
             result = BattleEnums.ESkillResult.SR_CRITICAL
 
         elif ((affinity_type == BattleEnums.EAffinityType.RESIST
         or dice_status == DiceRoller.DiceStatus.ROLL_FAIL)
         and damage_type != BattleEnums.EAffinityElement.ALMIGHTY):
-            print(character_name + " resists " + enum_string)
-
-
-            # use defense stat to reduce damage
-            var defense := stats.get_stat(CharacterStatEntry.ECharacterStat.Defense)
-            print("[RESIST] Defense: " + str(defense))
-
-            damage = ceil(damage * (1.0 - defense));
-
-            print ("[RESIST] Damage reduced to " + str(damage))
+            damage = _calculate_resist_damage(damage)
             result = BattleEnums.ESkillResult.SR_RESISTED
 
         elif ((affinity_type == BattleEnums.EAffinityType.IMMUNE

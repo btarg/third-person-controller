@@ -20,7 +20,6 @@ config/icon="res://icon.svg"
 GameModeStateMachine="*res://Scenes/StateMachine/GameModeStateMachine.tscn"
 Console="*res://addons/console/console.gd"
 AffinityLog="*res://Scripts/BattleSystem/AffinityLog.gd"
-InventoryManager="*res://Scripts/Inventory/InventoryManager.gd"
 
 [display]
 

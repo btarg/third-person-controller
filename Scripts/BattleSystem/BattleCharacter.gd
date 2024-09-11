@@ -34,6 +34,27 @@ func _ready() -> void:
     # TODO: set affinities in editor once typed dictionaries are supported in Godot 4.4
     affinities = CharacterAffinities.affinities_test_enemy
 
+    Console.add_command("print_modifiers", _print_modifiers, 1)
+    Console.add_command("get_stat", _get_stat_command, 2)
+
+
+func _get_stat_command(character: String, stat_int_string: String) -> void:
+    
+    if character != character_internal_name:
+        return
+
+    var stat := int(stat_int_string) as CharacterStatEntry.ECharacterStat
+    var stat_value := stats.get_stat(stat)
+    Console.print_line("Stat %s: %s" % [Util.get_enum_name(CharacterStatEntry.ECharacterStat, stat), str(stat_value)])
+
+func _print_modifiers(character_to_print: String) -> void:
+    if character_to_print == character_internal_name:
+        if stats.stat_modifiers.size() == 0:
+            Console.print_line("No modifiers active")
+
+        for modifier in stats.stat_modifiers:
+            Console.print_line(modifier.name)
+
 func on_leave_battle() -> void:
     character_name = default_character_name
     OnLeaveBattle.emit()

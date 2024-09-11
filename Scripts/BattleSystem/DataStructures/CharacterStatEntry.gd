@@ -15,6 +15,8 @@ enum ECharacterStat { ## Character Stat
     MagicCritMultiplier, ## Multiplier for magic damage on crit (float 0-1)
     MagicFailMultiplier, ## Multiplier for magic damage on fail (float 0-1)
     MagicCritFailMultiplier, ## Multiplier for magic damage on crit fail (float 0-1)
+
+    NONE # Placeholder for no stat
 }
 @export var stat_key: ECharacterStat = ECharacterStat.MaxHP
 @export var stat_value: float = 0.0

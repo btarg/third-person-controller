@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1_ra1td")
 stat = 2
+modifier_id = "double_strength"
 name = "Double Strength"
 description = "Doubles the character's Strength stat"
 stat_value = 2.0

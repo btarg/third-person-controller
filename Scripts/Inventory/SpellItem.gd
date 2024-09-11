@@ -1,30 +1,39 @@
 class_name SpellItem extends BaseInventoryItem
 
 @export var spell_affinity := BattleEnums.EAffinityElement.FIRE
-## The base effectiveness of the spell.
-## For healing spells, this means how much HP is healed on a regular success without modifiers.
-## For damage spells, this means how much damage is dealt on a regular success without modifiers.
-@export var spell_power: int = 10
-@export var spell_radius := 0
 
 @export_group("Dice Roll Settings")
 @export_range(4, 100) var die_sides: int = 20
 @export_range(1, 10) var num_rolls: int = 1
 @export_range(1, 100) var difficulty_class: int = 10
 @export var crit_behaviour: DiceRoller.CritBehaviour = DiceRoller.CritBehaviour.CRIT_ON_ANY_NAT
-
+@export_group("Spell power settings")
+## The base effectiveness of the spell.
+## For healing spells, this means how much HP is healed on a regular success without modifiers.
+## For damage spells, this means how much damage is dealt on a regular success without modifiers.
+@export var spell_power: int = 10
+## The radius around the caster which targets need to be in to be affected by the spell.
+@export var spell_radius := 0
 @export var power_multiplier_success: float = 1.0
 @export var power_multiplier_crit_success: float = 2.0
 @export var power_multiplier_fail: float = 0.5
 @export var power_multiplier_crit_fail: float = 0.0
 
+@export_group("Junction system")
+
+## Dictionary with a character stat entry as key and a float as value
+## TODO: Typed Dictionary
+@export var junction_table = {
+    CharacterStatEntry.ECharacterStat.MaxHP: 2.0,
+    CharacterStatEntry.ECharacterStat.Strength: 1.005,
+}
 
 func get_icon_path() -> String:
     var icon_path := "res://Assets/Icons/elements/"
     icon_path += Util.get_enum_name(BattleEnums.EAffinityElement, spell_affinity).to_lower()
     return icon_path + "_element.png"
 
-func get_use_sound(status: UseStatus = UseStatus.SPELL_SUCCESS) -> AudioStream:
+func get_use_sound(_status: UseStatus = UseStatus.SPELL_SUCCESS) -> AudioStream:
     if spell_affinity == BattleEnums.EAffinityElement.HEAL:
         return heal_sound
     return null

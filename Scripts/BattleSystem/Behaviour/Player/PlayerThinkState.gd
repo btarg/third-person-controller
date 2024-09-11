@@ -1,11 +1,16 @@
 class_name PlayerThinkState
 extends State
 
-@onready var player := get_tree().get_nodes_in_group("Player").front() as PlayerController
-@onready var battle_character := player.get_node("BattleCharacter") as BattleCharacter
+# TODO: this isn't used for anything useful at the moment
+@onready var exploration_player := get_tree().get_nodes_in_group("Player").front() as PlayerController
+
+# TODO: get the battle character from the parent node
+@onready var battle_character := get_parent().get_parent() as BattleCharacter
+# One level up is state machine, two levels up is the battle character. The inventory is on the same level
+@onready var inventory_manager := get_node("../../../Inventory") as InventoryManager
 @onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
 
-@onready var player_think_ui := player.get_node("PlayerThinkUI") as Control
+@onready var player_think_ui := exploration_player.get_node("PlayerThinkUI") as Control
 
 var chosen_action: BattleEnums.EPlayerCombatAction = BattleEnums.EPlayerCombatAction.CA_DEFEND
 
@@ -20,12 +25,11 @@ func _ready() -> void:
     player_think_ui.hide()
     battle_character.OnLeaveBattle.connect(_on_leave_battle)
 
-    InventoryManager.add_item(almighty_spell, 99)
-    InventoryManager.add_item(fire_spell, 99)
-    InventoryManager.add_item(heal_spell, 99)
-
 func _choose_item_command(item_name: String) -> void:
-    var item := InventoryManager.get_item(item_name)
+    if not active:
+        return
+
+    var item: BaseInventoryItem = inventory_manager.get_item(item_name)
     if item:
         chosen_spell_or_item = item
         Console.print_line("Chosen item: " + item_name)

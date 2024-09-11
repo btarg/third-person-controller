@@ -5,9 +5,10 @@
 [resource]
 script = ExtResource("1_w0iix")
 stat = 0
+modifier_id = "test_modifier"
 name = "Double HP"
 description = "Doubles Max HP indefinitely"
 stat_value = 2.0
-turn_duration = -1
+turn_duration = 2
 can_stack = true
 stack_override = false

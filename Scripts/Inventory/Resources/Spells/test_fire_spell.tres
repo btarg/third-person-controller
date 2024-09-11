@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="SpellItem" load_steps=2 format=3 uid="uid://b7wxo6pw5e1hp"]
+
+[ext_resource type="Script" path="res://Scripts/Inventory/SpellItem.gd" id="1_wvht2"]
+
+[resource]
+script = ExtResource("1_wvht2")
+spell_affinity = 1
+spell_power = 10
+spell_radius = 0
+die_sides = 20
+num_rolls = 1
+difficulty_class = 10
+crit_behaviour = 0
+power_multiplier_success = 1.0
+power_multiplier_crit_success = 2.0
+power_multiplier_fail = 0.5
+power_multiplier_crit_fail = 0.0
+item_type = 0
+item_id = "fire_spell"
+item_name = "Fira"
+item_description = "Deals moderate FIRE dmg to one enemy."
+max_stack = 999

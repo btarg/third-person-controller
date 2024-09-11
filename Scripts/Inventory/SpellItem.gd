@@ -61,10 +61,21 @@ func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
             calculated_power *= power_multiplier_fail
             status = UseStatus.SPELL_FAIL
 
-    if spell_affinity == BattleEnums.EAffinityElement.HEAL:
-        _handle_healing(calculated_power)
-    elif status == UseStatus.SPELL_FAIL:
-        print(item_name + " Spell Failed!")
+    match spell_affinity:
+        BattleEnums.EAffinityElement.HEAL:
+            _handle_healing(calculated_power)
+            status = UseStatus.SPELL_SUCCESS
+        BattleEnums.EAffinityElement.MANA:
+            print("[SPELL] %s restored %s MP to %s" % [item_name, calculated_power, target.character_name])
+            # TODO: Mana restoration
+
+            status = UseStatus.SPELL_SUCCESS
+
+        # other spell affinities deal damage
+        _:
+            print("[SPELL] %s did %s damage to %s" % [item_name, calculated_power, target.character_name])
+            target.take_damage(user, calculated_power, spell_affinity, dice_status)
+            status = UseStatus.SPELL_SUCCESS
 
     item_used.emit(status)
     return status

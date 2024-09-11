@@ -15,7 +15,6 @@ class_name BattleCharacter
 @onready var behaviour_state_machine := self.get_node("StateMachine") as StateMachine
 
 @onready var stats := $CharacterStats as CharacterStats
-
 @onready var current_hp: int = ceil(stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP))
 
 signal OnLeaveBattle

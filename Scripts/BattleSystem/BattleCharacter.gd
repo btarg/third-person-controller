@@ -74,7 +74,7 @@ func heal(amount: int) -> void:
     OnHeal.emit(amount)
 
 func _calculate_crit_damage(attacker: BattleCharacter, damage: int) -> int:
-    var crit_multiplier := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.CritMultiplier)
+    var crit_multiplier := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.AttackCritMultiplier)
     var calculated_damage := ceili(damage * crit_multiplier)
     print("[CRIT] Crit multiplier: " + str(crit_multiplier))
     print("[CRIT] Calculated damage: " + str(calculated_damage))
@@ -130,8 +130,8 @@ func take_damage(attacker, damage: int, damage_type: BattleEnums.EAffinityElemen
             result = BattleEnums.ESkillResult.SR_IMMUNE
 
     # only apply attacker strength when the attack was not a crit, resisted, absorbed, or immune
-    # (aka normal damage)
-    elif attacker != null and attacker is BattleCharacter:
+    # (aka normal damage - doesn't apply to almighty)
+    elif attacker != null and attacker is BattleCharacter and damage_type != BattleEnums.EAffinityElement.ALMIGHTY:
         var attacker_strength := (attacker as BattleCharacter).stats.get_stat(CharacterStatEntry.ECharacterStat.Strength)
         print("[Attack] Original Damage: " + str(damage))
         print((attacker as BattleCharacter).character_name + " has strength: " + str(attacker_strength))

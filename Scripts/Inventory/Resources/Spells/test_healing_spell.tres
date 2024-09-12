@@ -17,7 +17,7 @@ power_multiplier_fail = 0.5
 power_multiplier_crit_fail = 0.0
 junction_table = {
 0: 2.0,
-2: 1.5
+2: 1.005
 }
 item_type = 0
 item_id = "heal_spell"

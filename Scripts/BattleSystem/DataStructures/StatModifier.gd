@@ -4,8 +4,12 @@ class_name StatModifier extends Resource
 @export var modifier_id: String = ""
 @export var name: String = "Stat Modifier"
 @export var description: String = "Test Stat Modifier"
-## Value to multiply the stat by
+
+## if true, the value is a multiplier, otherwise it's additive
+@export var is_multiplier: bool = false
 @export var stat_value: float = 1.0
+
+
 ## -1 means infinite duration until removed
 @export var turn_duration: int = 1
 var turns_left: int = turn_duration

@@ -43,7 +43,14 @@ const CAMERA_BLEND : float = 0.1
             Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 func _ready() -> void:
+    Console.add_command("toggle_mouse", _show_mouse, 0)
     _setup_camera()
+
+func _show_mouse() -> void:
+    if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+        Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+    else:
+        Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 func _setup_camera() -> void:
     if enabled:

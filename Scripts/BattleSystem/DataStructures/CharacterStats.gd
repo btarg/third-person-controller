@@ -10,14 +10,46 @@ signal OnStatChanged(stat: CharacterStatEntry.ECharacterStat, new_value: float)
 func add_stat_entry(entry: CharacterStatEntry) -> void:
     stats.append(entry)
 
+## If a modifier with this ID already exists, replace it.
+## Otherwise, add the new modifier.
+func add_or_update_modifier(modifier: StatModifier) -> void:
+    for i in range(stat_modifiers.size()):
+        var mod := stat_modifiers[i] as StatModifier
+        if mod.modifier_id == modifier.modifier_id:
+            print(">>> UPDATING MODIFIER: " + modifier.name)
+            print("OLD VALUE: " + str(mod.stat_value) + " NEW VALUE: " + str(modifier.stat_value))
+            stat_modifiers[i] = modifier
+            return
+    add_modifier(modifier)
+
 func add_modifier(modifier: StatModifier) -> void:
-    print(">>> ADDING MODIFIER: " + modifier.name)
+    print(">>> ADDING MODIFIER: " + modifier.name + " WITH VALUE: " + str(modifier.stat_value))
     stat_modifiers.append(modifier)
     modifier.turns_left = modifier.turn_duration
+
+## Remove by the modifier ID (e.g. test_strength_modifier)
+func remove_modifier_by_id(id: String) -> void:
+    for i in range(stat_modifiers.size()):
+        if stat_modifiers[i].modifier_id == id:
+            stat_modifiers.remove_at(i)
+            break
+## Remove by the UUID (unique_id)
+func remove_modifier_by_unqiue_id(unique: String) -> void:
+    for i in range(stat_modifiers.size()):
+        if stat_modifiers[i].unique_id == unique:
+            stat_modifiers.remove_at(i)
+            break
 
 
 func remove_modifier(modifier: StatModifier) -> void:
     stat_modifiers.erase(modifier)
+
+func update_modifier_by_unique_id(unique: String, new_value: float) -> void:
+    for modifier: StatModifier in stat_modifiers:
+        if modifier.unique_id == unique:
+            modifier.stat_value = new_value
+            print(">>> CHANGED MODIFIER " + modifier.name + " TO " + str(new_value))
+            break
 
 func update_modifiers() -> void:
     for i in range(stat_modifiers.size()):
@@ -54,9 +86,19 @@ func get_stat(stat: CharacterStatEntry.ECharacterStat, with_modifiers: bool = tr
 
             if stat == modifier.stat:
                 if modifier.can_stack:
-                    stat_value_with_modifiers *= modifier.stat_value
+
+                    if modifier.is_multiplier:
+                        stat_value_with_modifiers *= modifier.stat_value
+                    else:
+                        stat_value_with_modifiers += modifier.stat_value
+
                 elif modifier.stack_override:
-                    stat_value_with_modifiers = stat_value * modifier.stat_value
+                    
+                    if modifier.is_multiplier:
+                        stat_value_with_modifiers = stat_value * modifier.stat_value
+                    else:
+                        stat_value_with_modifiers = stat_value + modifier.stat_value
+
                     break # do not apply any other modifiers
                 else:
                     # non stackable modifiers that do not override will be removed

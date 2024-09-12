@@ -53,7 +53,7 @@ func _print_modifiers(character_to_print: String) -> void:
             Console.print_line("No modifiers active")
 
         for modifier in stats.stat_modifiers:
-            Console.print_line(modifier.name)
+            Console.print_line(modifier.name + " - " + str(modifier.stat_value))
 
 func on_leave_battle() -> void:
     character_name = default_character_name

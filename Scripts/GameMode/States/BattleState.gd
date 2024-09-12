@@ -236,7 +236,7 @@ func exit() -> void:
 func update(_delta) -> void:
     pass
 
-func physics_update(delta) -> void:
+func physics_update(delta) -> void: 
     top_down_player.player_process(delta)
 
 func print_turn_order() -> void:

@@ -96,42 +96,38 @@ func physics_update(_delta: float) -> void: pass
 
 
 func process_targeting() -> void:
-    if think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_ATTACK:
-        BattleManager.process_basic_attack(battle_state.current_character, battle_state.player_selected_character)
-        # Check if still active since the battle may have ended
-        if active:
+    match think_state.chosen_action:
+        BattleEnums.EPlayerCombatAction.CA_ATTACK:
+            BattleManager.process_basic_attack(battle_state.current_character, battle_state.player_selected_character)
+            # Check if still active since the battle may have ended
+            if active:
+                Transitioned.emit(self, "IdleState")
+                battle_state.ready_next_turn()
+    
+        BattleEnums.EPlayerCombatAction.CA_EFFECT_ENEMY:
+            print("Player effects enemy %s!" % battle_state.player_selected_character.character_name)
             Transitioned.emit(self, "IdleState")
             battle_state.ready_next_turn()
-
-    # TODO: other actions in battle
-    elif think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_EFFECT_ENEMY:
-        print("Player effects enemy %s!" % battle_state.player_selected_character.character_name)
-        Transitioned.emit(self, "IdleState")
-        battle_state.ready_next_turn()
-    elif think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_EFFECT_ALLY:
-        print("Player effects ally %s!" % battle_state.player_selected_character.character_name)
-        Transitioned.emit(self, "IdleState")
-        battle_state.ready_next_turn()
-
-    # Any casting action should act the same
-    # Spell casting damage is handled on the SpellItem itself
-    # "Casting" is also how items work
-    match think_state.chosen_action:
+    
+        BattleEnums.EPlayerCombatAction.CA_EFFECT_ALLY:
+            print("Player effects ally %s!" % battle_state.player_selected_character.character_name)
+            Transitioned.emit(self, "IdleState")
+            battle_state.ready_next_turn()
+    
         BattleEnums.EPlayerCombatAction.CA_CAST_SELF,\
         BattleEnums.EPlayerCombatAction.CA_CAST_ALLY,\
         BattleEnums.EPlayerCombatAction.CA_CAST_ENEMY:
-            
             if battle_state.current_character == battle_state.player_selected_character:
                 print("Casting on self!")
             else:
                 print("Casting on " + battle_state.player_selected_character.character_name)
-
-
+    
             var status := think_state.chosen_spell_or_item.use(battle_state.current_character, battle_state.player_selected_character)
             print("[SPELL/ITEM] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
-
-            Transitioned.emit(self, "IdleState")
-            battle_state.ready_next_turn()
+            if active:
+                Transitioned.emit(self, "IdleState")
+                battle_state.ready_next_turn()
+    
         _:
             print("No action selected!")
             Transitioned.emit(self, "IdleState")

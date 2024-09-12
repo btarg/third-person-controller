@@ -67,7 +67,7 @@ func input_update(event: InputEvent) -> void:
         return
     # TODO: pick action with UI - add signal to a button
     if event.is_action_pressed("left_click"):
-        chosen_action = BattleEnums.EPlayerCombatAction.CA_CAST_ENEMY
+        chosen_action = BattleEnums.EPlayerCombatAction.CA_ATTACK
         # TODO: also pick spell/item with UI
         Transitioned.emit(self, "ChooseTargetState")
 

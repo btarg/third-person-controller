@@ -112,7 +112,7 @@ func _calculate_resist_damage(damage: int) -> int:
 
 
 
-func take_damage(attacker, damage: int, damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoller.DiceStatus = DiceRoller.DiceStatus.ROLL_SUCCESS) -> BattleEnums.ESkillResult:
+func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoller.DiceStatus = DiceRoller.DiceStatus.ROLL_SUCCESS) -> BattleEnums.ESkillResult:
     if damage <= 0:
         print(character_name + " took no damage")
         return BattleEnums.ESkillResult.SR_FAIL
@@ -152,10 +152,10 @@ func take_damage(attacker, damage: int, damage_type: BattleEnums.EAffinityElemen
 
     # only apply attacker strength when the attack was not a crit, resisted, absorbed, or immune
     # (aka normal damage - doesn't apply to almighty)
-    elif attacker != null and attacker is BattleCharacter and damage_type != BattleEnums.EAffinityElement.ALMIGHTY:
-        var attacker_strength := (attacker as BattleCharacter).stats.get_stat(CharacterStatEntry.ECharacterStat.Strength)
+    elif attacker and damage_type != BattleEnums.EAffinityElement.ALMIGHTY:
+        var attacker_strength := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.Strength)
         print("[Attack] Original Damage: " + str(damage))
-        print((attacker as BattleCharacter).character_name + " has strength: " + str(attacker_strength))
+        print(attacker.character_name + " has strength: " + str(attacker_strength))
         damage = ceil(damage * attacker_strength)
         print("[Attack] Damage with strength: " + str(damage))
     

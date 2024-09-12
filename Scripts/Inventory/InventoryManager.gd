@@ -20,15 +20,15 @@ signal inventory_updated(resource: BaseInventoryItem, count: int, is_new_item: b
 
 func _ready() -> void:
     Console.add_command("print_inventory", print_inventory, 1)
-    Console.add_command("set_junction", _set_junction_command, 2)
-    Console.add_command("get_junction", get_junctioned_stat, 1)
+    Console.add_command("set_junction", _set_junction_command, 3)
+    Console.add_command("get_junction", _get_junctioned_stat, 2)
 
 
     Console.add_command("add_item_path", _add_item_command, 3)
     Console.add_command("remove_item_id", _remove_item_command, 3)
     
     inventory_updated.connect(_on_inventory_updated)
-    set_item_junctioned_stat(fire_spell.item_id, CharacterStatEntry.ECharacterStat.Strength)
+    # set_item_junctioned_stat(fire_spell.item_id, CharacterStatEntry.ECharacterStat.Strength)
     # add_item(heal_spell, 99)
     add_item(fire_spell, 5)
     # add_item(almighty_spell, 99)
@@ -45,20 +45,21 @@ func _remove_item_command(character_name: String, item_id: String, count_string:
         return
     remove_item(item_id, int(count_string))
 
-func _set_junction_command(item_id: String, stat_int_string: String) -> void:
-    if not battle_character.character_active:
+func _set_junction_command(character_name: String, item_id: String, stat_int_string: String) -> void:
+    if character_name != battle_character.character_internal_name:
         return
     var stat := int(stat_int_string) as CharacterStatEntry.ECharacterStat
     set_item_junctioned_stat(item_id, stat)
 
 func set_item_junctioned_stat(item_id: String, stat: CharacterStatEntry.ECharacterStat) -> void:    
     junctioned_stat_by_item[item_id] = stat
+    _update_junction_modifiers(get_item(item_id) as SpellItem, get_item_count(item_id))
     Console.print_line("Junctioned item %s to stat %s" % [item_id, Util.get_enum_name(CharacterStatEntry.ECharacterStat, stat)])
 
-func get_junctioned_stat(item_id: String) -> CharacterStatEntry.ECharacterStat:
-    if not battle_character.character_active:
+func _get_junctioned_stat(character_name: String, item_id: String) -> CharacterStatEntry.ECharacterStat:
+    if character_name != battle_character.character_internal_name:
         return CharacterStatEntry.ECharacterStat.NONE
-
+    
     var result := junctioned_stat_by_item.get(item_id, CharacterStatEntry.ECharacterStat.NONE) as CharacterStatEntry.ECharacterStat
     Console.print_line("Junctioned stat for item %s: %s" % [item_id, Util.get_enum_name(CharacterStatEntry.ECharacterStat, result)])
     return result
@@ -137,7 +138,7 @@ func _update_junction_modifiers(spell_item: SpellItem, total_item_count: int) ->
                 continue
             
             var base_stat_value := battle_character.stats.get_stat(stat, false)
-            var multiplier = spell_item.junction_table[stat] as float
+            var multiplier := spell_item.junction_table[stat] as float
             # Calculate how much to add to the stat value for each item in the stack
             # (difference between the base stat value and the value added by one multiplier)
             var add_to_stat_value: float = (base_stat_value * multiplier) - base_stat_value

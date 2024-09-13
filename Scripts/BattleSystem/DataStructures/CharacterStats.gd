@@ -16,14 +16,21 @@ func add_or_update_modifier(modifier: StatModifier) -> void:
     for i in range(stat_modifiers.size()):
         var mod := stat_modifiers[i] as StatModifier
         if mod.modifier_id == modifier.modifier_id:
-            print(">>> UPDATING MODIFIER: " + modifier.name)
+            print("[Modifier] UPDATING MODIFIER: " + modifier.name)
             print("OLD VALUE: " + str(mod.stat_value) + " NEW VALUE: " + str(modifier.stat_value))
             stat_modifiers[i] = modifier
             return
     add_modifier(modifier)
 
 func add_modifier(modifier: StatModifier) -> void:
-    print(">>> ADDING MODIFIER: " + modifier.name + " WITH VALUE: " + str(modifier.stat_value))
+    var modifier_string := "[Modifier] ADDING MODIFIER: " + modifier.name + " WITH VALUE: " + str(modifier.stat_value)
+
+    if modifier.is_multiplier:
+        modifier_string += " (Multiplier)"
+    else:
+        modifier_string += " (Additive)"
+
+    print(modifier_string)
     stat_modifiers.append(modifier)
     modifier.turns_left = modifier.turn_duration
 
@@ -48,7 +55,7 @@ func update_modifier_by_unique_id(unique: String, new_value: float) -> void:
     for modifier: StatModifier in stat_modifiers:
         if modifier.unique_id == unique:
             modifier.stat_value = new_value
-            print(">>> CHANGED MODIFIER " + modifier.name + " TO " + str(new_value))
+            print("[Modifier] CHANGED MODIFIER " + modifier.name + " TO " + str(new_value))
             break
 
 func update_modifiers() -> void:
@@ -56,12 +63,12 @@ func update_modifiers() -> void:
         var modifier := stat_modifiers[i] as StatModifier
         if modifier.turns_left >= 0:
             modifier.turns_left -= 1
-            print(">>> TURNS LEFT FOR " + modifier.name + ": " + str(modifier.turns_left))
+            print("[Modifier] TURNS LEFT FOR " + modifier.name + ": " + str(modifier.turns_left))
         elif modifier.turns_left != -1: # -1 means infinite duration
-            print(">>> REMOVING MODIFIER: " + modifier.name)
+            print("[Modifier] REMOVING MODIFIER: " + modifier.name)
             stat_modifiers.remove_at(i)
         else:
-            print(">>> MODIFIER " + modifier.name + " HAS INFINITE DURATION")
+            print("[Modifier] MODIFIER " + modifier.name + " HAS INFINITE DURATION")
 
 func get_stat(stat: CharacterStatEntry.ECharacterStat, with_modifiers: bool = true) -> float:
     # return stat with multipliers applied and stack multipliers if they have the stack flag
@@ -81,7 +88,7 @@ func get_stat(stat: CharacterStatEntry.ECharacterStat, with_modifiers: bool = tr
     if stat_value != -1.0:
         for modifier: StatModifier in stat_modifiers_copy:
             if not modifier.modifier_active:
-                print(">>> MODIFIER " + modifier.name + " IS INACTIVE")
+                print("[Modifier] MODIFIER " + modifier.name + " IS INACTIVE")
                 continue
 
             if stat == modifier.stat:
@@ -118,4 +125,4 @@ func set_stat(stat: CharacterStatEntry.ECharacterStat, new_value: int) -> void:
 func _input(event) -> void:
     if event is InputEventKey and event.is_pressed() and not event.is_echo() and event.keycode == KEY_7:
         update_modifiers()
-        print(">>> MAX HP: " + str(get_stat(CharacterStatEntry.ECharacterStat.MaxHP)))
+        print("[Modifier] MAX HP: " + str(get_stat(CharacterStatEntry.ECharacterStat.MaxHP)))

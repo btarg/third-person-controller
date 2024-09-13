@@ -45,6 +45,7 @@ func _on_leave_battle() -> void:
 
 func enter() -> void:
     player_think_ui.show()
+
     # TODO: pick spell or item with UI
     chosen_spell_or_item = fire_spell
     action_info_label.text = "Current spell/item: " + chosen_spell_or_item.item_name
@@ -69,7 +70,11 @@ func physics_update(_delta: float) -> void: pass
 func input_update(event: InputEvent) -> void:
     if event.is_echo() or not active:
         return
-    if event.is_action_pressed("combat_attack"):
+
+    if event.is_action_pressed("ui_cancel"):
+        battle_state.force_exit_battle()
+        return
+    elif event.is_action_pressed("combat_attack"):
         chosen_action = BattleEnums.EPlayerCombatAction.CA_ATTACK
     elif event.is_action_pressed("combat_spellitem"):
 
@@ -81,6 +86,8 @@ func input_update(event: InputEvent) -> void:
         chosen_action = BattleEnums.EPlayerCombatAction.CA_DRAW
     else:
         return
+    
+
     Transitioned.emit(self, "ChooseTargetState")
 
 func unhandled_input_update(_event: InputEvent) -> void: pass

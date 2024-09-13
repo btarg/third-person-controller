@@ -9,7 +9,8 @@ enum ECharacterStat { ## Character Stat
     Evasion, ## Integer DC for the attacker to hit this character
     Vitality, ## Integer bonus for initiative rolls
     AttackCritMultiplier, ## Multiplier for damage on crit (float 0-1)
-    
+    DrawBonus, ## Integer bonus to the random number of spells drawn
+
     # Attacks don't have a fail multiplier as failures result in resisted, absorbed, or immune damage
     
     MagicCritMultiplier, ## Multiplier for magic damage on crit (float 0-1)

@@ -21,7 +21,7 @@ signal inventory_updated(resource: BaseInventoryItem, count: int, is_new_item: b
 @onready var almighty_spell: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_almighty_spell.tres")
 
 func _ready() -> void:
-    Console.add_command("print_inventory", print_inventory, 1)
+    Console.add_command("print_inventory", _print_inventory_command, 1)
     Console.add_command("set_junction", _set_junction_command, 3)
     Console.add_command("get_junction", _get_junctioned_stat, 2)
 
@@ -215,8 +215,14 @@ func get_item(item_id: String) -> BaseInventoryItem:
         return items[item_id]["resource"] as BaseInventoryItem
     return null
 
-func print_inventory(character_name: String) -> void:
+func _print_inventory_command(character_name: String) -> void:
     if character_name != battle_character.character_internal_name:
         return
-    for item_id: String in items.keys():
-        Console.print_line("%s (%s): %s" % [items[item_id]["resource"].item_name, item_id, items[item_id]["count"]])
+    print_inventory()
+
+func print_inventory() -> void:
+    if not items.is_empty():
+        for item_id: String in items.keys():
+            Console.print_line("%s (%s): %s" % [items[item_id]["resource"].item_name, item_id, items[item_id]["count"]])
+    else:
+        print("Inventory is empty")

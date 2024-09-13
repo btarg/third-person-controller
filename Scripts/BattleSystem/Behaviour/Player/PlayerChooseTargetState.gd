@@ -6,6 +6,8 @@ class_name PlayerChooseTargetState
 
 var _can_select_enemies := true
 var _can_select_allies := true
+
+var last_selected_index := 0
     
 func _ready() -> void:
     battle_state.EndedBattle.connect(_on_battle_ended)
@@ -68,10 +70,13 @@ func select_character(character: BattleCharacter) -> void:
         # Set the focused node to the selected character
         battle_state.top_down_player.focused_node = character.get_parent()
 
+        last_selected_index = battle_state.turn_order.find(character)
+
     else:
         print("Cannot select " + character.character_name)
         battle_state.player_selected_character = null
         battle_state.selected_target_label.text = "Select a target"
+        last_selected_index = 0
     
 
 func enter() -> void:
@@ -81,8 +86,10 @@ func enter() -> void:
 
     print("Player is choosing a target")
     battle_state.turn_order_ui.show()
+    battle_state.turn_order_ui.grab_focus()
+    battle_state.turn_order_ui.select(last_selected_index)
+    _select(last_selected_index)
     battle_state.selected_target_label.show()
-    battle_state.selected_target_label.text = "Select a target"
 
 
 func exit() -> void:
@@ -96,42 +103,61 @@ func physics_update(_delta: float) -> void: pass
 
 
 func _process_targeting() -> void:
+    if not battle_state.player_selected_character:
+        return
+    var target_character := battle_state.player_selected_character as BattleCharacter
+    var current_character := battle_state.current_character
+
     match think_state.chosen_action:
         BattleEnums.EPlayerCombatAction.CA_ATTACK:
-            BattleManager.process_basic_attack(battle_state.current_character, battle_state.player_selected_character)
-            # Check if still active since the battle may have ended
-            if active:
-                _end_targeting()
+            BattleManager.process_basic_attack(current_character, target_character)
+            _end_targeting()
     
         BattleEnums.EPlayerCombatAction.CA_ITEM,\
         BattleEnums.EPlayerCombatAction.CA_CAST:
-            if battle_state.current_character == battle_state.player_selected_character:
-                print("Using on self!")
-            else:
-                print("Using on " + battle_state.player_selected_character.character_name)
-    
-            var status := think_state.chosen_spell_or_item.use(battle_state.current_character, battle_state.player_selected_character)
+            var status := think_state.chosen_spell_or_item.use(current_character, target_character)
             print("[SPELL/ITEM] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
-            if active:
-                _end_targeting()
+            _end_targeting()
         BattleEnums.EPlayerCombatAction.CA_DRAW:
             print("[DRAW] Player is drawing... ")
-            # TODO: Implement draw action
+            var draw_list := target_character.draw_list
+            var random_draw := randi() % draw_list.size()
+            var drawn_spell := draw_list[random_draw] as SpellItem
+            print("[DRAW] Drawn spell: " + drawn_spell.item_name)
+
+            var draw_bonus: int = ceili(current_character.stats.get_stat(CharacterStatEntry.ECharacterStat.DrawBonus))
+            print("[DRAW] Draw bonus: " + str(draw_bonus))
+            var drawn_amount := DiceRoller.roll_flat(6, 1, draw_bonus)
+            print("[DRAW] Drawn amount: " + str(drawn_amount))
+            # TODO: decide whether to stock or cast
+            var cast_immediately := true
+            if cast_immediately:
+                var status := drawn_spell.use(current_character, target_character)
+                print("[DRAW] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
+                _end_targeting()
+            else:
+                print("[DRAW] Stocking spell for later use")
+                if current_character.inventory:
+                    current_character.inventory.add_item(drawn_spell, drawn_amount)
+                else:
+                    print("[DRAW] Character has no inventory")
             _end_targeting()
         _:
-            print("No action selected!")
+            print("Invalid action")
             _end_targeting()
 
 func _end_targeting() -> void:
-    print("Ending target selection")
-    Transitioned.emit(self, "IdleState")
-    battle_state.ready_next_turn()
+    # check if active in case the character has left the battle (ie. died)
+    if active:
+        print("Ending target selection")
+        Transitioned.emit(self, "IdleState")
+        battle_state.ready_next_turn()
 
 func input_update(event: InputEvent) -> void:
     if event.is_echo() or not active:
         return
 
-    if event.is_action_pressed("ui_select"):
+    if event.is_action_pressed("ui_select") or event.is_action_pressed("combat_attack"):
         if battle_state.player_selected_character == null:
             print("No character selected!")
             return

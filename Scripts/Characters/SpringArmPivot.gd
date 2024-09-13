@@ -70,7 +70,7 @@ func camera_physics_process(_delta) -> void:
 
     if change_fov_on_run:
         if player.is_on_floor() and player.velocity.length() > 0:
-            if Input.is_action_pressed("run"):
+            if player.is_running:
                 camera.fov = lerp(camera.fov, run_fov, CAMERA_BLEND)
             else:
                 camera.fov = lerp(camera.fov, normal_fov, CAMERA_BLEND)

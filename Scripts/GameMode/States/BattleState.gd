@@ -36,7 +36,7 @@ func _ready() -> void:
     selected_target_label.hide()
     Console.pause_enabled = true
 
-    Console.add_command("exit_battle", _command_exit_battle)
+    Console.add_command("exit_battle", force_exit_battle)
     Console.add_command("spawn_enemy", spawn_enemy)
     Console.add_command("print_turn_order", print_turn_order)
 
@@ -45,7 +45,7 @@ func _ready() -> void:
 
     Console.add_command("set_dmg_element", _command_set_dmg_element, 1)
     
-func _command_exit_battle() -> void:
+func force_exit_battle() -> void:
     Transitioned.emit(self, "ExplorationState")
 
 func _command_remove_selected() -> void:
@@ -187,10 +187,9 @@ func enter() -> void:
             printerr(child.name + " should not be tagged as a BattleCharacter!!")
             printerr(child)
 
-    if turn_order.is_empty():
+    if turn_order.size() < 2 or enemy_units.is_empty():
+        print("Cannot enter battle: invalid turn order (are there enough enemies?)")
         return
-    elif turn_order.size() == 1:
-        spawn_enemy()
 
     # Start the first character's turn
     current_character_index = -1
@@ -276,7 +275,7 @@ func input_update(event) -> void:
 func spawn_enemy() -> void:
     var enemy_instance := test_enemy.instantiate()
     add_child(enemy_instance)
-    enemy_instance.global_position = player.global_position + Vector3(0, 4, 5)
+    enemy_instance.global_position = player.global_position + Vector3(0, 0, 5)
     var enemy_battle_character := enemy_instance.get_node("BattleCharacter") as BattleCharacter
     add_to_battle(enemy_battle_character)
 

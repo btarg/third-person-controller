@@ -19,10 +19,10 @@ func physics_update(delta) -> void:
     player.player_process(delta)
 
 func input_update(event) -> void:
-    if event.is_echo():
+    if event.is_echo() or not active:
         return
 
-    if event is InputEventKey and active:
+    if event is InputEventKey:
         if event.is_pressed() and event.keycode == KEY_R:
             Transitioned.emit(self, "BattleState")
         elif event.is_pressed() and event.keycode == KEY_ESCAPE:

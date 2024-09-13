@@ -8,9 +8,11 @@ var speed : float
 
 @export_group("Movement variables")
 @export var walk_speed : float = 2.0
-@export var run_speed : float = 5.0
+@export var run_speed : float = 6.0
 @export var jump_strength : float = 15.0
 @export var gravity : float = 50.0
+
+var is_running: bool = false
 
 const ANIMATION_BLEND : float = 7.0
 
@@ -48,18 +50,16 @@ func player_process(delta) -> void:
 
     spring_arm_pivot.camera_physics_process(delta)
 
-    var move_direction : Vector3 = Vector3.ZERO
+    var move_direction := Vector3.ZERO
     move_direction.x = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
     move_direction.z = Input.get_action_strength("move_backwards") - Input.get_action_strength("move_forwards")
     move_direction = move_direction.rotated(Vector3.UP, spring_arm_pivot.rotation.y)
     
     velocity.y -= gravity * delta
     
-    if Input.is_action_pressed("run"):
-        speed = run_speed
-    else:
-        speed = walk_speed
-    
+    speed = run_speed if Input.is_action_pressed("run") else walk_speed
+    is_running = (speed == run_speed) and (abs(velocity.x) > 1 or abs(velocity.z) > 1)
+
     velocity.x = move_direction.x * speed
     velocity.z = move_direction.z * speed
     
@@ -83,7 +83,7 @@ func animate(delta) -> void:
         animator.set("parameters/ground_air_transition/transition_request", "grounded")
         
         if velocity.length() > 0:
-            if speed == run_speed:
+            if is_running:
                 animator.set("parameters/iwr_blend/blend_amount", lerp(animator.get("parameters/iwr_blend/blend_amount"), 1.0, delta * ANIMATION_BLEND))
             else:
                 animator.set("parameters/iwr_blend/blend_amount", lerp(animator.get("parameters/iwr_blend/blend_amount"), 0.0, delta * ANIMATION_BLEND))

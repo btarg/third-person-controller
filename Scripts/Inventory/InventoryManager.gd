@@ -97,7 +97,7 @@ func _generate_stat_modifier(spell_item: SpellItem, stat: CharacterStatEntry.ECh
     
     modifier.stat = stat
     modifier.is_multiplier = false
-    modifier.stat_value = Util.round_to_dec(value, JUNCTION_DECIMAL_PLACES) as float
+    modifier.stat_value = Util.round_to_dec(value, JUNCTION_DECIMAL_PLACES)
 
     return modifier
 

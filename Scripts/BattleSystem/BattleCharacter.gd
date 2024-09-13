@@ -161,9 +161,10 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
                 result = BattleEnums.ESkillResult.SR_RESISTED
             else:
                 print(character_name + " reflected " + enum_string)
-                # Reflect damage back at attacker
+                # Reflect damage back at attacker (true flag to prevent infinite loops)
                 attacker.take_damage(self, damage, damage_type, dice_status, true)
                 result = BattleEnums.ESkillResult.SR_REFLECTED
+                # Set damage to 0 so we don't apply it to the character who reflected
                 damage = 0
 
         elif (affinity_type == BattleEnums.EAffinityType.RESIST

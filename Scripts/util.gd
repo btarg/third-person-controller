@@ -3,6 +3,9 @@ class_name Util
 static func print_rainbow(text: String) -> void:
     print_rich("[rainbow freq=1.0 sat=0.8 val=0.8]%s[/rainbow]" % text)
 
+static func round_to_dec(num: float, digit: int) -> float:
+    return round(num * pow(10.0, digit)) / pow(10.0, digit)
+
 static func get_enum_name(enum_dict: Dictionary, value: int) -> String:
     for key: String in enum_dict.keys():
         if enum_dict[key] == value:

@@ -95,14 +95,13 @@ func update(_delta: float) -> void: pass
 func physics_update(_delta: float) -> void: pass
 
 
-func process_targeting() -> void:
+func _process_targeting() -> void:
     match think_state.chosen_action:
         BattleEnums.EPlayerCombatAction.CA_ATTACK:
             BattleManager.process_basic_attack(battle_state.current_character, battle_state.player_selected_character)
             # Check if still active since the battle may have ended
             if active:
-                Transitioned.emit(self, "IdleState")
-                battle_state.ready_next_turn()
+                _end_targeting()
     
         BattleEnums.EPlayerCombatAction.CA_ITEM,\
         BattleEnums.EPlayerCombatAction.CA_CAST:
@@ -114,13 +113,19 @@ func process_targeting() -> void:
             var status := think_state.chosen_spell_or_item.use(battle_state.current_character, battle_state.player_selected_character)
             print("[SPELL/ITEM] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
             if active:
-                Transitioned.emit(self, "IdleState")
-                battle_state.ready_next_turn()
-    
+                _end_targeting()
+        BattleEnums.EPlayerCombatAction.CA_DRAW:
+            print("[DRAW] Player is drawing... ")
+            # TODO: Implement draw action
+            _end_targeting()
         _:
             print("No action selected!")
-            Transitioned.emit(self, "IdleState")
-            battle_state.ready_next_turn()
+            _end_targeting()
+
+func _end_targeting() -> void:
+    print("Ending target selection")
+    Transitioned.emit(self, "IdleState")
+    battle_state.ready_next_turn()
 
 func input_update(event: InputEvent) -> void:
     if event.is_echo() or not active:
@@ -130,7 +135,7 @@ func input_update(event: InputEvent) -> void:
         if battle_state.player_selected_character == null:
             print("No character selected!")
             return
-        process_targeting()
+        _process_targeting()
 
     elif event.is_action_pressed("ui_page_down"):
         print("Removing selected character from battle...")
@@ -138,8 +143,7 @@ func input_update(event: InputEvent) -> void:
             battle_state.leave_battle(battle_state.player_selected_character)
 
     elif event.is_action_pressed("ui_cancel"):
-        # back to idle
-        Transitioned.emit(self, "IdleState")
+        Transitioned.emit(self, "ThinkState")
 
 func unhandled_input_update(event: InputEvent) -> void:
     if event.is_echo() or not active:

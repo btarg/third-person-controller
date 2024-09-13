@@ -11,6 +11,7 @@ extends State
 @onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
 
 @onready var player_think_ui := exploration_player.get_node("PlayerThinkUI") as Control
+@onready var action_info_label := player_think_ui.get_node("CurrentActionInfo") as Label
 
 var chosen_action: BattleEnums.EPlayerCombatAction = BattleEnums.EPlayerCombatAction.CA_DEFEND
 
@@ -46,8 +47,7 @@ func enter() -> void:
     player_think_ui.show()
     # TODO: pick spell or item with UI
     chosen_spell_or_item = fire_spell
-
-    player_think_ui.get_node("CurrentActionInfo").text = "Current spell/item: " + chosen_spell_or_item.item_name
+    action_info_label.text = "Current spell/item: " + chosen_spell_or_item.item_name
 
     print("PLAYER is thinking about what to do")
 
@@ -77,6 +77,8 @@ func input_update(event: InputEvent) -> void:
             chosen_action = BattleEnums.EPlayerCombatAction.CA_CAST
         else:
             chosen_action = BattleEnums.EPlayerCombatAction.CA_ITEM
+    elif event.is_action_pressed("combat_draw"):
+        chosen_action = BattleEnums.EPlayerCombatAction.CA_DRAW
     else:
         return
     Transitioned.emit(self, "ChooseTargetState")

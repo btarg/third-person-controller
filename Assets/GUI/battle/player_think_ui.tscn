@@ -19,15 +19,17 @@ layout_mode = 0
 offset_left = 24.0
 offset_top = 24.0
 offset_right = 866.0
-offset_bottom = 108.0
+offset_bottom = 216.0
 text = "Attack: SPACE / South
-Cast or use: KEY_R / West"
+Cast or use: E / NORTH
+Draw: R / WEST"
 label_settings = SubResource("LabelSettings_y6igg")
 
 [node name="CurrentActionInfo" type="Label" parent="."]
 layout_mode = 0
 offset_left = 24.0
-offset_top = 128.0
+offset_top = 192.0
 offset_right = 866.0
-offset_bottom = 212.0
+offset_bottom = 276.0
+text = "Current spell:"
 label_settings = SubResource("LabelSettings_y6igg")

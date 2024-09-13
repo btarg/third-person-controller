@@ -2,11 +2,16 @@
 [Project: Requiem](https://docs.google.com/document/d/1ciNLXNb76iGfoPWgEIhHHFKyTaYyUXYv_RmkQ1yvwhU/edit?usp=sharing) - Work in progress RPG built in Godot 4 with GDScript
 
 # Credits
-[Template by WaffleAWT](https://github.com/WaffleAWT/Godot-4.3-Third-Person-Controller)
+- [Third Person Controller template by WaffleAWT](https://github.com/WaffleAWT/Godot-4.3-Third-Person-Controller)
+- [Godot debug console plugin by Jitspoe](https://github.com/jitspoe/godot-console)
+- [Mixamo Bone Map by catprisbrey](https://github.com/catprisbrey/Godot4-OpenAnimationLibraries/blob/main/BoneMaps/Mixamo%20BoneMap.tres)
 
 # TODO
 - Battle basics
     - [ ] Multiple player characters
+- Junction system
+    - [x] Players can junction items
+    - [x] Items can affect stats
 - Movement
     - [ ] In-battle player movement state
     - [ ] Movement in metres as a stat (speed)
@@ -21,10 +26,8 @@
     - [ ] UI for choosing junctioned items
     - [ ] UI for inventory: able to use items out of combat (e.g. healing potions/spells)
     - [ ] Damage numbers and other hit feedback
-
 - Visuals
     - [ ] Animated characters
-
 - AI
     - [ ] Enemies seek the player and attack
         - [ ] Enemies choose how we enter battle: either by attacking the player or by being attacked by the player

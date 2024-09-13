@@ -121,15 +121,17 @@ func _process_targeting() -> void:
         BattleEnums.EPlayerCombatAction.CA_DRAW:
             print("[DRAW] Player is drawing... ")
             var draw_list := target_character.draw_list
-            var random_draw := randi() % draw_list.size()
-            var drawn_spell := draw_list[random_draw] as SpellItem
+
+            # TODO: manually choose drawn spell
+            var drawn_spell := draw_list[randi() % draw_list.size()] as SpellItem
+
             print("[DRAW] Drawn spell: " + drawn_spell.item_name)
 
             var draw_bonus: int = ceili(current_character.stats.get_stat(CharacterStatEntry.ECharacterStat.DrawBonus))
             print("[DRAW] Draw bonus: " + str(draw_bonus))
             var drawn_amount := DiceRoller.roll_flat(6, 1, draw_bonus)
             print("[DRAW] Drawn amount: " + str(drawn_amount))
-            # TODO: decide whether to stock or cast
+            # TODO: manually decide whether to stock or cast
             var cast_immediately := true
             if cast_immediately:
                 var status := drawn_spell.use(current_character, target_character)

@@ -115,7 +115,8 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
 
     # Use get_or_add to prevent null values breaking this
     var affinity_type := affinities.get_or_add(damage_type, BattleEnums.EAffinityType.UNKNOWN) as BattleEnums.EAffinityType
-
+    var enum_string := Util.get_enum_name(BattleEnums.EAffinityElement, damage_type)
+    
     # log affinities first, since the dice roll status can override the affinity type
     if (affinity_type != BattleEnums.EAffinityType.UNKNOWN):
         if not AffinityLog.is_affinity_logged(character_internal_name, damage_type):
@@ -137,8 +138,6 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
             affinity_type = BattleEnums.EAffinityType.RESIST
 
     if (affinity_type != BattleEnums.EAffinityType.UNKNOWN):
-        var enum_string := Util.get_enum_name(BattleEnums.EAffinityElement, damage_type)
-
         if (affinity_type == BattleEnums.EAffinityType.WEAK):
             damage = _calculate_crit_damage(attacker as BattleCharacter, damage)
             result = BattleEnums.ESkillResult.SR_CRITICAL

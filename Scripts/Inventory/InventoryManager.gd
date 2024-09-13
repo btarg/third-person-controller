@@ -9,6 +9,8 @@ var linked_modifiers: Dictionary = {}
 
 ## Item id as key, junctioned stat as value
 var junctioned_stat_by_item: Dictionary = {}
+## How many decimal places to round to when calculating stat modifier value for junctioned items
+const JUNCTION_DECIMAL_PLACES: int = 5
 
 @onready var battle_character := get_node("../BattleCharacter") as BattleCharacter
 
@@ -28,10 +30,10 @@ func _ready() -> void:
     Console.add_command("remove_item_id", _remove_item_command, 3)
     
     inventory_updated.connect(_on_inventory_updated)
-    # set_item_junctioned_stat(fire_spell.item_id, CharacterStatEntry.ECharacterStat.Strength)
-    # add_item(heal_spell, 99)
-    add_item(fire_spell, 5)
-    # add_item(almighty_spell, 99)
+    set_item_junctioned_stat(fire_spell.item_id, CharacterStatEntry.ECharacterStat.Strength)
+    add_item(heal_spell, 99)
+    add_item(fire_spell, 99)
+    add_item(almighty_spell, 99)
 
 func _add_item_command(character_name: String, item_path: String, count_string: String) -> void:
     if character_name != battle_character.character_internal_name:
@@ -95,7 +97,7 @@ func _generate_stat_modifier(spell_item: SpellItem, stat: CharacterStatEntry.ECh
     
     modifier.stat = stat
     modifier.is_multiplier = false
-    modifier.stat_value = value
+    modifier.stat_value = Util.round_to_dec(value, JUNCTION_DECIMAL_PLACES) as float
 
     return modifier
 
@@ -125,6 +127,10 @@ func add_item(item: BaseInventoryItem, count: int = 1) -> void:
 
 func _update_junction_modifiers(spell_item: SpellItem, total_item_count: int) -> void:
     print("[Junction] Modifier update called with count " + str(total_item_count))
+    if not spell_item:
+        print("[Junction] Spell item is null")
+        return
+   
     if spell_item.junction_table.is_empty():
         print("[Junction] Spell has no junction table")
         return

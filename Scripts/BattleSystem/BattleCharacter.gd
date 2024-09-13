@@ -115,8 +115,14 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
 
     # Use get_or_add to prevent null values breaking this
     var affinity_type := affinities.get_or_add(damage_type, BattleEnums.EAffinityType.UNKNOWN) as BattleEnums.EAffinityType
-    
-    var should_log_affinity := true
+
+    # log affinities first, since the dice roll status can override the affinity type
+    if (affinity_type != BattleEnums.EAffinityType.UNKNOWN):
+        if not AffinityLog.is_affinity_logged(character_internal_name, damage_type):
+            print("[AL] " + character_name + " has not logged " + enum_string)
+            AffinityLog.log_affinity(character_internal_name, damage_type, affinity_type)
+        else:
+            print("[AL] " + character_name + " has logged " + enum_string)
 
     if (not (affinity_type == BattleEnums.EAffinityType.IMMUNE
     or affinity_type == BattleEnums.EAffinityType.ABSORB
@@ -130,21 +136,8 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
         elif dice_status == DiceRoller.DiceStatus.ROLL_FAIL:
             affinity_type = BattleEnums.EAffinityType.RESIST
 
-        # this isn't representitive of the actual enemy's affinities,
-        # since we overwrite the affinity type with the dice status.
-        # therefore we should not log this affinity
-        should_log_affinity = false
-
-
     if (affinity_type != BattleEnums.EAffinityType.UNKNOWN):
         var enum_string := Util.get_enum_name(BattleEnums.EAffinityElement, damage_type)
-
-        if should_log_affinity:
-            if not AffinityLog.is_affinity_logged(character_internal_name, damage_type):
-                print("[AL] " + character_name + " has not logged " + enum_string)
-                AffinityLog.log_affinity(character_internal_name, damage_type, affinity_type)
-            else:
-                print("[AL] " + character_name + " has logged " + enum_string)
 
         if (affinity_type == BattleEnums.EAffinityType.WEAK):
             damage = _calculate_crit_damage(attacker as BattleCharacter, damage)

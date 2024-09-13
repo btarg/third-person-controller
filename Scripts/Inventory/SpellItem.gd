@@ -74,7 +74,7 @@ func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
 
     match spell_affinity:
         BattleEnums.EAffinityElement.HEAL:
-            _handle_healing(spell_power)
+            target.heal(spell_power)
             spell_use_status = UseStatus.SPELL_SUCCESS
         BattleEnums.EAffinityElement.MANA:
             print("[SPELL] %s restored %s MP to %s" % [item_name, spell_power, target.character_name])
@@ -89,6 +89,3 @@ func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
 
     item_used.emit(spell_use_status)
     return spell_use_status
-
-func _handle_healing(heal_power: float) -> void:
-    print(item_name + " Spell Healed " + str(heal_power) + " HP!")

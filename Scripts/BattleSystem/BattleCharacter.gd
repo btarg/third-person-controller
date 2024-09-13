@@ -84,8 +84,11 @@ func roll_initiative() -> int:
     initiative = DiceRoller.roll_flat(20, 1) + vitality
     return initiative
 
-func heal(amount: int) -> void:
-    print(character_name + " healed for " + str(amount) + " HP")
+func heal(amount: int, from_absorb: bool = false) -> void:
+    var heal_string := "[HEAL] %s healed %s HP" % [character_name, str(amount)]
+    if from_absorb:
+        heal_string += " from ABSORB"
+    print(heal_string)
     current_hp += amount
     var max_hp := stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP)
     if current_hp > max_hp:
@@ -113,7 +116,7 @@ func _calculate_resist_damage(damage: int) -> int:
 
 
 
-func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoller.DiceStatus = DiceRoller.DiceStatus.ROLL_SUCCESS) -> BattleEnums.ESkillResult:
+func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoller.DiceStatus = DiceRoller.DiceStatus.ROLL_SUCCESS, reflected: bool = false) -> BattleEnums.ESkillResult:
     if damage <= 0:
         print(character_name + " took no damage")
         return BattleEnums.ESkillResult.SR_FAIL
@@ -122,6 +125,19 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
 
     # Use get_or_add to prevent null values breaking this
     var affinity_type := affinities.get_or_add(damage_type, BattleEnums.EAffinityType.UNKNOWN) as BattleEnums.EAffinityType
+    
+    if (not (affinity_type == BattleEnums.EAffinityType.IMMUNE
+    or affinity_type == BattleEnums.EAffinityType.ABSORB
+    or affinity_type == BattleEnums.EAffinityType.REFLECT)
+    and damage_type != BattleEnums.EAffinityElement.ALMIGHTY):
+        # crits only apply to UNKNOWN and RESIST affinities
+        if dice_status == DiceRoller.DiceStatus.ROLL_CRIT_SUCCESS:
+            affinity_type = BattleEnums.EAffinityType.WEAK
+        elif dice_status == DiceRoller.DiceStatus.ROLL_CRIT_FAIL:
+            affinity_type = BattleEnums.EAffinityType.IMMUNE
+        elif dice_status == DiceRoller.DiceStatus.ROLL_FAIL:
+            affinity_type = BattleEnums.EAffinityType.RESIST
+
 
     if (affinity_type != BattleEnums.EAffinityType.UNKNOWN):
         var enum_string := Util.get_enum_name(BattleEnums.EAffinityElement, damage_type)
@@ -132,39 +148,74 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
         else:
             print("[AL] " + character_name + " has logged " + enum_string)
 
-
-        if (affinity_type == BattleEnums.EAffinityType.WEAK
-        or dice_status == DiceRoller.DiceStatus.ROLL_CRIT_SUCCESS):
+        if (affinity_type == BattleEnums.EAffinityType.WEAK):
             damage = _calculate_crit_damage(attacker as BattleCharacter, damage)
             result = BattleEnums.ESkillResult.SR_CRITICAL
 
-        elif ((affinity_type == BattleEnums.EAffinityType.RESIST
-        or dice_status == DiceRoller.DiceStatus.ROLL_FAIL)
-        and damage_type != BattleEnums.EAffinityElement.ALMIGHTY):
-            damage = _calculate_resist_damage(damage)
-            result = BattleEnums.ESkillResult.SR_RESISTED
+        elif affinity_type == BattleEnums.EAffinityType.REFLECT:
+            # Prevent infinite reflection loops by just resisting an already reflected attack
+            # TODO: attack mirrors and magic mirrors should have a counter for how many reflections they can do before breaking
+            if reflected:
+                print(character_name + " resisted reflected " + enum_string)
+                damage = _calculate_resist_damage(damage)
+                result = BattleEnums.ESkillResult.SR_RESISTED
+            else:
+                print(character_name + " reflected " + enum_string)
+                # Reflect damage back at attacker
+                attacker.take_damage(self, damage, damage_type, dice_status, true)
+                result = BattleEnums.ESkillResult.SR_REFLECTED
+                damage = 0
 
-        elif ((affinity_type == BattleEnums.EAffinityType.IMMUNE
-        or dice_status == DiceRoller.DiceStatus.ROLL_CRIT_FAIL)
+        elif (affinity_type == BattleEnums.EAffinityType.RESIST
+        and damage_type != BattleEnums.EAffinityElement.ALMIGHTY):
+            # basic attacks even with affinities do 0 damage on fail
+            # this obviously does not apply to weaknesses since they are
+            # handled in the crit block above
+            if (dice_status == DiceRoller.DiceStatus.ROLL_FAIL
+            and attacker.basic_attack_element == damage_type):
+                print(character_name + " resisted " + enum_string)
+                damage = 0
+                result = BattleEnums.ESkillResult.SR_FAIL
+            else:
+                damage = _calculate_resist_damage(damage)
+                result = BattleEnums.ESkillResult.SR_RESISTED
+
+        elif (affinity_type == BattleEnums.EAffinityType.IMMUNE
         and damage_type != BattleEnums.EAffinityElement.ALMIGHTY):
             print(character_name + " is immune to " + enum_string)
             damage = 0
             result = BattleEnums.ESkillResult.SR_IMMUNE
 
+        elif (affinity_type == BattleEnums.EAffinityType.ABSORB
+        and damage_type != BattleEnums.EAffinityElement.ALMIGHTY):
+            print(character_name + " absorbed " + enum_string)
+            # Absorb damage and heal
+            heal(damage)
+            result = BattleEnums.ESkillResult.SR_ABSORBED
+            damage = 0
+
+        
+
     # only apply attacker strength when the attack was not a crit, resisted, absorbed, or immune
     # (aka normal damage - doesn't apply to almighty)
     elif attacker and damage_type != BattleEnums.EAffinityElement.ALMIGHTY:
-        var attacker_strength := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.Strength)
-        print("[Attack] Original Damage: " + str(damage))
-        print(attacker.character_name + " has strength: " + str(attacker_strength))
-        damage = ceil(damage * attacker_strength)
-        print("[Attack] Damage with strength: " + str(damage))
-    
-    print(character_name + " took " + str(damage) + " damage")
+        # Regular failed rolls don't do damage for basic melee attacks (non spell attacks)
+        if ((dice_status == DiceRoller.DiceStatus.ROLL_FAIL
+        or dice_status == DiceRoller.DiceStatus.ROLL_CRIT_FAIL)
+        and attacker.basic_attack_element == damage_type):
+            damage = 0
+            result = BattleEnums.ESkillResult.SR_FAIL
+        else:
+            var attacker_strength := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.Strength)
+            print("[Attack] Original Damage: " + str(damage))
+            print(attacker.character_name + " has strength: " + str(attacker_strength))
+            damage = ceil(damage * attacker_strength)
+            print("[Attack] Damage with strength: " + str(damage))
     
     if damage > 0:
         current_hp -= damage
         OnTakeDamage.emit(damage)
+        print(character_name + " took " + str(damage) + " damage")
         if current_hp <= 0:
             current_hp = 0
             OnDeath.emit()

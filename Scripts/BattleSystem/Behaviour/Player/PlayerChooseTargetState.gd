@@ -75,7 +75,7 @@ func select_character(character: BattleCharacter) -> void:
     
 
 func enter() -> void:
-    var selection := BattleEnums.get_combat_action_selection(think_state.chosen_action)
+    var selection := BattleEnums.get_combat_action_selection(think_state.chosen_action, think_state.chosen_spell_or_item)
     _can_select_enemies = selection.can_select_enemies
     _can_select_allies = selection.can_select_allies
 
@@ -104,23 +104,12 @@ func process_targeting() -> void:
                 Transitioned.emit(self, "IdleState")
                 battle_state.ready_next_turn()
     
-        BattleEnums.EPlayerCombatAction.CA_EFFECT_ENEMY:
-            print("Player effects enemy %s!" % battle_state.player_selected_character.character_name)
-            Transitioned.emit(self, "IdleState")
-            battle_state.ready_next_turn()
-    
-        BattleEnums.EPlayerCombatAction.CA_EFFECT_ALLY:
-            print("Player effects ally %s!" % battle_state.player_selected_character.character_name)
-            Transitioned.emit(self, "IdleState")
-            battle_state.ready_next_turn()
-    
-        BattleEnums.EPlayerCombatAction.CA_CAST_SELF,\
-        BattleEnums.EPlayerCombatAction.CA_CAST_ALLY,\
-        BattleEnums.EPlayerCombatAction.CA_CAST_ENEMY:
+        BattleEnums.EPlayerCombatAction.CA_ITEM,\
+        BattleEnums.EPlayerCombatAction.CA_CAST:
             if battle_state.current_character == battle_state.player_selected_character:
-                print("Casting on self!")
+                print("Using on self!")
             else:
-                print("Casting on " + battle_state.player_selected_character.character_name)
+                print("Using on " + battle_state.player_selected_character.character_name)
     
             var status := think_state.chosen_spell_or_item.use(battle_state.current_character, battle_state.player_selected_character)
             print("[SPELL/ITEM] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
@@ -131,6 +120,7 @@ func process_targeting() -> void:
         _:
             print("No action selected!")
             Transitioned.emit(self, "IdleState")
+            battle_state.ready_next_turn()
 
 func input_update(event: InputEvent) -> void:
     if event.is_echo() or not active:
@@ -146,6 +136,10 @@ func input_update(event: InputEvent) -> void:
         print("Removing selected character from battle...")
         if battle_state.player_selected_character:
             battle_state.leave_battle(battle_state.player_selected_character)
+
+    elif event.is_action_pressed("ui_cancel"):
+        # back to idle
+        Transitioned.emit(self, "IdleState")
 
 func unhandled_input_update(event: InputEvent) -> void:
     if event.is_echo() or not active:

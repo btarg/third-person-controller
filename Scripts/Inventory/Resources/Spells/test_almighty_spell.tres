@@ -5,18 +5,24 @@
 [resource]
 script = ExtResource("1_kpclh")
 spell_affinity = 9
-spell_power = 50
-spell_radius = 0
 die_sides = 20
 num_rolls = 1
 difficulty_class = 10
 crit_behaviour = 0
+spell_power = 50
+spell_radius = 0
 power_multiplier_success = 1.0
 power_multiplier_crit_success = 2.0
 power_multiplier_fail = 0.5
 power_multiplier_crit_fail = 0.0
+junction_table = {
+0: 2.0,
+2: 1.005
+}
 item_type = 0
 item_id = "almighty_spell"
 item_name = "Megidolaon"
 item_description = "Deals heavy ALMIGHTY dmg to one enemy"
 max_stack = 999
+can_use_on_enemies = true
+can_use_on_allies = false

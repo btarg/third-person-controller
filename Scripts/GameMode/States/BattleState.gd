@@ -264,9 +264,6 @@ func input_update(event) -> void:
     if event is InputEventKey:
         if current_character != null:
             current_character.battle_input(event)
-
-        if event.is_pressed() and event.keycode == KEY_R:
-            Transitioned.emit(self, "ExplorationState")
         is_using_controller = false
 
     # TODO: do this in an autoload

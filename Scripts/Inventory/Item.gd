@@ -21,11 +21,16 @@ enum UseStatus {
     EQUIPPED
 }
 
+## item_type should be SPELL for a SpellItem
 @export var item_type: ItemType = ItemType.WEAPON
 @export var item_id: String = ""
 @export var item_name: String = "???"
 @export var item_description: String = "Test Description"
 @export var max_stack: int = 999
+
+@export var can_use_on_enemies: bool = true
+@export var can_use_on_allies: bool = true
+
 signal item_used
 
 # Preload audio types

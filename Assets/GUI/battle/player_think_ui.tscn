@@ -20,6 +20,14 @@ offset_left = 24.0
 offset_top = 24.0
 offset_right = 866.0
 offset_bottom = 108.0
-text = "Left click to attack an enemy
-Space to lock in / end turn"
+text = "Attack: SPACE / South
+Cast or use: KEY_R / West"
+label_settings = SubResource("LabelSettings_y6igg")
+
+[node name="CurrentActionInfo" type="Label" parent="."]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 128.0
+offset_right = 866.0
+offset_bottom = 212.0
 label_settings = SubResource("LabelSettings_y6igg")

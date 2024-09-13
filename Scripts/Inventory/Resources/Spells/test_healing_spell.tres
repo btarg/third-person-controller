@@ -24,3 +24,5 @@ item_id = "heal_spell"
 item_name = "Cure"
 item_description = "Restores a small amount of HP."
 max_stack = 999
+can_use_on_enemies = true
+can_use_on_allies = true

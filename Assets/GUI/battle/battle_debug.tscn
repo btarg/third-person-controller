@@ -29,4 +29,15 @@ offset_left = 232.0
 offset_top = 589.0
 offset_right = 1144.0
 offset_bottom = 639.0
+text = "Hello world"
+label_settings = SubResource("LabelSettings_y02v7")
+
+[node name="ButtonHintLabel" type="Label" parent="SelectedEnemyLabel"]
+layout_mode = 0
+offset_left = -232.0
+offset_top = -589.0
+offset_right = 208.0
+offset_bottom = -486.0
+text = "Attack button to confirm
+UI_CANCEL to go back"
 label_settings = SubResource("LabelSettings_y02v7")

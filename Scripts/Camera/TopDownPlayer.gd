@@ -64,7 +64,7 @@ func player_process(_delta) -> void:
 
     # moved_from_focus = true if we should track the focused node
     if not moved_from_focus:
-        if focused_node:
+        if focused_node and focused_node.is_inside_tree():
             # ignore Y axis since we calculate that later and regardless of focused node
             var target_position := focused_node.global_transform.origin
             var current_position := global_transform.origin

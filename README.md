@@ -9,6 +9,10 @@
 # TODO
 - Battle basics
     - [ ] Multiple player characters
+    - [ ] Special skills and MP usage
+    - [ ] Money and XP
+    - [ ] Level up system
+    - [ ] Enemies drop items
 - Junction system
     - [x] Players can junction items
     - [x] Items can affect stats
@@ -19,6 +23,7 @@
     - [ ] Spells, attacks etc. can have a radius for targets (range)
         - [ ] Draw the radius visually around the player
 - UI/UX
+    - [ ] Pause menu with options to save, load, quit, etc.
     - [ ] health bars for each player character
     - [ ] UI for choosing spells
     - [ ] UI for choosing what to draw

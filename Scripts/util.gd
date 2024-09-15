@@ -6,6 +6,12 @@ static func print_rainbow(text: String) -> void:
 static func round_to_dec(num: float, digit: int) -> float:
     return round(num * pow(10.0, digit)) / pow(10.0, digit)
 
+static func string_contains_any(text: String, substrings: Array[String]) -> bool:
+    for substring in substrings:
+        if text.find(substring) > -1:
+            return true
+    return false
+
 static func get_enum_name(enum_dict: Dictionary, value: int) -> String:
     for key: String in enum_dict.keys():
         if enum_dict[key] == value:

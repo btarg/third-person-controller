@@ -43,15 +43,17 @@ func _ready() -> void:
     OnInputDeviceChanged.connect(_test_glyph)
 
 func _set_test_action(action: String) -> void:
+    Console.print_line("Setting test action to: " + action)
     test_action = action
 
 func _test_glyph() -> void:
     var debug_glyph := get_button_glyph(test_action)
-    print("Debug glyph %s: %s" % [test_action, debug_glyph])
+    Console.print_line("Debug glyph %s: %s" % [test_action, debug_glyph], true)
 
 ## Returns the path to the button glyph texture for the current input device based on the action name
 func get_button_glyph(action_name: String) -> String:
     var events := InputMap.action_get_events(action_name)
+
     for event in events:
         if is_using_controller:
             if event is InputEventJoypadButton:
@@ -86,9 +88,16 @@ func get_button_glyph(action_name: String) -> String:
 
                 return joystick_text
 
-
-        elif event is InputEventKey or event is InputEventMouseButton:
-            return "Keyboard Button: " + event.as_text().split(" ")[0]
+        
+        elif event is InputEventKey:
+            return "KEYBOARD_" + event.as_text().split(" ")[0]
+        elif event is InputEventMouseButton:
+            var mouse_split := event.as_text().split(" ")
+            if mouse_split.has("Wheel"):
+                return "MOUSE_WHEEL_" + mouse_split[2].to_upper()
+            else:
+                return "MOUSE_" + mouse_split[0].to_upper()
+        print(event.as_text())
 
     return "NONE"
 

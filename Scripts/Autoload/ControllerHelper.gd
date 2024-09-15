@@ -15,6 +15,8 @@ var player1_device := 0
 
 var last_input_event: InputEvent = null
 
+var test_action := "move_right"
+
 ## This signal is listened to by UI elements so they can call `get_button_glyph` to display the correct button
 signal OnInputDeviceChanged()
 
@@ -34,24 +36,61 @@ signal OnInputDeviceChanged()
         OnInputDeviceChanged.emit()
 
 func _ready() -> void:
+    Console.pause_enabled = true
+    Console.add_command("test_action", _set_test_action, 1)
+
     _update_controller_layout()
     OnInputDeviceChanged.connect(_test_glyph)
 
+func _set_test_action(action: String) -> void:
+    test_action = action
+
 func _test_glyph() -> void:
-    var debug_glyph := get_button_glyph("combat_attack")
-    print(">>> Debug glyph: " + debug_glyph)
+    var debug_glyph := get_button_glyph(test_action)
+    print("Debug glyph %s: %s" % [test_action, debug_glyph])
 
 ## Returns the path to the button glyph texture for the current input device based on the action name
 func get_button_glyph(action_name: String) -> String:
     var events := InputMap.action_get_events(action_name)
     for event in events:
-        if is_using_controller and event is InputEventJoypadButton:
-            var button_name := "_" + event.as_text().split(" ")[2]
-            return Util.get_enum_name(ControllerLayout, current_controller_layout) + button_name
+        if is_using_controller:
+            if event is InputEventJoypadButton:
+                var button_name := "_BUTTON_" + event.as_text().split(" ")[2]
+                return Util.get_enum_name(ControllerLayout, current_controller_layout) + button_name
+            elif event is InputEventJoypadMotion:
+                var joystick_text := Util.get_enum_name(ControllerLayout, current_controller_layout) + "_"
 
-        elif (not is_using_controller and event is InputEventKey) or event is InputEventMouseButton:
+                # Stick output: ["Left", "Stick", "Y-Axis,", "Joystick", "0", "Y-Axis)", "with", "Value", "-1.00"]
+                # Trigger output: ["Joystick", "2", "Y-Axis,", "Right", "Trigger,", "Sony", "R2,", "Xbox", "RT)", "with", "Value", "1.00"]
+                var split_info := event.as_text().split("(")[1].split(" ")
+                var axis_value := split_info[split_info.size() - 1].to_float()
+                
+                print("Split info: " + str(split_info))
+                print("Axis direction: " + str(axis_value))
+
+                if split_info[1] == "Stick":
+                    if split_info[0] == "Left":
+                        joystick_text += "LEFT_STICK"
+                    else:
+                        joystick_text += "RIGHT_STICK"
+                else:
+                    if split_info.has("Right"):
+                        joystick_text += "RIGHT_TRIGGER"
+                    else:
+                        joystick_text += "LEFT_TRIGGER"
+
+                if axis_value < 0:
+                    joystick_text += "_UP"
+                elif axis_value > 0:
+                    joystick_text += "_DOWN"
+
+                return joystick_text
+
+
+        elif event is InputEventKey or event is InputEventMouseButton:
             return "Keyboard Button: " + event.as_text().split(" ")[0]
-    return ""
+
+    return "NONE"
 
 func _update_controller_layout() -> void:
     var player1_name := Input.get_joy_name(player1_device)

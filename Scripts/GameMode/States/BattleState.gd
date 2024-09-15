@@ -31,7 +31,6 @@ var player_selected_character = null
 func _ready() -> void:
     turn_order_ui.hide()
     selected_target_label.hide()
-    Console.pause_enabled = true
 
     Console.add_command("exit_battle", force_exit_battle)
     Console.add_command("spawn_enemy", spawn_enemy)

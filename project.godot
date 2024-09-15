@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 GameModeStateMachine="*res://Scenes/StateMachine/GameModeStateMachine.tscn"
 Console="*res://addons/console/console.gd"
 AffinityLog="*res://Scripts/BattleSystem/AffinityLog.gd"
+ControllerHelper="*res://Scripts/Autoload/ControllerHelper.gd"
 
 [display]
 

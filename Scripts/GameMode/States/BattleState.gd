@@ -19,9 +19,6 @@ var character_counts: Dictionary = {}
 var current_character_index: int = 0
 var current_character: BattleCharacter
 
-## our best guess at the input method based on the last input update
-var is_using_controller: bool = false
-
 signal TurnStarted(character: BattleCharacter)
 
 ## The BattleCharacter which the player has targeted
@@ -260,17 +257,9 @@ func input_update(event) -> void:
     if not active or event.is_echo():
         return
 
-    if event is InputEventKey:
-        if current_character != null:
-            current_character.battle_input(event)
-        is_using_controller = false
-
-    # TODO: do this in an autoload
-    # if the input event is a controller input event, we can assume the player is using a controller
-    elif event is InputEventJoypadMotion or event is InputEventJoypadButton:
-        is_using_controller = true
-    elif event is InputEventMouseMotion or event is InputEventMouseButton:
-        is_using_controller = false
+    if current_character != null:
+        current_character.battle_input(event)
+        
 
 func spawn_enemy() -> void:
     var enemy_instance := test_enemy.instantiate()

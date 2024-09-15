@@ -54,8 +54,6 @@ func _test_glyph() -> void:
 func get_button_glyph(action_name: String) -> String:
     var events := InputMap.action_get_events(action_name)
 
-    var right_stick_inputs: Array[String] = []
-    var left_stick_inputs: Array[String] = []
 
     for event in events:
         if is_using_controller:
@@ -96,11 +94,7 @@ func get_button_glyph(action_name: String) -> String:
                         joystick_text += "_UP"
                     elif axis_value > 0:
                         joystick_text += "_DOWN"
-
-                if joystick_text.contains("LEFT_STICK"):
-                    left_stick_inputs.append(joystick_text)
-                elif joystick_text.contains("RIGHT_STICK"):
-                    right_stick_inputs.append(joystick_text)
+                
 
                 return joystick_prefix + joystick_text
 

@@ -10,6 +10,11 @@ var states : Dictionary = {}
 
 func _ready() -> void:
 
+    if get_tree().current_scene.scene_file_path.ends_with("_test.tscn"):
+        print("In test mode!")
+        queue_free()
+        return
+
     if initial_state:
         current_state = initial_state
     elif get_child_count() > 0:
@@ -23,17 +28,21 @@ func _ready() -> void:
     current_state.enter()
     current_state.active = true
 
-func _process(delta : float) -> void:
-    current_state.update(delta)
+func _process(delta: float) -> void:
+    if current_state:
+        current_state.update(delta)
 
-func _physics_process(delta : float) -> void:
-    current_state.physics_update(delta)
+func _physics_process(delta: float) -> void:
+    if current_state:
+        current_state.physics_update(delta)
 
 func _input(event) -> void:
-    current_state.input_update(event)
+    if current_state:
+        current_state.input_update(event)
 
 func _unhandled_input(event: InputEvent) -> void:
-    current_state.unhandled_input_update(event)
+    if current_state:
+        current_state.unhandled_input_update(event)
 
 func on_state_transitioned(state : State, new_state_name : String) -> void:
     if state != current_state:

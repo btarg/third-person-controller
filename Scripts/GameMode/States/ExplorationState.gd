@@ -1,7 +1,7 @@
 extends State
 class_name ExplorationState
 
-@onready var player := get_tree().get_nodes_in_group("Player").front() as PlayerController
+@onready var player := get_tree().get_nodes_in_group("Player").duplicate().pop_front() as PlayerController
 
 # Runs when the state is entered
 func enter() -> void:

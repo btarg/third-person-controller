@@ -10,7 +10,7 @@ extends State
 @onready var inventory_manager := get_node("../../../Inventory") as InventoryManager
 @onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
 
-@onready var player_think_ui := exploration_player.get_node("PlayerThinkUI") as Control
+@onready var player_think_ui := battle_state.get_node("PlayerThinkUI") as Control
 @onready var action_info_label := player_think_ui.get_node("CurrentActionInfo") as Label
 
 var chosen_action: BattleEnums.EPlayerCombatAction = BattleEnums.EPlayerCombatAction.CA_DEFEND

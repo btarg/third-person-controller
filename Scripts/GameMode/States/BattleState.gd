@@ -25,8 +25,8 @@ signal TurnStarted(character: BattleCharacter)
 ## This is used for attacking enemies etc
 var player_selected_character = null
 
-@onready var turn_order_ui := player.get_node("BattleDebugUI/ItemList") as ItemList
-@onready var selected_target_label := player.get_node("BattleDebugUI/SelectedEnemyLabel") as Label
+@onready var turn_order_ui := get_node_or_null("BattleDebugUI/ItemList") as ItemList
+@onready var selected_target_label := get_node_or_null("BattleDebugUI/SelectedEnemyLabel") as Label
 
 func _ready() -> void:
     turn_order_ui.hide()
@@ -261,6 +261,9 @@ func input_update(event) -> void:
         
 
 func spawn_enemy() -> void:
+    if not player:
+        return
+
     var enemy_instance := test_enemy.instantiate()
     add_child(enemy_instance)
     enemy_instance.global_position = player.global_position + Vector3(0, 0, 5)

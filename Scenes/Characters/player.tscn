@@ -1,4 +1,4 @@
-[gd_scene load_steps=31 format=3 uid="uid://cr2ersq7g6q6f"]
+[gd_scene load_steps=29 format=3 uid="uid://cr2ersq7g6q6f"]
 
 [ext_resource type="Script" path="res://Scripts/Characters/Player.gd" id="1_hn6di"]
 [ext_resource type="Script" path="res://Scripts/Characters/SpringArmPivot.gd" id="2_f8ihf"]
@@ -12,8 +12,6 @@
 [ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/CharacterStats.gd" id="7_wxojy"]
 [ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/CharacterStatEntry.gd" id="8_b0vw2"]
 [ext_resource type="Script" path="res://Scripts/Inventory/InventoryManager.gd" id="12_dpkcw"]
-[ext_resource type="PackedScene" uid="uid://k5nbstqmbqve" path="res://Assets/GUI/battle/player_think_ui.tscn" id="12_nunk5"]
-[ext_resource type="PackedScene" uid="uid://bo1r6ikg415qk" path="res://Assets/GUI/battle/battle_debug.tscn" id="12_qyv17"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_4egpj"]
 size = Vector3(0.6, 1.7, 0.6)
@@ -158,9 +156,3 @@ stats = Array[ExtResource("8_b0vw2")]([SubResource("Resource_5m16x"), SubResourc
 
 [node name="Inventory" type="Node" parent="."]
 script = ExtResource("12_dpkcw")
-
-[node name="BattleDebugUI" parent="." instance=ExtResource("12_qyv17")]
-size_flags_horizontal = 4
-size_flags_vertical = 4
-
-[node name="PlayerThinkUI" parent="." instance=ExtResource("12_nunk5")]

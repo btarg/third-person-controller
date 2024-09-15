@@ -25,45 +25,48 @@ signal OnInputDeviceChanged()
         return is_using_controller
     set(value):
         # if the device has changed, update the controller layout
-        if player1_device != last_input_event.device:
-            player1_device = last_input_event.device
-            _update_controller_layout()
-        # only emit signal if the value has changed
-        elif value == is_using_controller:
-            return
+        if last_input_event:
+            if player1_device != last_input_event.device:
+                player1_device = last_input_event.device
+                _update_controller_layout()
+            # only emit signal if the value has changed
+            elif value == is_using_controller:
+                return
 
         is_using_controller = value
         OnInputDeviceChanged.emit()
 
 func _ready() -> void:
     Console.pause_enabled = true
-    Console.add_command("test_action", _set_test_action, 1)
-
     _update_controller_layout()
-    OnInputDeviceChanged.connect(_test_glyph)
-
-func _set_test_action(action: String) -> void:
-    Console.print_line("Setting test action to: " + action)
-    test_action = action
-
-func _test_glyph() -> void:
-    var debug_glyph := get_button_glyph(test_action)
-    Console.print_line("Debug glyph %s: %s" % [test_action, debug_glyph], true)
+    if Input.get_connected_joypads().size() > 0:
+        is_using_controller = true
 
 ## Returns the path to the button glyph texture for the current input device based on the action name
-func get_button_glyph(action_name: String) -> String:
+func get_button_glyph(action_name: String, horizontal_decoration: bool = false, vertical_decoration: bool = false) -> String:
     var events := InputMap.action_get_events(action_name)
-
+    var path := "res://Assets/GUI/Icons/ControllerGlyphs/"
+    var extension := ".svg"
 
     for event in events:
         if is_using_controller:
+            var controller_prefix := ""
+            match current_controller_layout:
+                ControllerLayout.XBOX:
+                    controller_prefix = "xbox/"
+                ControllerLayout.PS4,\
+                ControllerLayout.PS5:
+                    controller_prefix = "playstation/"
+                ControllerLayout.NINTENDO_PRO,\
+                ControllerLayout.NINTENDO_JOYCON:
+                    controller_prefix = "switch/"
+
             if event is InputEventJoypadButton:
-                var button_name := "_BUTTON_" + event.as_text().split(" ")[2]
-                return Util.get_enum_name(ControllerLayout, current_controller_layout) + button_name
+                var button_name: String = "BUTTON_" + str(event.button_index)
+                return path + controller_prefix + button_name + extension
+
             elif event is InputEventJoypadMotion:
-              
-                var joystick_prefix := Util.get_enum_name(ControllerLayout, current_controller_layout) + "_"
-                var joystick_text := ""
+                var joystick_text := path
 
                 # Stick output: ["Left", "Stick", "Y-Axis,", "Joystick", "0", "Y-Axis)", "with", "Value", "-1.00"]
                 # Trigger output: ["Joystick", "2", "Y-Axis,", "Right", "Trigger,", "Sony", "R2,", "Xbox", "RT)", "with", "Value", "1.00"]
@@ -74,40 +77,58 @@ func get_button_glyph(action_name: String) -> String:
                 print("Axis direction: " + str(axis_value))
 
                 if split_info[1] == "Stick":
+                    # sticks don't have a controller-specific prefix, since they look the same
+                    # the "stick" folder has both left and right stick glyphs
                     if split_info[0] == "Left":
-                        joystick_text += "LEFT_STICK"
+                        joystick_text += "stick/stick_l"
                     else:
-                        joystick_text += "RIGHT_STICK"
+                        joystick_text += "stick/stick_r"
                 else:
+                    # triggers have a controller-specific prefix
                     if split_info.has("Right"):
-                        joystick_text += "RIGHT_TRIGGER"
+                        joystick_text += controller_prefix + "right_trigger"
                     else:
-                        joystick_text += "LEFT_TRIGGER"
+                        joystick_text += controller_prefix + "left_trigger"
 
-                if split_info[2].begins_with("X"):
-                    if axis_value < 0:
-                        joystick_text += "_LEFT"
-                    elif axis_value > 0:
-                        joystick_text += "_RIGHT"
-                elif split_info[2].begins_with("Y"):  
-                    if axis_value < 0:
-                        joystick_text += "_UP"
-                    elif axis_value > 0:
-                        joystick_text += "_DOWN"
+                if vertical_decoration and horizontal_decoration:
+                    pass # don't add any suffix 
+                elif vertical_decoration:
+                    joystick_text += "_vertical"
+                elif horizontal_decoration:
+                    joystick_text += "_horizontal"
+                else:
+                    if split_info[2].begins_with("X"):
+                        if axis_value < 0:
+                            joystick_text += "_left"
+                        elif axis_value > 0:
+                            joystick_text += "_right"
+                    elif split_info[2].begins_with("Y"):  
+                        if axis_value < 0:
+                            joystick_text += "_up"
+                        elif axis_value > 0:
+                            joystick_text += "_down"
                 
+                print(event.as_text())
 
-                return joystick_prefix + joystick_text
-
+                return joystick_text + extension
         
         elif event is InputEventKey:
-            return "KEYBOARD_" + event.as_text().split(" ")[0]
+            var keyboard_prefix := "keyboard_mouse/keyboard_"
+            var key_name := event.as_text().split(" ")[0].to_lower()
+
+            if (key_name == "down" or key_name == "up") and vertical_decoration:
+                key_name = ("arrows_all" if horizontal_decoration else "arrows_vertical")
+            elif (key_name == "left" or key_name == "right") and horizontal_decoration:
+                key_name = ("arrows_all" if vertical_decoration else "arrows_horizontal")
+        
+            return path + keyboard_prefix + key_name + extension
+
         elif event is InputEventMouseButton:
             var mouse_split := event.as_text().split(" ")
             if mouse_split.has("Wheel"):
-                return "MOUSE_WHEEL_" + mouse_split[2].to_upper()
+                return "MOUSE_WHEEL_" + mouse_split[2].to_lower() + extension
             else:
-                return "MOUSE_" + mouse_split[0].to_upper()
-        print(event.as_text())
+                return path + "keyboard_mouse/mouse_" + mouse_split[0].to_lower() + extension
 
     return "NONE"
 
@@ -179,6 +200,6 @@ func _input(event: InputEvent) -> void:
             return
 
         if ((event is InputEventKey
-        or event is InputEventMouseButton) and event.is_pressed()
-        or event is InputEventMouseMotion):
+        or event is InputEventMouseButton)
+        and event.is_pressed()):
             is_using_controller = false

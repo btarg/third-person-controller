@@ -54,13 +54,18 @@ func _test_glyph() -> void:
 func get_button_glyph(action_name: String) -> String:
     var events := InputMap.action_get_events(action_name)
 
+    var right_stick_inputs: Array[String] = []
+    var left_stick_inputs: Array[String] = []
+
     for event in events:
         if is_using_controller:
             if event is InputEventJoypadButton:
                 var button_name := "_BUTTON_" + event.as_text().split(" ")[2]
                 return Util.get_enum_name(ControllerLayout, current_controller_layout) + button_name
             elif event is InputEventJoypadMotion:
-                var joystick_text := Util.get_enum_name(ControllerLayout, current_controller_layout) + "_"
+              
+                var joystick_prefix := Util.get_enum_name(ControllerLayout, current_controller_layout) + "_"
+                var joystick_text := ""
 
                 # Stick output: ["Left", "Stick", "Y-Axis,", "Joystick", "0", "Y-Axis)", "with", "Value", "-1.00"]
                 # Trigger output: ["Joystick", "2", "Y-Axis,", "Right", "Trigger,", "Sony", "R2,", "Xbox", "RT)", "with", "Value", "1.00"]
@@ -81,12 +86,23 @@ func get_button_glyph(action_name: String) -> String:
                     else:
                         joystick_text += "LEFT_TRIGGER"
 
-                if axis_value < 0:
-                    joystick_text += "_UP"
-                elif axis_value > 0:
-                    joystick_text += "_DOWN"
+                if split_info[2].begins_with("X"):
+                    if axis_value < 0:
+                        joystick_text += "_LEFT"
+                    elif axis_value > 0:
+                        joystick_text += "_RIGHT"
+                elif split_info[2].begins_with("Y"):  
+                    if axis_value < 0:
+                        joystick_text += "_UP"
+                    elif axis_value > 0:
+                        joystick_text += "_DOWN"
 
-                return joystick_text
+                if joystick_text.contains("LEFT_STICK"):
+                    left_stick_inputs.append(joystick_text)
+                elif joystick_text.contains("RIGHT_STICK"):
+                    right_stick_inputs.append(joystick_text)
+
+                return joystick_prefix + joystick_text
 
         
         elif event is InputEventKey:

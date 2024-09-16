@@ -162,17 +162,11 @@ func _update_controller_layout() -> void:
         return
     print("Joy info: " + player1_name)
 
-    if (player1_name.contains("Xbox")
-    or player1_name.contains("XInput")
-    or player1_name.contains("Steam")): # steam controller and deck are xbox layout
+    if (Util.string_contains_any(player1_name, ["Xbox", "XInput", "Steam"])): # steam controller and deck are xbox layout
         current_controller_layout = ControllerLayout.XBOX
     # Use the ps4 controller layout for older playstation controllers
-    elif (player1_name.contains("PS4")
-    or player1_name.contains("PS3")
-    or player1_name.contains("PS2")
-    or player1_name.contains("PS1")
-    or player1_name.contains("DualShock")
-    or player1_name.contains("PlayStation")):
+    elif (Util.string_contains_any(player1_name,
+    ["DualShock", "PlayStation", "PS1", "PS2", "PS3", "PS4"])):
         current_controller_layout = ControllerLayout.PS4
     elif player1_name.contains("PS5"):
         current_controller_layout = ControllerLayout.PS5
@@ -181,8 +175,8 @@ func _update_controller_layout() -> void:
             # wii u or switch pro controller
             current_controller_layout = ControllerLayout.NINTENDO_PRO
         else:
-            # assume joy-cons - other nintendo controllers are not supported
-            # joy-cons use different glyphs
+            # assume joy-cons; other nintendo controllers are not supported
+            # joy-cons don't use different glyphs for now
             current_controller_layout = ControllerLayout.NINTENDO_JOYCON
 
 func _check_event_repeated(event: InputEvent) -> bool:

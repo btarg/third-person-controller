@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d12jet2bukoqo"
-path="res://.godot/imported/BUTTON_14.svg-166842e40137f2019269f923a42e42dc.ctex"
+uid="uid://dsnonk0r8kq2h"
+path="res://.godot/imported/dpad_vertical_outline.svg-1084d15edd555ef7c39cd9b3a4126a57.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/GUI/Icons/ControllerGlyphs/xbox/BUTTON_14.svg"
-dest_files=["res://.godot/imported/BUTTON_14.svg-166842e40137f2019269f923a42e42dc.ctex"]
+source_file="res://Assets/GUI/Icons/ControllerGlyphs/playstation/dpad_vertical_outline.svg"
+dest_files=["res://.godot/imported/dpad_vertical_outline.svg-1084d15edd555ef7c39cd9b3a4126a57.ctex"]
 
 [params]
 

@@ -62,8 +62,28 @@ func get_button_glyph(action_name: String, horizontal_decoration: bool = false, 
                     controller_prefix = "switch/"
 
             if event is InputEventJoypadButton:
-                var button_name: String = "BUTTON_" + str(event.button_index)
-                return path + controller_prefix + button_name + extension
+                
+                if event.as_text().contains("D-pad"):
+                    var dpad_direction := event.as_text().split("(")[1].split(" ")[1]
+                    # cut off ending bracket
+                    dpad_direction = dpad_direction.left(dpad_direction.length() - 1)
+                    if vertical_decoration and horizontal_decoration:
+                        dpad_direction = "all"
+                    elif vertical_decoration:
+                        dpad_direction = "vertical"
+                    elif horizontal_decoration:
+                        dpad_direction = "horizontal"
+                    
+                    return path + controller_prefix + "dpad_" + dpad_direction.to_lower() + extension
+
+                match event.button_index:
+                    8:
+                        return path + "stick/stick_r_press" + extension
+                    7:
+                        return path + "stick/stick_l_press" + extension
+                    _:
+                        var button_name: String = "BUTTON_" + str(event.button_index)
+                        return path + controller_prefix + button_name + extension
 
             elif event is InputEventJoypadMotion:
                 var joystick_path := path

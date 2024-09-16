@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c3q0k07pein0m"
-path="res://.godot/imported/playstation_dpad_vertical.svg-4f78aa22f223706b5bfa690c5625b829.ctex"
+uid="uid://cprxjtmu123kv"
+path="res://.godot/imported/dpad_left_outline.svg-cd9cea9235b09f215d99366a49b573cd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/GUI/Icons/ControllerGlyphs/playstation/playstation_dpad_vertical.svg"
-dest_files=["res://.godot/imported/playstation_dpad_vertical.svg-4f78aa22f223706b5bfa690c5625b829.ctex"]
+source_file="res://Assets/GUI/Icons/ControllerGlyphs/playstation/dpad_left_outline.svg"
+dest_files=["res://.godot/imported/dpad_left_outline.svg-cd9cea9235b09f215d99366a49b573cd.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bpbuhcfqmf1gi"
-path="res://.godot/imported/xbox_dpad_horizontal.svg-b0697b9599629a57b4c60f6b5ad11e30.ctex"
+uid="uid://do0u5axjde7hs"
+path="res://.godot/imported/right_trigger.svg-ba6ef5f2a6b934bc5600a249c811b86e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/GUI/Icons/ControllerGlyphs/xbox/xbox_dpad_horizontal.svg"
-dest_files=["res://.godot/imported/xbox_dpad_horizontal.svg-b0697b9599629a57b4c60f6b5ad11e30.ctex"]
+source_file="res://Assets/GUI/Icons/ControllerGlyphs/xbox/right_trigger.svg"
+dest_files=["res://.godot/imported/right_trigger.svg-ba6ef5f2a6b934bc5600a249c811b86e.ctex"]
 
 [params]
 

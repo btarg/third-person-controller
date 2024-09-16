@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://do0u5axjde7hs"
-path="res://.godot/imported/xbox_rt.svg-4f6edae293989804e29b88517ddec400.ctex"
+uid="uid://coh7ws8wqdpbv"
+path="res://.godot/imported/dpad_horizontal_outline.svg-c878f2505b62b6e20410ddae250cd2f8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/GUI/Icons/ControllerGlyphs/xbox/xbox_rt.svg"
-dest_files=["res://.godot/imported/xbox_rt.svg-4f6edae293989804e29b88517ddec400.ctex"]
+source_file="res://Assets/GUI/Icons/ControllerGlyphs/playstation/dpad_horizontal_outline.svg"
+dest_files=["res://.godot/imported/dpad_horizontal_outline.svg-c878f2505b62b6e20410ddae250cd2f8.ctex"]
 
 [params]
 

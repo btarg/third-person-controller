@@ -9,7 +9,7 @@ func _input(event: InputEvent) -> void:
             _set_glyph(action)
 
 func _set_glyph(action_name: String) -> void:
-    var glyph_path := ControllerHelper.get_button_glyph(action_name, true, false)
+    var glyph_path := ControllerHelper.get_button_glyph(action_name, false, true)
     if glyph_path == "NONE":
         return
 

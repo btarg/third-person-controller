@@ -66,7 +66,7 @@ func get_button_glyph(action_name: String, horizontal_decoration: bool = false, 
                 return path + controller_prefix + button_name + extension
 
             elif event is InputEventJoypadMotion:
-                var joystick_text := path
+                var joystick_path := path
 
                 # Stick output: ["Left", "Stick", "Y-Axis,", "Joystick", "0", "Y-Axis)", "with", "Value", "-1.00"]
                 # Trigger output: ["Joystick", "2", "Y-Axis,", "Right", "Trigger,", "Sony", "R2,", "Xbox", "RT)", "with", "Value", "1.00"]
@@ -80,37 +80,35 @@ func get_button_glyph(action_name: String, horizontal_decoration: bool = false, 
                     # sticks don't have a controller-specific prefix, since they look the same
                     # the "stick" folder has both left and right stick glyphs
                     if split_info[0] == "Left":
-                        joystick_text += "stick/stick_l"
+                        joystick_path += "stick/stick_l"
                     else:
-                        joystick_text += "stick/stick_r"
+                        joystick_path += "stick/stick_r"
                 else:
                     # triggers have a controller-specific prefix
                     if split_info.has("Right"):
-                        joystick_text += controller_prefix + "right_trigger"
+                        joystick_path += controller_prefix + "right_trigger"
                     else:
-                        joystick_text += controller_prefix + "left_trigger"
+                        joystick_path += controller_prefix + "left_trigger"
 
                 if vertical_decoration and horizontal_decoration:
                     pass # don't add any suffix 
                 elif vertical_decoration:
-                    joystick_text += "_vertical"
+                    joystick_path += "_vertical"
                 elif horizontal_decoration:
-                    joystick_text += "_horizontal"
+                    joystick_path += "_horizontal"
                 else:
                     if split_info[2].begins_with("X"):
                         if axis_value < 0:
-                            joystick_text += "_left"
+                            joystick_path += "_left"
                         elif axis_value > 0:
-                            joystick_text += "_right"
+                            joystick_path += "_right"
                     elif split_info[2].begins_with("Y"):  
                         if axis_value < 0:
-                            joystick_text += "_up"
+                            joystick_path += "_up"
                         elif axis_value > 0:
-                            joystick_text += "_down"
-                
-                print(event.as_text())
+                            joystick_path += "_down"
 
-                return joystick_text + extension
+                return joystick_path + extension
         
         elif event is InputEventKey:
             var keyboard_prefix := "keyboard_mouse/keyboard_"
@@ -126,7 +124,10 @@ func get_button_glyph(action_name: String, horizontal_decoration: bool = false, 
         elif event is InputEventMouseButton:
             var mouse_split := event.as_text().split(" ")
             if mouse_split.has("Wheel"):
-                return "MOUSE_WHEEL_" + mouse_split[2].to_lower() + extension
+                return path + "keyboard_mouse/mouse_scroll_" + mouse_split[2].to_lower() + extension
+            elif mouse_split.has("Thumb"):
+                # the sprite pack doesn't have mouse4/mouse5, so we use a normal mouse image
+                return path + "keyboard_mouse/mouse" + extension
             else:
                 return path + "keyboard_mouse/mouse_" + mouse_split[0].to_lower() + extension
 

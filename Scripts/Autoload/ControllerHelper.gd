@@ -8,14 +8,14 @@ enum ControllerLayout {
     NINTENDO_JOYCON
 }
 
-const JOYSTICK_DEADZONE := 0.25
+const EXTENSION := ".svg"
+const PATH := "res://Assets/GUI/Icons/ControllerGlyphs/"
 
 var current_controller_layout := ControllerLayout.XBOX
 var player1_device := 0
 
 var last_input_event: InputEvent = null
-
-var test_action := "move_right"
+const JOYSTICK_DEADZONE := 0.25
 
 ## This signal is listened to by UI elements so they can call `get_button_glyph` to display the correct button
 signal OnInputDeviceChanged()
@@ -42,11 +42,10 @@ func _ready() -> void:
     if Input.get_connected_joypads().size() > 0:
         is_using_controller = true
 
-## Returns the path to the button glyph texture for the current input device based on the action name
+## Returns the path to the button glyph texture for the current input device based on the action name[br]
+## [param action_name] Needs to be the name of an action in the InputMap
 func get_button_glyph(action_name: String, horizontal_decoration: bool = false, vertical_decoration: bool = false) -> String:
     var events := InputMap.action_get_events(action_name)
-    var path := "res://Assets/GUI/Icons/ControllerGlyphs/"
-    var extension := ".svg"
 
     for event in events:
         if is_using_controller:
@@ -74,19 +73,19 @@ func get_button_glyph(action_name: String, horizontal_decoration: bool = false, 
                     elif horizontal_decoration:
                         dpad_direction = "horizontal"
                     
-                    return path + controller_prefix + "dpad_" + dpad_direction.to_lower() + extension
+                    return PATH + controller_prefix + "dpad_" + dpad_direction.to_lower() + EXTENSION
 
                 match event.button_index:
                     8:
-                        return path + "stick/stick_r_press" + extension
+                        return PATH + "stick/stick_r_press" + EXTENSION
                     7:
-                        return path + "stick/stick_l_press" + extension
+                        return PATH + "stick/stick_l_press" + EXTENSION
                     _:
                         var button_name: String = "BUTTON_" + str(event.button_index)
-                        return path + controller_prefix + button_name + extension
+                        return PATH + controller_prefix + button_name + EXTENSION
 
             elif event is InputEventJoypadMotion:
-                var joystick_path := path
+                var joystick_path := PATH
 
                 # Stick output: ["Left", "Stick", "Y-Axis,", "Joystick", "0", "Y-Axis)", "with", "Value", "-1.00"]
                 # Trigger output: ["Joystick", "2", "Y-Axis,", "Right", "Trigger,", "Sony", "R2,", "Xbox", "RT)", "with", "Value", "1.00"]
@@ -128,7 +127,7 @@ func get_button_glyph(action_name: String, horizontal_decoration: bool = false, 
                         elif axis_value > 0:
                             joystick_path += "_down"
 
-                return joystick_path + extension
+                return joystick_path + EXTENSION
         
         elif event is InputEventKey:
             var keyboard_prefix := "keyboard_mouse/keyboard_"
@@ -139,17 +138,17 @@ func get_button_glyph(action_name: String, horizontal_decoration: bool = false, 
             elif (key_name == "left" or key_name == "right") and horizontal_decoration:
                 key_name = ("arrows_all" if vertical_decoration else "arrows_horizontal")
         
-            return path + keyboard_prefix + key_name + extension
+            return PATH + keyboard_prefix + key_name + EXTENSION
 
         elif event is InputEventMouseButton:
             var mouse_split := event.as_text().split(" ")
             if mouse_split.has("Wheel"):
-                return path + "keyboard_mouse/mouse_scroll_" + mouse_split[2].to_lower() + extension
+                return PATH + "keyboard_mouse/mouse_scroll_" + mouse_split[2].to_lower() + EXTENSION
             elif mouse_split.has("Thumb"):
                 # the sprite pack doesn't have mouse4/mouse5, so we use a normal mouse image
-                return path + "keyboard_mouse/mouse" + extension
+                return PATH + "keyboard_mouse/mouse" + EXTENSION
             else:
-                return path + "keyboard_mouse/mouse_" + mouse_split[0].to_lower() + extension
+                return PATH + "keyboard_mouse/mouse_" + mouse_split[0].to_lower() + EXTENSION
 
     return "NONE"
 

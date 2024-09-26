@@ -36,7 +36,7 @@ func shoot_ray() -> void:
     var camera := battle_state.top_down_player.camera
 
     # center the raycast origin position if using controller
-    var mouse_pos := camera.get_viewport().get_mouse_position() if not battle_state.is_using_controller else Vector2.ZERO
+    var mouse_pos := camera.get_viewport().get_mouse_position() if not ControllerHelper.is_using_controller else Vector2.ZERO
     print("Raycast origin pos: " + str(mouse_pos))
 
     var space := camera.get_world_3d().direct_space_state

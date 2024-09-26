@@ -10,6 +10,7 @@
 - Battle basics
     - [ ] Multiple player characters
     - [ ] Special skills and MP usage
+    
     - [ ] Money and XP
     - [ ] Level up system
     - [ ] Enemies drop items
@@ -23,6 +24,7 @@
     - [ ] Spells, attacks etc. can have a radius for targets (range)
         - [ ] Draw the radius visually around the player
 - UI/UX
+    - [ ] Victory screen / game over screen
     - [ ] Pause menu with options to save, load, quit, etc.
     - [ ] health bars for each player character
     - [ ] UI for choosing spells
@@ -36,3 +38,5 @@
 - AI
     - [ ] Enemies seek the player and attack
         - [ ] Enemies choose how we enter battle: either by attacking the player or by being attacked by the player
+    - [ ] Enemies can attack in battle
+        - [ ] Enemies can use spells

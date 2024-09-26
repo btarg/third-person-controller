@@ -13,6 +13,5 @@ grow_vertical = 2
 
 [node name="Glyph" type="Sprite2D" parent="."]
 position = Vector2(576, 288)
-scale = Vector2(5, 5)
 texture = ExtResource("1_er5g1")
 script = ExtResource("1_vjwn4")

@@ -87,5 +87,5 @@ func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
             target.take_damage(user, spell_power, spell_affinity, dice_status)
             spell_use_status = UseStatus.SPELL_SUCCESS
 
-    item_used.emit(spell_use_status)
+    item_used.emit(item_id, spell_use_status)
     return spell_use_status

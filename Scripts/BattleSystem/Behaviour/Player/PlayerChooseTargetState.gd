@@ -36,7 +36,8 @@ func shoot_ray() -> void:
     var camera := battle_state.top_down_player.camera
 
     # center the raycast origin position if using controller
-    var mouse_pos := camera.get_viewport().get_mouse_position() if not ControllerHelper.is_using_controller else Vector2.ZERO
+    var mouse_pos := (camera.get_viewport().get_mouse_position() if not ControllerHelper.is_using_controller
+    else Vector2.ZERO)
     print("Raycast origin pos: " + str(mouse_pos))
 
     var space := camera.get_world_3d().direct_space_state
@@ -119,31 +120,7 @@ func _process_targeting() -> void:
             print("[SPELL/ITEM] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
             _end_targeting()
         BattleEnums.EPlayerCombatAction.CA_DRAW:
-            print("[DRAW] Player is drawing... ")
-            var draw_list := target_character.draw_list
-
-            # TODO: manually choose drawn spell
-            var drawn_spell := draw_list[randi() % draw_list.size()] as SpellItem
-
-            print("[DRAW] Drawn spell: " + drawn_spell.item_name)
-
-            var draw_bonus: int = ceili(current_character.stats.get_stat(CharacterStatEntry.ECharacterStat.DrawBonus))
-            print("[DRAW] Draw bonus: " + str(draw_bonus))
-            var drawn_amount := DiceRoller.roll_flat(6, 1, draw_bonus)
-            print("[DRAW] Drawn amount: " + str(drawn_amount))
-            # TODO: manually decide whether to stock or cast
-            var cast_immediately := true
-            if cast_immediately:
-                var status := drawn_spell.use(current_character, target_character)
-                print("[DRAW] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
-                _end_targeting()
-            else:
-                print("[DRAW] Stocking spell for later use")
-                if current_character.inventory:
-                    current_character.inventory.add_item(drawn_spell, drawn_amount)
-                else:
-                    print("[DRAW] Character has no inventory")
-            _end_targeting()
+            Transitioned.emit(self, "DrawState")
         _:
             print("Invalid action")
             _end_targeting()
@@ -176,5 +153,5 @@ func input_update(event: InputEvent) -> void:
 func unhandled_input_update(event: InputEvent) -> void:
     if event.is_echo() or not active:
         return
-    if event.is_action_pressed("left_click"):
+    if event.is_action_pressed("combat_select_target"):
         shoot_ray()

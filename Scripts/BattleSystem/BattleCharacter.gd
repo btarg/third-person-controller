@@ -61,10 +61,10 @@ func _print_modifiers(character_to_print: String) -> void:
     if character_to_print == character_internal_name:
         if stats.stat_modifiers.size() == 0:
             Console.print_line("No modifiers active")
-   
-        for modifier in stats.stat_modifiers:
-            var enum_name := Util.get_enum_name(CharacterStatEntry.ECharacterStat, modifier.stat)
-            Console.print_line(modifier.name + " - " + enum_name + ": " + str(modifier.stat_value))
+        else:
+            for modifier in stats.stat_modifiers:
+                var enum_name := Util.get_enum_name(CharacterStatEntry.ECharacterStat, modifier.stat)
+                Console.print_line(modifier.name + " - " + enum_name + ": " + str(modifier.stat_value))
 
 func on_leave_battle() -> void:
     character_name = default_character_name

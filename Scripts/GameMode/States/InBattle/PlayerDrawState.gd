@@ -1,0 +1,57 @@
+extends State
+class_name PlayerDrawState
+
+@onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
+
+func enter() -> void:
+    print("[DRAW] Entered draw state")
+    draw(battle_state.player_selected_character as BattleCharacter, battle_state.current_character)
+    pass
+
+func draw(target_character: BattleCharacter, current_character: BattleCharacter, draw_index: int = -1) -> void:
+
+    print("[DRAW] Player is drawing... ")
+    var draw_list := target_character.draw_list
+
+    # TODO: manually choose drawn spell
+    if draw_index == -1:
+        print("[DRAW] Choosing random spell to draw")
+        draw_index = randi() % draw_list.size()
+
+    var drawn_spell := draw_list[draw_index] as SpellItem
+
+    print("[DRAW] Drawn spell: " + drawn_spell.item_name)
+
+    var draw_bonus_d4s := ceili(current_character.stats.get_stat(CharacterStatEntry.ECharacterStat.DrawBonus))
+    var draw_bonus := DiceRoller.roll_flat(4, draw_bonus_d4s)
+    print("[DRAW] Draw bonus: " + str(draw_bonus))
+    var drawn_amount := DiceRoller.roll_flat(6, 1, draw_bonus)
+    
+    print("[DRAW] Received %s %s!" % [str(drawn_amount), drawn_spell.item_name])
+    current_character.inventory.add_item(drawn_spell, drawn_amount)
+
+    # TODO: manually decide whether to stock or cast
+    var cast_immediately := true
+    if cast_immediately:
+        var status := drawn_spell.use(current_character, target_character)
+        print("[DRAW] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
+        _end_targeting()
+    else:
+        print("[DRAW] Stocking spell for later use")
+        if current_character.inventory:
+            current_character.inventory.add_item(drawn_spell, drawn_amount)
+        else:
+            print("[DRAW] Character has no inventory")
+    _end_targeting()
+
+func _end_targeting() -> void:
+    if active:
+        Transitioned.emit(self, "IdleState")
+        battle_state.ready_next_turn()
+
+
+func exit() -> void: pass
+func update(_delta: float) -> void: pass
+func physics_update(_delta: float) -> void: pass
+func input_update(_event: InputEvent) -> void: pass
+func unhandled_input_update(_event: InputEvent) -> void: pass

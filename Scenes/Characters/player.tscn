@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3 uid="uid://cr2ersq7g6q6f"]
+[gd_scene load_steps=30 format=3 uid="uid://cr2ersq7g6q6f"]
 
 [ext_resource type="Script" path="res://Scripts/Characters/Player.gd" id="1_hn6di"]
 [ext_resource type="Script" path="res://Scripts/Characters/SpringArmPivot.gd" id="2_f8ihf"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerChooseTargetState.gd" id="7_bb3pa"]
 [ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/CharacterStats.gd" id="7_wxojy"]
 [ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/CharacterStatEntry.gd" id="8_b0vw2"]
+[ext_resource type="Script" path="res://Scripts/GameMode/States/InBattle/PlayerDrawState.gd" id="10_ll1f6"]
 [ext_resource type="Script" path="res://Scripts/Inventory/InventoryManager.gd" id="12_dpkcw"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_4egpj"]
@@ -149,6 +150,9 @@ script = ExtResource("4_byf8m")
 
 [node name="ChooseTargetState" type="Node" parent="BattleCharacter/StateMachine"]
 script = ExtResource("7_bb3pa")
+
+[node name="DrawState" type="Node" parent="BattleCharacter/StateMachine"]
+script = ExtResource("10_ll1f6")
 
 [node name="CharacterStats" type="Node" parent="BattleCharacter"]
 script = ExtResource("7_wxojy")

@@ -74,7 +74,7 @@ func _on_inventory_updated(resource: BaseInventoryItem, count: int, is_new_item:
     else:
         print("Item count updated")
 
-func _on_item_used(status: BaseInventoryItem.UseStatus) -> void:
+func _on_item_used(item_id: String, status: BaseInventoryItem.UseStatus) -> void:
     match status:
         BaseInventoryItem.UseStatus.CONSUMED_HP:
             print("SIGNAL: Item used to restore HP")
@@ -85,7 +85,9 @@ func _on_item_used(status: BaseInventoryItem.UseStatus) -> void:
         BaseInventoryItem.UseStatus.EQUIPPED:
             print("SIGNAL: Item equipped")
         _:
-            print("SIGNAL: Item used")
+            print("SIGNAL: Item used: " + item_id)
+
+    remove_item(item_id, 1)
 
 func _generate_stat_modifier(spell_item: SpellItem, stat: CharacterStatEntry.ECharacterStat, value: float) -> StatModifier:
     var modifier: StatModifier = StatModifier.new()
@@ -117,7 +119,7 @@ func add_item(item: BaseInventoryItem, count: int = 1) -> void:
         # Add the item to the inventory
         items[item.item_id] = {"resource": item, "count": count}
         is_new_item = true
-        item.connect("item_used", _on_item_used)
+        item.item_used.connect(_on_item_used)
     
     var total := items[item.item_id]["count"] as int
     inventory_updated.emit(item, total, is_new_item)

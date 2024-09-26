@@ -31,7 +31,7 @@ enum UseStatus {
 @export var can_use_on_enemies: bool = true
 @export var can_use_on_allies: bool = true
 
-signal item_used
+signal item_used(item_id: String, use_status: BaseInventoryItem.UseStatus)
 
 # Preload audio types
 var heal_sound := preload("res://Assets/Sounds/heal.wav") as AudioStream
@@ -74,5 +74,5 @@ func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
             print("Item cannot be consumed: %s" % item_name)
             status = UseStatus.CANNOT_USE
 
-    item_used.emit(status)
+    item_used.emit(item_id, status)
     return status

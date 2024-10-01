@@ -5,6 +5,9 @@ class_name PlayerMoveState
 @onready var move_ui := battle_state.get_node("PlayerMoveUI") as Control
 @onready var move_label := move_ui.get_node("Label") as RichTextLabel
 
+var _current_character: BattleCharacter
+var _movement_left: int = 0
+
 func _ready() -> void:
     move_ui.hide()
 
@@ -14,6 +17,10 @@ func enter() -> void:
 
     move_label.text = ControllerHelper.get_button_glyph_img_embed("combat_select_target") + " Move to location\n"
     move_label.text += ControllerHelper.get_button_glyph_img_embed("ui_cancel") + " Cancel"
+
+    _current_character = battle_state.current_character
+    _movement_left = ceili(_current_character.stats.get_stat(CharacterStatEntry.ECharacterStat.Movement))
+    print("[MOVE] %s has %s movement" % [_current_character.character_name, str(_movement_left)])
 
 func _end_targeting() -> void:
     if active:
@@ -27,7 +34,6 @@ func shoot_ray() -> void:
 
     # TODO: use up movement meter when moving around
     # Once the meter is empty we should not be able to move anymore
-
     if not active:
         return
 
@@ -45,9 +51,11 @@ func shoot_ray() -> void:
     ray_query.exclude = [battle_state.top_down_player]
     var result := space.intersect_ray(ray_query)
 
-    var position := result.position as Vector3
-    if position:
-        battle_state.current_character.character_controller.set_move_target(position)
+    var position: Vector3 = Vector3.INF
+    if result.has("position"):
+        position = (result.position as Vector3)
+    if position != Vector3.INF:
+        _current_character.character_controller.set_move_target(position)
 
 
 func exit() -> void:

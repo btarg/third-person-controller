@@ -10,9 +10,9 @@ enum ECharacterStat { ## Character Stat
     Vitality, ## Integer bonus for initiative rolls
     AttackCritMultiplier, ## Multiplier for damage on crit (float 0-1)
     DrawBonus, ## Integer number of d4 rolls to add as a bonus to amount of spells drawn
+    Movement, ## Integer number of metres the character can move per turn
 
-    # Attacks don't have a fail multiplier as failures result in resisted, absorbed, or immune damage
-    
+    # Attacks don't have a fail multiplier as failures result in resisted, absorbed, or immune damage    
     MagicCritMultiplier, ## Multiplier for magic damage on crit (float 0-1)
     MagicFailMultiplier, ## Multiplier for magic damage on fail (float 0-1)
     MagicCritFailMultiplier, ## Multiplier for magic damage on crit fail (float 0-1)

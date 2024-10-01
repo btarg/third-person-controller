@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://dilt8hwo0hvca"]
+[gd_scene load_steps=19 format=3 uid="uid://dilt8hwo0hvca"]
 
 [ext_resource type="Script" path="res://Scripts/BattleSystem/BattleCharacter.gd" id="1_bgai8"]
 [ext_resource type="Script" path="res://Scripts/StateMachine/StateMachine.gd" id="2_iyxf5"]
@@ -46,6 +46,11 @@ script = ExtResource("10_8eke6")
 stat_key = 7
 stat_value = 1.0
 
+[sub_resource type="Resource" id="Resource_3wxh5"]
+script = ExtResource("10_8eke6")
+stat_key = 8
+stat_value = 15.0
+
 [node name="BattleCharacter" type="Node" groups=["BattleCharacter"]]
 script = ExtResource("1_bgai8")
 default_character_name = "The Player"
@@ -73,4 +78,4 @@ script = ExtResource("8_0ivic")
 
 [node name="CharacterStats" type="Node" parent="."]
 script = ExtResource("9_pe6mx")
-stats = Array[ExtResource("10_8eke6")]([SubResource("Resource_5m16x"), SubResource("Resource_4w5ru"), SubResource("Resource_xokjm"), SubResource("Resource_d7f32"), SubResource("Resource_b0cr8"), SubResource("Resource_g1ejn"), SubResource("Resource_q0f4k")])
+stats = Array[ExtResource("10_8eke6")]([SubResource("Resource_5m16x"), SubResource("Resource_4w5ru"), SubResource("Resource_xokjm"), SubResource("Resource_d7f32"), SubResource("Resource_b0cr8"), SubResource("Resource_g1ejn"), SubResource("Resource_q0f4k"), SubResource("Resource_3wxh5")])

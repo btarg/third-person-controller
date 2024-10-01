@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://coue2qehpn4fr"]
+[gd_scene load_steps=21 format=3 uid="uid://coue2qehpn4fr"]
 
 [ext_resource type="Texture2D" uid="uid://b8q44ipg8a3cq" path="res://Assets/Textures/Black.png" id="1_hwes2"]
 [ext_resource type="Texture2D" uid="uid://doyodkg1ds7td" path="res://Assets/Textures/Sky.png" id="1_rrvcb"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://dkpqh8de7tb3n" path="res://Assets/Textures/Green.png" id="3_qkav0"]
 [ext_resource type="PackedScene" uid="uid://yfkuk4d0rodi" path="res://Scenes/Camera/top_down_player.tscn" id="5_kwyn1"]
 [ext_resource type="PackedScene" uid="uid://c3n3msiln48rn" path="res://Scenes/Characters/Enemies/test_enemy.tscn" id="7_i4kkb"]
+[ext_resource type="PackedScene" uid="uid://lithrctytmps" path="res://Scenes/Characters/Party/test_ally.tscn" id="7_kmrsy"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_6c4vd"]
 panorama = ExtResource("1_rrvcb")
@@ -95,5 +96,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.2782, 0, 9.35357)
 [node name="Player" parent="." instance=ExtResource("2_1g73n")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.52385, 1.19209e-07, -0.00298548)
 
+[node name="TestAlly" parent="." instance=ExtResource("7_kmrsy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.46547, 0, -0.0160208)
+
 [node name="TestEnemy" parent="." instance=ExtResource("7_i4kkb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.770667, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.145089, 2.38419e-07, -0.507849)

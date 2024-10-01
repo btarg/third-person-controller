@@ -1,18 +1,10 @@
-[gd_scene load_steps=31 format=3 uid="uid://cr2ersq7g6q6f"]
+[gd_scene load_steps=16 format=3 uid="uid://cr2ersq7g6q6f"]
 
 [ext_resource type="Script" path="res://Scripts/Characters/Player.gd" id="1_hn6di"]
 [ext_resource type="Script" path="res://Scripts/Characters/SpringArmPivot.gd" id="2_f8ihf"]
 [ext_resource type="PackedScene" uid="uid://duh7eiq3alssk" path="res://Assets/Models/Characters/Y Bot.fbx" id="2_ndt0q"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/BattleCharacter.gd" id="3_4stlf"]
 [ext_resource type="AnimationLibrary" uid="uid://2c87hdkwp40d" path="res://Assets/Models/Characters/player_locomotion_library.res" id="4_6ccjh"]
-[ext_resource type="Script" path="res://Scripts/StateMachine/StateMachine.gd" id="4_10nb3"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerThinkState.gd" id="4_byf8m"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Enemy/IdleState.gd" id="5_0fcre"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerChooseTargetState.gd" id="7_bb3pa"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/CharacterStats.gd" id="7_wxojy"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/CharacterStatEntry.gd" id="8_b0vw2"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerDrawState.gd" id="10_ll1f6"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerChooseSpellItemState.gd" id="11_t76u6"]
+[ext_resource type="PackedScene" uid="uid://dilt8hwo0hvca" path="res://Scripts/Characters/player_battle_character.tscn" id="5_xaof6"]
 [ext_resource type="Script" path="res://Scripts/Inventory/InventoryManager.gd" id="12_dpkcw"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_4egpj"]
@@ -64,41 +56,6 @@ nodes/iwr_blend/position = Vector2(420, 160)
 nodes/output/position = Vector2(880, 180)
 node_connections = [&"ground_air_transition", 0, &"iwr_blend", &"ground_air_transition", 1, &"Air", &"iwr_blend", 0, &"Idle", &"iwr_blend", 1, &"Walk", &"iwr_blend", 2, &"Run", &"output", 0, &"ground_air_transition"]
 
-[sub_resource type="Resource" id="Resource_5m16x"]
-script = ExtResource("8_b0vw2")
-stat_key = 0
-stat_value = 100.0
-
-[sub_resource type="Resource" id="Resource_4w5ru"]
-script = ExtResource("8_b0vw2")
-stat_key = 2
-stat_value = 1.0
-
-[sub_resource type="Resource" id="Resource_xokjm"]
-script = ExtResource("8_b0vw2")
-stat_key = 3
-stat_value = 0.5
-
-[sub_resource type="Resource" id="Resource_d7f32"]
-script = ExtResource("8_b0vw2")
-stat_key = 4
-stat_value = 1.0
-
-[sub_resource type="Resource" id="Resource_b0cr8"]
-script = ExtResource("8_b0vw2")
-stat_key = 5
-stat_value = 1.0
-
-[sub_resource type="Resource" id="Resource_g1ejn"]
-script = ExtResource("8_b0vw2")
-stat_key = 6
-stat_value = 2.0
-
-[sub_resource type="Resource" id="Resource_q0f4k"]
-script = ExtResource("8_b0vw2")
-stat_key = 7
-stat_value = 1.0
-
 [node name="Player" type="CharacterBody3D" groups=["Player"]]
 process_mode = 1
 script = ExtResource("1_hn6di")
@@ -136,31 +93,7 @@ parameters/ground_air_transition/transition_request = ""
 parameters/ground_air_transition/current_index = 0
 parameters/iwr_blend/blend_amount = -1.0
 
-[node name="BattleCharacter" type="Node" parent="." groups=["BattleCharacter"]]
-script = ExtResource("3_4stlf")
-default_character_name = "The Player"
-
-[node name="StateMachine" type="Node" parent="BattleCharacter"]
-script = ExtResource("4_10nb3")
-
-[node name="IdleState" type="Node" parent="BattleCharacter/StateMachine"]
-script = ExtResource("5_0fcre")
-
-[node name="ThinkState" type="Node" parent="BattleCharacter/StateMachine"]
-script = ExtResource("4_byf8m")
-
-[node name="ChooseTargetState" type="Node" parent="BattleCharacter/StateMachine"]
-script = ExtResource("7_bb3pa")
-
-[node name="DrawState" type="Node" parent="BattleCharacter/StateMachine"]
-script = ExtResource("10_ll1f6")
-
-[node name="ChooseSpellItemState" type="Node" parent="BattleCharacter/StateMachine"]
-script = ExtResource("11_t76u6")
-
-[node name="CharacterStats" type="Node" parent="BattleCharacter"]
-script = ExtResource("7_wxojy")
-stats = Array[ExtResource("8_b0vw2")]([SubResource("Resource_5m16x"), SubResource("Resource_4w5ru"), SubResource("Resource_xokjm"), SubResource("Resource_d7f32"), SubResource("Resource_b0cr8"), SubResource("Resource_g1ejn"), SubResource("Resource_q0f4k")])
+[node name="BattleCharacter" parent="." instance=ExtResource("5_xaof6")]
 
 [node name="Inventory" type="Node" parent="."]
 script = ExtResource("12_dpkcw")

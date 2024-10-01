@@ -1,0 +1,76 @@
+[gd_scene load_steps=18 format=3 uid="uid://dilt8hwo0hvca"]
+
+[ext_resource type="Script" path="res://Scripts/BattleSystem/BattleCharacter.gd" id="1_bgai8"]
+[ext_resource type="Script" path="res://Scripts/StateMachine/StateMachine.gd" id="2_iyxf5"]
+[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Enemy/IdleState.gd" id="3_o8777"]
+[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerThinkState.gd" id="4_8vwnx"]
+[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerChooseTargetState.gd" id="5_4bmfj"]
+[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerDrawState.gd" id="6_6wono"]
+[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerChooseSpellItemState.gd" id="7_tqx6b"]
+[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerMoveState.gd" id="8_0ivic"]
+[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/CharacterStats.gd" id="9_pe6mx"]
+[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/CharacterStatEntry.gd" id="10_8eke6"]
+
+[sub_resource type="Resource" id="Resource_5m16x"]
+script = ExtResource("10_8eke6")
+stat_key = 0
+stat_value = 100.0
+
+[sub_resource type="Resource" id="Resource_4w5ru"]
+script = ExtResource("10_8eke6")
+stat_key = 2
+stat_value = 1.0
+
+[sub_resource type="Resource" id="Resource_xokjm"]
+script = ExtResource("10_8eke6")
+stat_key = 3
+stat_value = 0.5
+
+[sub_resource type="Resource" id="Resource_d7f32"]
+script = ExtResource("10_8eke6")
+stat_key = 4
+stat_value = 1.0
+
+[sub_resource type="Resource" id="Resource_b0cr8"]
+script = ExtResource("10_8eke6")
+stat_key = 5
+stat_value = 1.0
+
+[sub_resource type="Resource" id="Resource_g1ejn"]
+script = ExtResource("10_8eke6")
+stat_key = 6
+stat_value = 2.0
+
+[sub_resource type="Resource" id="Resource_q0f4k"]
+script = ExtResource("10_8eke6")
+stat_key = 7
+stat_value = 1.0
+
+[node name="BattleCharacter" type="Node" groups=["BattleCharacter"]]
+script = ExtResource("1_bgai8")
+default_character_name = "The Player"
+
+[node name="StateMachine" type="Node" parent="."]
+script = ExtResource("2_iyxf5")
+
+[node name="IdleState" type="Node" parent="StateMachine"]
+script = ExtResource("3_o8777")
+
+[node name="ThinkState" type="Node" parent="StateMachine"]
+script = ExtResource("4_8vwnx")
+
+[node name="ChooseTargetState" type="Node" parent="StateMachine"]
+script = ExtResource("5_4bmfj")
+
+[node name="DrawState" type="Node" parent="StateMachine"]
+script = ExtResource("6_6wono")
+
+[node name="ChooseSpellItemState" type="Node" parent="StateMachine"]
+script = ExtResource("7_tqx6b")
+
+[node name="MoveState" type="Node" parent="StateMachine"]
+script = ExtResource("8_0ivic")
+
+[node name="CharacterStats" type="Node" parent="."]
+script = ExtResource("9_pe6mx")
+stats = Array[ExtResource("10_8eke6")]([SubResource("Resource_5m16x"), SubResource("Resource_4w5ru"), SubResource("Resource_xokjm"), SubResource("Resource_d7f32"), SubResource("Resource_b0cr8"), SubResource("Resource_g1ejn"), SubResource("Resource_q0f4k")])

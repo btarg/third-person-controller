@@ -44,12 +44,11 @@ func exit() -> void:
 func update(_delta: float) -> void: pass
 func physics_update(_delta: float) -> void: pass
 func input_update(event: InputEvent) -> void:
-    if not active or event.is_echo():
-        return
     if event.is_action_pressed("ui_cancel"):
         _back_to_think()
     elif (event.is_action_pressed("combat_spellitem")
     or event.is_action_pressed("combat_attack")):
-        _choose_spell(think_state.fire_spell)
+        # TODO: use UI for choosing spells
+        _choose_spell(think_state.heal_spell)
 
 func unhandled_input_update(_event: InputEvent) -> void: pass

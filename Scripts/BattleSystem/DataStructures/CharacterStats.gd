@@ -120,9 +120,3 @@ func set_stat(stat: CharacterStatEntry.ECharacterStat, new_value: int) -> void:
             stats[i].stat_value = new_value
             OnStatChanged.emit(stat, new_value)
             break
-
-# update modifiers when key 7 is pressed
-func _input(event) -> void:
-    if event is InputEventKey and event.is_pressed() and not event.is_echo() and event.keycode == KEY_7:
-        update_modifiers()
-        print("[Modifier] MAX HP: " + str(get_stat(CharacterStatEntry.ECharacterStat.MaxHP)))

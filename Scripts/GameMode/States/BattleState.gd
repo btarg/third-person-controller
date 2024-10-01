@@ -185,6 +185,7 @@ func enter() -> void:
 
     if turn_order.size() < 2 or enemy_units.is_empty():
         print("Cannot enter battle: invalid turn order (are there enough enemies?)")
+        Transitioned.emit(self, "ExplorationState")
         return
 
     # Start the first character's turn
@@ -231,7 +232,7 @@ func exit() -> void:
 func update(_delta) -> void:
     pass
 
-func physics_update(delta) -> void: 
+func physics_update(delta) -> void:
     top_down_player.player_process(delta)
 
 func print_turn_order() -> void:
@@ -253,13 +254,9 @@ func print_turn_order() -> void:
         Console.print_line(turn_order.front().character_name + " has the highest initiative", true)
 
 func input_update(event) -> void:
-    if not active or event.is_echo():
-        return
-
     if current_character != null:
         current_character.battle_input(event)
         
-
 func spawn_enemy() -> void:
     if not player:
         return

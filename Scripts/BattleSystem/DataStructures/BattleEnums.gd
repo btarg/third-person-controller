@@ -23,11 +23,11 @@ enum EAffinityElement {
 enum EPlayerCombatAction {
     CA_ATTACK, ## Choose a target to attack
     CA_DEFEND, ## Defend self (no target selection)
-    CA_ITEM,
+    CA_ITEM, ## Use a non-spell item
     CA_DRAW, ## Draw a spell - whether to cast or end turn is decided in the state
     CA_SPECIAL_SKILL, ## Use a special skill and choose target
-    CA_CAST,
-    CA_USE_ITEM ## Use an item from inventory
+    CA_CAST, ## Cast a spell item
+    CA_MOVE ## Use movement
 }
 
 static func get_combat_action_selection(chosen_action: EPlayerCombatAction, spell_or_item: BaseInventoryItem) -> Dictionary:

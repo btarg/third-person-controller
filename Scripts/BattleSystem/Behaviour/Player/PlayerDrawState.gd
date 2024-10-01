@@ -56,9 +56,6 @@ func exit() -> void: pass
 func update(_delta: float) -> void: pass
 func physics_update(_delta: float) -> void: pass
 func input_update(event: InputEvent) -> void:
-    if not active or event.is_echo():
-        return
-
     if event.is_action_pressed("ui_cancel"):
         _back_to_target()
 

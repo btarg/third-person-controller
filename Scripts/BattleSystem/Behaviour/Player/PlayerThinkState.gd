@@ -17,8 +17,7 @@ var chosen_action: BattleEnums.EPlayerCombatAction = BattleEnums.EPlayerCombatAc
 @onready var fire_spell: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_fire_spell.tres")
 @onready var heal_spell: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_healing_spell.tres")
 @onready var almighty_spell: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_almighty_spell.tres")
-@onready var chosen_spell_or_item: BaseInventoryItem = fire_spell
-
+@onready var chosen_spell_or_item: BaseInventoryItem = heal_spell
 
 
 func _ready() -> void:
@@ -47,10 +46,7 @@ func _on_leave_battle() -> void:
 func enter() -> void:
     player_think_ui.show()
 
-    # TODO: pick spell or item with UI
-    chosen_spell_or_item = fire_spell
-
-    print("PLAYER is thinking about what to do")
+    print(battle_character.character_name + " is thinking about what to do")
 
     # remember last selected character
     if battle_state.player_selected_character:
@@ -67,13 +63,8 @@ func update(_delta: float) -> void: pass
 func physics_update(_delta: float) -> void: pass
 
 func input_update(event: InputEvent) -> void:
-    if event.is_echo() or not active:
-        return
 
-    # if event.is_action_pressed("ui_cancel"):
-    #     battle_state.force_exit_battle()
-            
-    elif event.is_action_pressed("combat_attack"):
+    if event.is_action_pressed("combat_attack"):
         chosen_action = BattleEnums.EPlayerCombatAction.CA_ATTACK
         Transitioned.emit(self, "ChooseTargetState")
 
@@ -83,6 +74,10 @@ func input_update(event: InputEvent) -> void:
     elif event.is_action_pressed("combat_draw"):
         chosen_action = BattleEnums.EPlayerCombatAction.CA_DRAW
         Transitioned.emit(self, "ChooseTargetState")
+
+    elif event.is_action_pressed("combat_move"):
+        chosen_action = BattleEnums.EPlayerCombatAction.CA_MOVE
+        Transitioned.emit(self, "MoveState")
 
 
 func unhandled_input_update(_event: InputEvent) -> void: pass

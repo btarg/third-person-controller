@@ -148,7 +148,11 @@ func input_update(event: InputEvent) -> void:
             battle_state.leave_battle(battle_state.player_selected_character)
 
     elif event.is_action_pressed("ui_cancel"):
-        Transitioned.emit(self, "ThinkState")
+        if (think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_CAST
+        or think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_ITEM):
+            Transitioned.emit(self, "ChooseSpellItemState")
+        else:
+            Transitioned.emit(self, "ThinkState")
 
 func unhandled_input_update(event: InputEvent) -> void:
     if event.is_echo() or not active:

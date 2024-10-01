@@ -11,7 +11,6 @@ extends State
 @onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
 
 @onready var player_think_ui := battle_state.get_node("PlayerThinkUI") as Control
-@onready var action_info_label := player_think_ui.get_node("CurrentActionInfo") as Label
 
 var chosen_action: BattleEnums.EPlayerCombatAction = BattleEnums.EPlayerCombatAction.CA_DEFEND
 
@@ -20,27 +19,6 @@ var chosen_action: BattleEnums.EPlayerCombatAction = BattleEnums.EPlayerCombatAc
 @onready var almighty_spell: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_almighty_spell.tres")
 @onready var chosen_spell_or_item: BaseInventoryItem = fire_spell
 
-## State machine within a state machine!!!!
-enum EPlayerThinkUIState {
-    NONE,
-    CHOOSING_ACTION,
-    SELECT_SPELL_ITEM,
-    SELECT_TARGET
-}
-## This is used for selecting spells, items etc. via UI before moving to target selection
-@export var current_player_think_ui_state := EPlayerThinkUIState.NONE:
-    get:
-        return current_player_think_ui_state
-    set(value):
-        current_player_think_ui_state = value
-
-        match value:
-            EPlayerThinkUIState.CHOOSING_ACTION:
-                action_info_label.text = "Choose an action"
-            EPlayerThinkUIState.SELECT_SPELL_ITEM:
-                action_info_label.text = "Press again for " + chosen_spell_or_item.item_name
-            _:
-                action_info_label.text = ""
 
 
 func _ready() -> void:
@@ -67,8 +45,6 @@ func _on_leave_battle() -> void:
         exit()
 
 func enter() -> void:
-    current_player_think_ui_state = EPlayerThinkUIState.CHOOSING_ACTION
-
     player_think_ui.show()
 
     # TODO: pick spell or item with UI
@@ -84,7 +60,6 @@ func enter() -> void:
 
 
 func exit() -> void:
-    current_player_think_ui_state = EPlayerThinkUIState.NONE
     print(battle_character.character_name + " has stopped thinking")
     player_think_ui.hide()
 
@@ -95,39 +70,19 @@ func input_update(event: InputEvent) -> void:
     if event.is_echo() or not active:
         return
 
-    if event is InputEventKey and event.keycode == KEY_G:
-        print("Think UI state: " + Util.get_enum_name(EPlayerThinkUIState, current_player_think_ui_state)) 
-        return
-
-    elif event.is_action_pressed("ui_cancel"):
-        if current_player_think_ui_state != EPlayerThinkUIState.CHOOSING_ACTION:
-            current_player_think_ui_state = EPlayerThinkUIState.CHOOSING_ACTION
-            return
-        else:
-            battle_state.force_exit_battle()
-            return
+    # if event.is_action_pressed("ui_cancel"):
+    #     battle_state.force_exit_battle()
+            
     elif event.is_action_pressed("combat_attack"):
-        if current_player_think_ui_state != EPlayerThinkUIState.CHOOSING_ACTION:
-            return
         chosen_action = BattleEnums.EPlayerCombatAction.CA_ATTACK
-        
-    elif event.is_action_pressed("combat_spellitem"):
-        if current_player_think_ui_state != EPlayerThinkUIState.SELECT_SPELL_ITEM:
-            current_player_think_ui_state = EPlayerThinkUIState.SELECT_SPELL_ITEM
-            return
-        else:
-            if chosen_spell_or_item.item_type == BaseInventoryItem.ItemType.SPELL:
-                chosen_action = BattleEnums.EPlayerCombatAction.CA_CAST
-            else:
-                chosen_action = BattleEnums.EPlayerCombatAction.CA_ITEM
+        Transitioned.emit(self, "ChooseTargetState")
 
-    elif (event.is_action_pressed("combat_draw")
-    and current_player_think_ui_state == EPlayerThinkUIState.CHOOSING_ACTION):
+    elif event.is_action_pressed("combat_spellitem"):
+        Transitioned.emit(self, "ChooseSpellItemState")
+      
+    elif event.is_action_pressed("combat_draw"):
         chosen_action = BattleEnums.EPlayerCombatAction.CA_DRAW
-    else:
-        return
-    
-    current_player_think_ui_state = EPlayerThinkUIState.SELECT_TARGET
-    Transitioned.emit(self, "ChooseTargetState")
+        Transitioned.emit(self, "ChooseTargetState")
+
 
 func unhandled_input_update(_event: InputEvent) -> void: pass

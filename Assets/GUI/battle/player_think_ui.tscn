@@ -1,9 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://k5nbstqmbqve"]
 
-[sub_resource type="LabelSettings" id="LabelSettings_y6igg"]
-font_size = 36
-outline_size = 5
-outline_color = Color(0, 0, 0, 1)
+[ext_resource type="Script" path="res://Assets/GUI/battle/combat_hint_text.gd" id="1_77inu"]
 
 [node name="PlayerThinkUI" type="Control"]
 layout_mode = 3
@@ -14,22 +11,10 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
 
-[node name="Label" type="Label" parent="."]
+[node name="Label" type="RichTextLabel" parent="."]
 layout_mode = 0
-offset_left = 24.0
-offset_top = 24.0
-offset_right = 866.0
-offset_bottom = 216.0
-text = "Attack: SPACE / South
-Cast or use: E / NORTH
-Draw: R / WEST"
-label_settings = SubResource("LabelSettings_y6igg")
-
-[node name="CurrentActionInfo" type="Label" parent="."]
-layout_mode = 0
-offset_left = 24.0
-offset_top = 192.0
-offset_right = 866.0
-offset_bottom = 276.0
-text = "Current spell:"
-label_settings = SubResource("LabelSettings_y6igg")
+offset_right = 512.0
+offset_bottom = 272.0
+mouse_filter = 1
+bbcode_enabled = true
+script = ExtResource("1_77inu")

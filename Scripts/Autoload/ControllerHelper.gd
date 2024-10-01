@@ -42,8 +42,12 @@ func _ready() -> void:
     if Input.get_connected_joypads().size() > 0:
         is_using_controller = true
 
+func get_button_glyph_img_embed(action: String, size: int = 48) -> String:
+    return "[img=%s]%s[/img]" % [str(size), get_button_glyph(action)]
+
 ## Returns the path to the button glyph texture for the current input device based on the action name[br]
 ## [param action_name] Needs to be the name of an action in the InputMap
+## TODO: Add support for multiple glyphs for the same action (return array of Strings)
 func get_button_glyph(action_name: String, horizontal_decoration: bool = false, vertical_decoration: bool = false) -> String:
     var events := InputMap.action_get_events(action_name)
 

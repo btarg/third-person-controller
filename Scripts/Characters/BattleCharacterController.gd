@@ -2,6 +2,7 @@ extends CharacterBody3D
 class_name BattleCharacterController
 
 @onready var nav_agent : NavigationAgent3D = get_node_or_null("NavigationAgent3D")
+@onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
 @onready var battle_character := $BattleCharacter as BattleCharacter
 
 var base_movement := 0.0
@@ -14,10 +15,12 @@ var _last_successful_position := Vector3.INF
 
 func _ready() -> void:
     base_movement = battle_character.stats.get_stat(CharacterStatEntry.ECharacterStat.Movement)
-    battle_character.OnCharacterTurnStarted.connect(reset_movement)
-    reset_movement()
+    battle_state.TurnStarted.connect(reset_movement)
+    reset_movement(battle_character)
 
-func reset_movement() -> void:
+func reset_movement(character: BattleCharacter) -> void:
+    if character != battle_character:
+        return
     movement_left = base_movement
     _last_successful_position = global_position
 

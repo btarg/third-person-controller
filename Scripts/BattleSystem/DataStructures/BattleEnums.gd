@@ -60,7 +60,8 @@ enum ESkillResult {
     SR_IMMUNE, ## An attack had no effect on the target
     SR_FAIL, ## Generic failure
     SR_NOT_ENOUGH_HP,
-    SR_NOT_ENOUGH_SP
+    SR_NOT_ENOUGH_SP,
+    SR_OUT_OF_RANGE,
 }
 
 enum EAffinityType {

@@ -29,9 +29,6 @@ class_name BattleCharacter
 
 signal OnJoinBattle
 signal OnLeaveBattle
-signal OnTakeDamage(amount: int)
-signal OnHeal(amount: int)
-signal OnDeath
 signal OnCharacterTurnStarted
 
 var character_active := false
@@ -40,7 +37,7 @@ var initiative: int = 0
 func _ready() -> void:
     print("%s internal name %s" % [character_name, character_internal_name])
 
-    battle_state.TurnStarted.connect(_on_battle_turn_started)
+    BattleSignalBus.TurnStarted.connect(_on_battle_turn_started)
     print(character_name + " CURRENT HP: " + str(current_hp))
 
     # TODO: set affinities in editor once typed dictionaries are supported in Godot 4.4
@@ -109,7 +106,7 @@ func heal(amount: int, from_absorb: bool = false) -> void:
         current_hp = ceili(max_hp)
     
     # always emit heal signal for animations
-    OnHeal.emit(amount)
+    BattleSignalBus.OnHeal.emit(self, amount)
 
 func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoller.DiceStatus = DiceRoller.DiceStatus.ROLL_SUCCESS, reflected: bool = false) -> BattleEnums.ESkillResult:
     if damage <= 0:
@@ -209,11 +206,11 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
     
     if damage > 0:
         current_hp -= damage
-        OnTakeDamage.emit(damage)
+        BattleSignalBus.OnTakeDamage.emit(self, damage)
         print(character_name + " took " + str(damage) + " damage")
         if current_hp <= 0:
             current_hp = 0
-            OnDeath.emit()
+            BattleSignalBus.OnDeath.emit()
             print(character_name + " has died")
             battle_state.leave_battle(self)
 

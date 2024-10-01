@@ -1,7 +1,7 @@
 extends State
 class_name BattleState
 
-signal EndedBattle
+
 var turn_order: Array[BattleCharacter] = []
 
 # get player from group
@@ -19,7 +19,6 @@ var character_counts: Dictionary = {}
 var current_character_index: int = 0
 var current_character: BattleCharacter
 
-signal TurnStarted(character: BattleCharacter)
 
 ## The BattleCharacter which the player has targeted
 ## This is used for attacking enemies etc
@@ -211,7 +210,7 @@ func ready_next_turn() -> void:
 
     current_character = turn_order[current_character_index]
     top_down_player.focused_node = current_character.get_parent()
-    TurnStarted.emit(current_character)
+    BattleSignalBus.TurnStarted.emit(current_character)
 
 func exit() -> void:
     for character in turn_order:
@@ -228,7 +227,7 @@ func exit() -> void:
 
     top_down_player.enabled = false
 
-    EndedBattle.emit()
+    BattleSignalBus.BattleEnded.emit()
     print("Battle State left")
 
 func update(_delta) -> void:

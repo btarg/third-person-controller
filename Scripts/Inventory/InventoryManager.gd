@@ -35,6 +35,8 @@ func _ready() -> void:
     add_item(fire_spell, 99)
     add_item(almighty_spell, 99)
 
+    print_inventory()
+
 func _add_item_command(character_name: String, item_path: String, count_string: String) -> void:
     if character_name != battle_character.character_internal_name:
         return
@@ -225,6 +227,6 @@ func _print_inventory_command(character_name: String) -> void:
 func print_inventory() -> void:
     if not items.is_empty():
         for item_id: String in items.keys():
-            Console.print_line("%s (%s): %s" % [items[item_id]["resource"].item_name, item_id, items[item_id]["count"]])
+            Console.print_line("%s (%s): %s" % [items[item_id]["resource"].item_name, item_id, items[item_id]["count"]], true)
     else:
-        print("Inventory is empty")
+        Console.print_line("Inventory is empty", true)

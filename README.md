@@ -18,8 +18,8 @@
     - [x] Players can junction items
     - [x] Items can affect stats
 - Movement
-    - [ ] In-battle player movement state
-    - [ ] Movement in metres as a stat (speed)
+    - [x] In-battle player movement state
+    - [x] Movement in metres as a stat (speed)
 - Spells and items
     - [ ] Spells, attacks etc. can have a radius for targets (range)
         - [ ] Draw the radius visually around the player

@@ -10,7 +10,7 @@ var _can_select_allies := true
 var last_selected_index := 0
     
 func _ready() -> void:
-    battle_state.EndedBattle.connect(_on_battle_ended)
+    BattleSignalBus.BattleEnded.connect(_on_battle_ended)
     battle_state.turn_order_ui.connect("item_selected", _select)
 
 func _on_battle_ended() -> void:
@@ -111,8 +111,11 @@ func _process_targeting() -> void:
 
     match think_state.chosen_action:
         BattleEnums.EPlayerCombatAction.CA_ATTACK:
-            BattleManager.process_basic_attack(current_character, target_character)
-            _end_targeting()
+            var attack := BattleManager.process_basic_attack(current_character, target_character)
+            if attack == BattleEnums.ESkillResult.SR_OUT_OF_RANGE:
+                print("Target out of range!")
+            else:
+                _end_targeting()
     
         BattleEnums.EPlayerCombatAction.CA_ITEM,\
         BattleEnums.EPlayerCombatAction.CA_CAST:

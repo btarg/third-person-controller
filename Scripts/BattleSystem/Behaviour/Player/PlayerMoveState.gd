@@ -56,6 +56,10 @@ func shoot_ray() -> void:
 
 func exit() -> void:
     move_ui.hide()
+    if _current_character:
+        _current_character.character_controller.stop_moving()
+
+
 func update(_delta: float) -> void: pass
 func physics_update(_delta: float) -> void: pass
 func input_update(event: InputEvent) -> void:

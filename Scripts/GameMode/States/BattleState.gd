@@ -25,8 +25,8 @@ signal TurnStarted(character: BattleCharacter)
 ## This is used for attacking enemies etc
 var player_selected_character = null
 
-@onready var turn_order_ui := get_node_or_null("BattleDebugUI/ItemList") as ItemList
-@onready var selected_target_label := get_node_or_null("BattleDebugUI/SelectedEnemyLabel") as Label
+@onready var turn_order_ui := get_node_or_null("ChooseTargetUI/ItemList") as ItemList
+@onready var selected_target_label := get_node_or_null("ChooseTargetUI/SelectedEnemyLabel") as Label
 
 func _ready() -> void:
     turn_order_ui.hide()

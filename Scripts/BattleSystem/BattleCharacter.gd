@@ -32,6 +32,7 @@ signal OnLeaveBattle
 signal OnTakeDamage(amount: int)
 signal OnHeal(amount: int)
 signal OnDeath
+signal OnCharacterTurnStarted
 
 var character_active := false
 var initiative: int = 0
@@ -85,6 +86,7 @@ func start_turn() -> void:
     print("========")
     character_active = true
     behaviour_state_machine.set_state("ThinkState")
+    OnCharacterTurnStarted.emit()
 
 func roll_initiative() -> int:
     var vitality := ceili(stats.get_stat(CharacterStatEntry.ECharacterStat.Vitality))

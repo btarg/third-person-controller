@@ -14,8 +14,12 @@ var _last_successful_position := Vector3.INF
 
 func _ready() -> void:
     base_movement = battle_character.stats.get_stat(CharacterStatEntry.ECharacterStat.Movement)
-    movement_left = base_movement
+    battle_character.OnCharacterTurnStarted.connect(reset_movement)
+    reset_movement()
 
+func reset_movement() -> void:
+    movement_left = base_movement
+    _last_successful_position = global_position
 
 func set_move_target(target_pos: Vector3) -> void:
     if _last_successful_position == Vector3.INF:
@@ -58,7 +62,7 @@ func nav_update() -> void:
         return
 
     amount_moved = (_last_successful_position - global_position).length()
-    print("Amount moved: " + str(amount_moved))
+    print("[MOVE] Movement left: " + str(movement_left))
 
     movement_left -= amount_moved
     if movement_left < 0:

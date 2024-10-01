@@ -116,3 +116,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.46547, 0, -0.0160208)
 
 [node name="TestEnemy" parent="." instance=ExtResource("7_i4kkb")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.14488, 2.38419e-07, 0.858169)
+
+[node name="CSGBox3D" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.8996, 0, 12.5181)
+size = Vector3(1, 1, 15)

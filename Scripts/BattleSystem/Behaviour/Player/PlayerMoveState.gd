@@ -6,7 +6,6 @@ class_name PlayerMoveState
 @onready var move_label := move_ui.get_node("Label") as RichTextLabel
 
 var _current_character: BattleCharacter
-var _movement_left: int = 0
 
 func _ready() -> void:
     move_ui.hide()
@@ -19,8 +18,7 @@ func enter() -> void:
     move_label.text += ControllerHelper.get_button_glyph_img_embed("ui_cancel") + " Cancel"
 
     _current_character = battle_state.current_character
-    _movement_left = ceili(_current_character.stats.get_stat(CharacterStatEntry.ECharacterStat.Movement))
-    print("[MOVE] %s has %s movement" % [_current_character.character_name, str(_movement_left)])
+    
 
 func _end_targeting() -> void:
     if active:
@@ -32,8 +30,6 @@ func _back_to_think() -> void:
 
 func shoot_ray() -> void:
 
-    # TODO: use up movement meter when moving around
-    # Once the meter is empty we should not be able to move anymore
     if not active:
         return
 
@@ -68,3 +64,5 @@ func input_update(event: InputEvent) -> void:
 func unhandled_input_update(event: InputEvent) -> void:
     if event.is_action_pressed("combat_select_target"):
         shoot_ray()
+    elif event.is_action_pressed("ui_cancel"):
+        _current_character.character_controller.stop_moving()

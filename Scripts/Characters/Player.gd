@@ -33,6 +33,7 @@ const ANIMATION_BLEND : float = 7.0
             
 func _ready() -> void:
     spring_arm_pivot.enabled = exploration_control_enabled
+    super()
 
 func reset_to_idle() -> void:
     print("Resetting to idle")

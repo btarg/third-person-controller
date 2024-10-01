@@ -2,13 +2,19 @@ extends State
 class_name PlayerDrawState
 
 @onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
+@onready var draw_ui := battle_state.get_node("PlayerDrawUI") as Control
+
+@onready var draw_label := draw_ui.get_node("Label") as RichTextLabel
+func _ready() -> void:
+    draw_ui.hide()
 
 func enter() -> void:
     print("[DRAW] Entered draw state")
+    draw_ui.show()
+    draw_label.text = "Drawing spell..."
     draw(battle_state.player_selected_character as BattleCharacter, battle_state.current_character)
-    pass
 
-func draw(target_character: BattleCharacter, current_character: BattleCharacter, draw_index: int = -1) -> void:
+func draw(target_character: BattleCharacter, current_character: BattleCharacter, draw_index: int = -1, cast_immediately: bool = true) -> void:
 
     print("[DRAW] Player is drawing... ")
     var draw_list := target_character.draw_list
@@ -31,7 +37,6 @@ func draw(target_character: BattleCharacter, current_character: BattleCharacter,
     current_character.inventory.add_item(drawn_spell, drawn_amount)
 
     # TODO: manually decide whether to stock or cast
-    var cast_immediately := true
     if cast_immediately:
         var status := drawn_spell.use(current_character, target_character)
         print("[DRAW] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
@@ -52,7 +57,10 @@ func _back_to_target() -> void:
     if active:
         Transitioned.emit(self, "ChooseTargetState")
 
-func exit() -> void: pass
+func exit() -> void:
+    draw_ui.hide()
+
+
 func update(_delta: float) -> void: pass
 func physics_update(_delta: float) -> void: pass
 func input_update(event: InputEvent) -> void:

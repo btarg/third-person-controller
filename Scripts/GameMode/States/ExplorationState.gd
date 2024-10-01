@@ -6,11 +6,11 @@ class_name ExplorationState
 # Runs when the state is entered
 func enter() -> void:
     print("Exploration entered")
-    player.enabled = true
+    player.exploration_control_enabled = true
 
 # Runs when the state is exited
 func exit() -> void:
-    player.enabled = false
+    player.exploration_control_enabled = false
 
 func update(_delta) -> void:
     pass

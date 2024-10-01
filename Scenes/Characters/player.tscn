@@ -39,8 +39,8 @@ input_1/reset = true
 
 [sub_resource type="AnimationNodeBlend3" id="AnimationNodeBlend3_3c3it"]
 
-[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_rsvoc"]
-graph_offset = Vector2(-217.203, 31.3947)
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_fuj2j"]
+graph_offset = Vector2(-330.682, -14.0762)
 nodes/Air/node = SubResource("AnimationNodeAnimation_dfvqk")
 nodes/Air/position = Vector2(380, 360)
 nodes/Idle/node = SubResource("AnimationNodeAnimation_u51wd")
@@ -59,6 +59,9 @@ node_connections = [&"ground_air_transition", 0, &"iwr_blend", &"ground_air_tran
 [node name="Player" type="CharacterBody3D" groups=["Player"]]
 process_mode = 1
 script = ExtResource("1_hn6di")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
+debug_enabled = true
 
 [node name="Mesh" parent="." instance=ExtResource("2_ndt0q")]
 
@@ -86,7 +89,7 @@ libraries = {
 [node name="AnimationTree" type="AnimationTree" parent="."]
 root_node = NodePath("../Mesh")
 callback_mode_process = 0
-tree_root = SubResource("AnimationNodeBlendTree_rsvoc")
+tree_root = SubResource("AnimationNodeBlendTree_fuj2j")
 anim_player = NodePath("../AnimationPlayer")
 parameters/ground_air_transition/current_state = "grounded"
 parameters/ground_air_transition/transition_request = ""

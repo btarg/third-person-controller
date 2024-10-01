@@ -40,7 +40,7 @@ func _physics_process(delta: float) -> void:
             return
         current_state.physics_update(delta)
 
-func _input(event) -> void:
+func _input(event: InputEvent) -> void:
     if current_state:
         if (not current_state.active or event.is_echo()):
             return

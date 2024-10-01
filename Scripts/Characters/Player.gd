@@ -1,4 +1,4 @@
-extends CharacterBody3D
+extends BattleCharacterController
 class_name PlayerController
 
 const LERP_VALUE : float = 0.15
@@ -20,18 +20,19 @@ const ANIMATION_BLEND : float = 7.0
 @onready var spring_arm_pivot := $FreelookPivot as SpringArmCameraPivot
 @onready var animator : AnimationTree = $AnimationTree
 
-@export var enabled : bool:
+
+@export var exploration_control_enabled : bool:
     get:
-        return enabled
+        return exploration_control_enabled
     set(value):
-        enabled = value
-        if animator != null and not enabled:
+        exploration_control_enabled = value
+        if animator != null and not exploration_control_enabled:
             reset_to_idle()
         if spring_arm_pivot != null:
-            spring_arm_pivot.enabled = enabled
+            spring_arm_pivot.enabled = exploration_control_enabled
             
 func _ready() -> void:
-    spring_arm_pivot.enabled = enabled
+    spring_arm_pivot.enabled = exploration_control_enabled
 
 func reset_to_idle() -> void:
     print("Resetting to idle")
@@ -45,7 +46,8 @@ func input_update(event: InputEvent) -> void:
 
 ## Called from state
 func player_process(delta) -> void:
-    if not enabled or spring_arm_pivot == null:
+
+    if not exploration_control_enabled or spring_arm_pivot == null:
         return
 
     spring_arm_pivot.camera_physics_process(delta)

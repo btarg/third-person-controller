@@ -25,6 +25,9 @@ class_name BattleCharacter
 
 @onready var current_hp: int = ceil(stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP))
 
+@onready var character_controller := get_parent() as BattleCharacterController
+
+signal OnJoinBattle
 signal OnLeaveBattle
 signal OnTakeDamage(amount: int)
 signal OnHeal(amount: int)

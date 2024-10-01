@@ -129,6 +129,8 @@ func add_to_battle(character: BattleCharacter) -> void:
 
     print(character_name + " entered the battle with initiative " + str(character.initiative))
 
+    character.OnJoinBattle.emit()
+
 func _add_to_turn_order_ui(character: BattleCharacter) -> void:
     turn_order_ui.add_item(character.character_name + " - " + str(character.initiative), null, true)
 
@@ -234,6 +236,11 @@ func update(_delta) -> void:
 
 func physics_update(delta) -> void:
     top_down_player.player_process(delta)
+    # Update navigation for active character
+    if current_character:
+        var controller = current_character.get_parent()
+        if controller is BattleCharacterController:
+            controller.nav_update()
 
 func print_turn_order() -> void:
     if not turn_order.is_empty():

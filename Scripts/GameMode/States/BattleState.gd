@@ -233,11 +233,11 @@ func exit() -> void:
 func update(_delta) -> void:
     pass
 
-func physics_update(delta) -> void:
+func physics_update(delta: float) -> void:
     top_down_player.player_process(delta)
     # Update navigation for active character
     if current_character:
-        current_character.character_controller.nav_update()
+        current_character.character_controller.nav_update(delta)
 
 func print_turn_order() -> void:
     if not turn_order.is_empty():

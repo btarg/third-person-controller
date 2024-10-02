@@ -8,7 +8,7 @@
 
 # TODO
 - Battle basics
-    - [ ] Multiple player characters
+    - [x] Multiple player characters
     - [ ] Special skills and MP usage
     
     - [ ] Money and XP

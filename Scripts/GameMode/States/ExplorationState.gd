@@ -15,10 +15,10 @@ func exit() -> void:
 func update(_delta) -> void:
     pass
 
-func physics_update(delta) -> void:
+func physics_update(delta: float) -> void:
     player.player_process(delta)
 
-func input_update(event) -> void:
+func input_update(event: InputEvent) -> void:
     if event is InputEventKey:
         if event.is_pressed() and event.keycode == KEY_R:
             Transitioned.emit(self, "BattleState")

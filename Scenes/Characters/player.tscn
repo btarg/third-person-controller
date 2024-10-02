@@ -40,7 +40,7 @@ input_1/reset = true
 [sub_resource type="AnimationNodeBlend3" id="AnimationNodeBlend3_3c3it"]
 
 [sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_fuj2j"]
-graph_offset = Vector2(-330.682, -14.0762)
+graph_offset = Vector2(-339, 103)
 nodes/Air/node = SubResource("AnimationNodeAnimation_dfvqk")
 nodes/Air/position = Vector2(380, 360)
 nodes/Idle/node = SubResource("AnimationNodeAnimation_u51wd")

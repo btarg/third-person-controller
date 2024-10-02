@@ -60,6 +60,7 @@ tonemap_mode = 2
 glow_enabled = true
 
 [node name="Prototype" type="Node3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.588483, -0.0221658, -0.501276)
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
 navigation_mesh = SubResource("NavigationMesh_7qgmm")
@@ -96,6 +97,7 @@ shape = SubResource("ConcavePolygonShape3D_rit6o")
 
 [node name="CSGBox3D" type="CSGBox3D" parent="NavigationRegion3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.905481, 1.05733, 3.79841)
+use_collision = true
 size = Vector3(2.62207, 1.37744, 0.303833)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]

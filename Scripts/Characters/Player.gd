@@ -6,20 +6,8 @@ const LERP_VALUE : float = 0.15
 var snap_vector : Vector3 = Vector3.DOWN
 var speed : float
 
-@export_group("Movement variables")
-@export var walk_speed : float = 2.0
-@export var run_speed : float = 6.0
-@export var jump_strength : float = 15.0
-@export var gravity : float = 50.0
-
-var is_running: bool = false
-
-const ANIMATION_BLEND : float = 7.0
-
 @onready var player_mesh : Node3D = $Mesh
 @onready var spring_arm_pivot := $FreelookPivot as SpringArmCameraPivot
-@onready var animator : AnimationTree = $AnimationTree
-
 
 @export var exploration_control_enabled : bool:
     get:
@@ -35,18 +23,12 @@ func _ready() -> void:
     spring_arm_pivot.enabled = exploration_control_enabled
     super()
 
-func reset_to_idle() -> void:
-    print("Resetting to idle")
-    animator.set("parameters/ground_air_transition/transition_request", "grounded")
-    var tween := create_tween()
-    tween.tween_property(animator, "parameters/iwr_blend/blend_amount", -1.0, 0.25)
-
 ## Called from state
 func input_update(event: InputEvent) -> void:
     spring_arm_pivot.input_update(event)
 
 ## Called from state
-func player_process(delta) -> void:
+func player_process(delta: float) -> void:
 
     if not exploration_control_enabled or spring_arm_pivot == null:
         return
@@ -80,17 +62,3 @@ func player_process(delta) -> void:
     move_and_slide()
     
     animate(delta)
-
-func animate(delta) -> void:
-    if is_on_floor():
-        animator.set("parameters/ground_air_transition/transition_request", "grounded")
-        
-        if velocity.length() > 0:
-            if is_running:
-                animator.set("parameters/iwr_blend/blend_amount", lerp(animator.get("parameters/iwr_blend/blend_amount"), 1.0, delta * ANIMATION_BLEND))
-            else:
-                animator.set("parameters/iwr_blend/blend_amount", lerp(animator.get("parameters/iwr_blend/blend_amount"), 0.0, delta * ANIMATION_BLEND))
-        else:
-            animator.set("parameters/iwr_blend/blend_amount", lerp(animator.get("parameters/iwr_blend/blend_amount"), -1.0, delta * ANIMATION_BLEND))
-    else:
-        animator.set("parameters/ground_air_transition/transition_request", "air")

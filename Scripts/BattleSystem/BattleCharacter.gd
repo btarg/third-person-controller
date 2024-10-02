@@ -69,6 +69,7 @@ func _print_modifiers(character_to_print: String) -> void:
 
 func on_leave_battle() -> void:
     character_name = default_character_name
+    behaviour_state_machine.set_state("IdleState")
     OnLeaveBattle.emit()
 
 func _on_battle_turn_started(character: BattleCharacter) -> void:

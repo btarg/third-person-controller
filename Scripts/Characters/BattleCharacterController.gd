@@ -27,8 +27,8 @@ var amount_moved := 0.0
 
 var _last_successful_position := Vector3.INF
 # Stuck detection
-var _last_movement_deltas: Array[float] = []
-var _last_movement_index := 0
+var _last_movement_deltas := PackedFloat32Array()
+var _buffer_head_idx := 0
 const MOVEMENT_DELTA_SAMPLES := 6
 
 
@@ -70,7 +70,7 @@ func stop_moving() -> void:
     reset_to_idle()
 
     _last_movement_deltas.clear()
-    _last_movement_index = 0
+    _buffer_head_idx = 0
 
     print(battle_character.character_name + " stopped moving")
     print("Movement left: " + str(movement_left))
@@ -93,15 +93,14 @@ func nav_update(delta: float) -> void:
     var last_amount_moved := amount_moved
     amount_moved = (_last_successful_position - global_position).length()
     var delta_move := absf(amount_moved - last_amount_moved)
-    print("[MOVE] Delta move: " + str(delta_move))
-    # Ensure the array size does not exceed MOVEMENT_DELTA_SAMPLES
-    if _last_movement_deltas.size() >= MOVEMENT_DELTA_SAMPLES:
-        _last_movement_deltas.pop_back()
     
-    # Insert the new delta move at index 0
-    _last_movement_deltas.insert(0, delta_move)
-    
-    print("[MOVE] Delta samples: " + str(_last_movement_deltas))
+    if _last_movement_deltas.size() < MOVEMENT_DELTA_SAMPLES:
+        _last_movement_deltas.append(delta_move)
+    else:
+        _last_movement_deltas[_buffer_head_idx] = delta_move
+        _buffer_head_idx = (_buffer_head_idx + 1) % MOVEMENT_DELTA_SAMPLES
+
+    # print(_last_movement_deltas)
     
     # Sum the deltas
     if _last_movement_deltas.size() == MOVEMENT_DELTA_SAMPLES:
@@ -112,7 +111,7 @@ func nav_update(delta: float) -> void:
     
         print("[MOVE] Average delta: " + str(average_delta))
         
-        if average_delta == 0.0:
+        if is_zero_approx(average_delta):
             print("[MOVE] Stuck detected!")
             stop_moving()
             return

@@ -26,6 +26,11 @@ var _should_move := false
 var amount_moved := 0.0
 
 var _last_successful_position := Vector3.INF
+# Stuck detection
+var _last_movement_deltas: Array[float] = []
+var _last_movement_index := 0
+const MOVEMENT_DELTA_SAMPLES := 6
+
 
 func _ready() -> void:
     BattleSignalBus.TurnStarted.connect(reset_movement)
@@ -62,9 +67,13 @@ func stop_moving() -> void:
         return
 
     velocity = Vector3.ZERO
+    reset_to_idle()
+
+    _last_movement_deltas.clear()
+    _last_movement_index = 0
+
     print(battle_character.character_name + " stopped moving")
     print("Movement left: " + str(movement_left))
-    reset_to_idle()
 
 func nav_update(delta: float) -> void:
     velocity.y -= gravity * delta
@@ -80,9 +89,33 @@ func nav_update(delta: float) -> void:
     or movement_left <= 0):
         stop_moving()
         return
-
+    
+    var last_amount_moved := amount_moved
     amount_moved = (_last_successful_position - global_position).length()
-    # print("[MOVE] Movement left: " + str(movement_left))
+    var delta_move := absf(amount_moved - last_amount_moved)
+    print("[MOVE] Delta move: " + str(delta_move))
+    # Ensure the array size does not exceed MOVEMENT_DELTA_SAMPLES
+    if _last_movement_deltas.size() >= MOVEMENT_DELTA_SAMPLES:
+        _last_movement_deltas.pop_back()
+    
+    # Insert the new delta move at index 0
+    _last_movement_deltas.insert(0, delta_move)
+    
+    print("[MOVE] Delta samples: " + str(_last_movement_deltas))
+    
+    # Sum the deltas
+    if _last_movement_deltas.size() == MOVEMENT_DELTA_SAMPLES:
+        var sum_deltas := 0.0
+        for i in range(_last_movement_deltas.size()):
+            sum_deltas += _last_movement_deltas[i]
+        var average_delta := sum_deltas / MOVEMENT_DELTA_SAMPLES
+    
+        print("[MOVE] Average delta: " + str(average_delta))
+        
+        if average_delta == 0.0:
+            print("[MOVE] Stuck detected!")
+            stop_moving()
+            return
 
     movement_left -= amount_moved
     if movement_left < 0:
@@ -122,7 +155,7 @@ func animate(delta: float) -> void:
         else:
             animator.set("parameters/iwr_blend/blend_amount", lerp(animator.get("parameters/iwr_blend/blend_amount"), -1.0, delta * ANIMATION_BLEND))
     else:
-        print(name + " is not on floor!")
+        # print(name + " is not on floor!")
         animator.set("parameters/ground_air_transition/transition_request", "air")
 
 

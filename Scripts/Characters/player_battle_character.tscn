@@ -54,7 +54,7 @@ stat_value = 15.0
 [sub_resource type="Resource" id="Resource_r04hq"]
 script = ExtResource("10_8eke6")
 stat_key = 9
-stat_value = 10.0
+stat_value = 5.0
 
 [sub_resource type="Resource" id="Resource_tab8j"]
 script = ExtResource("10_8eke6")

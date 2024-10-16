@@ -39,6 +39,8 @@ var initiative: int = 0
 
 # How many turns this character should be "down" for (when crit - ONE MORE system)
 var down_turns := 0
+# How many turns this character has left before moving to the next character in the turn order
+var turns_left := 0
 
 func _ready() -> void:
     print("%s internal name %s" % [character_name, character_internal_name])
@@ -127,8 +129,13 @@ func _on_downed() -> void:
     print("[DOWN] " + character_name + " is downed for " + str(down_turns) + " turns")
 
 func _on_down_recovery() -> void:
+    down_turns = 0
     # TODO  play an animation for recovering from being downed
     print("[DOWN] " + character_name + " has recovered from being downed")
+
+func award_turns(turns: int) -> void:
+    turns_left += turns
+    print("[ONE MORE] " + character_name + " has been awarded " + str(turns) + " turns")
 
 func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoller.DiceStatus = DiceRoller.DiceStatus.ROLL_SUCCESS, reflected: bool = false) -> BattleEnums.ESkillResult:
     if damage <= 0:
@@ -167,20 +174,22 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
     #### HANDLE CRIT DAMAGE ####
     if (affinity_type != BattleEnums.EAffinityType.UNKNOWN):
         if (affinity_type == BattleEnums.EAffinityType.WEAK):
-            damage = _calculate_crit_damage(attacker, damage)
-            result = BattleEnums.ESkillResult.SR_CRITICAL
-
             # Handle down status for crits
             if down_turns == 0:
                 BattleSignalBus.OnDowned.emit(self, down_turns)
                 _on_downed()
+                # Give the attacker a ONE MORE turn
+                attacker.award_turns(3)
+
             # More crits will wake the enemy up rather than keeping them down
-            else:
-                down_turns = 0
-                BattleSignalBus.OnDownRecovery.emit(self)
-                _on_down_recovery()
+            # TODO: this event should be calulated based on a stat like vitality
+            # else:
+            #     BattleSignalBus.OnDownRecovery.emit(self)
+            #     _on_down_recovery()
 
-
+            damage = _calculate_crit_damage(attacker, damage)
+            result = BattleEnums.ESkillResult.SR_CRITICAL
+            
         elif affinity_type == BattleEnums.EAffinityType.REFLECT:
             # Prevent infinite reflection loops by just resisting an already reflected attack
             # TODO: attack mirrors and magic mirrors should have a counter for how many reflections they can do before breaking
@@ -273,5 +282,3 @@ func _calculate_resist_damage(damage: int) -> int:
     print("[RESIST] Defense: " + str(defense))
     print("[RESIST] Calculated damage: " + str(calculated_damage))
     return calculated_damage
-
-func battle_input(_event) -> void: pass

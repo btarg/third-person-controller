@@ -198,14 +198,26 @@ func ready_next_turn() -> void:
 
     if turn_order.size() < 2:
         # end battle
-        printerr("Invalid turn order!")
+        printerr("Invalid turn order! How did we get here?")
         Transitioned.emit(self, "ExplorationState")
 
-    current_character_index += 1
+    if current_character:
+        current_character.turns_left -= 1
+        if current_character.turns_left > 0:
+            print("[ONE MORE] %s gets %s more turns!" % [current_character.character_name, current_character.turns_left])
+        else:
+            current_character.turns_left = 0 # cap at 0 minimum
+            current_character_index += 1
+
+    # Prevent overflow
     if current_character_index >= turn_order.size():
         current_character_index = 0
 
     current_character = turn_order[current_character_index]
+    # 0 turns left means the character is a new character
+    if current_character.turns_left == 0:
+        current_character.turns_left = 1
+
     top_down_player.focused_node = current_character.get_parent()
     BattleSignalBus.TurnStarted.emit(current_character)
 
@@ -253,10 +265,6 @@ func print_turn_order() -> void:
 
         # Print the entity with the highest initiative
         Console.print_line(turn_order.front().character_name + " has the highest initiative", true)
-
-func _state_input(event) -> void:
-    if current_character != null:
-        current_character.battle_input(event)
         
 func spawn_enemy() -> void:
     if not player:

@@ -92,7 +92,7 @@ func start_turn() -> void:
     OnCharacterTurnStarted.emit()
 
     if down_turns > 0:
-        behaviour_state_machine.set_state("DownState")
+        behaviour_state_machine.set_state("DownedState")
     else:
         behaviour_state_machine.set_state("ThinkState")
         down_turns = 0
@@ -120,6 +120,16 @@ func heal(amount: int, from_absorb: bool = false) -> void:
     # always emit heal signal for animations
     BattleSignalBus.OnHeal.emit(self, amount)
 
+func _on_downed() -> void:
+    # TODO: play an animation for being downed
+    # down_turns = DiceRoller.roll_flat(4, 1)
+    down_turns = 3
+    print("[DOWN] " + character_name + " is downed for " + str(down_turns) + " turns")
+
+func _on_down_recovery() -> void:
+    # TODO  play an animation for recovering from being downed
+    print("[DOWN] " + character_name + " has recovered from being downed")
+
 func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoller.DiceStatus = DiceRoller.DiceStatus.ROLL_SUCCESS, reflected: bool = false) -> BattleEnums.ESkillResult:
     if damage <= 0:
         print(character_name + " took no damage")
@@ -139,11 +149,13 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
         else:
             print("[AL] " + character_name + " has logged " + enum_string)
 
-    if (not (affinity_type == BattleEnums.EAffinityType.IMMUNE
+    if debug_always_crit:
+        affinity_type = BattleEnums.EAffinityType.WEAK
+    elif (not (affinity_type == BattleEnums.EAffinityType.IMMUNE
     or affinity_type == BattleEnums.EAffinityType.ABSORB
     or affinity_type == BattleEnums.EAffinityType.REFLECT)
     and damage_type != BattleEnums.EAffinityElement.ALMIGHTY):
-        # crits only apply to UNKNOWN and RESIST affinities
+        # dice crits only apply to UNKNOWN, (generic) and RESIST affinities
         match dice_status:
             DiceRoller.DiceStatus.ROLL_CRIT_SUCCESS:
                 affinity_type = BattleEnums.EAffinityType.WEAK
@@ -152,11 +164,22 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
             DiceRoller.DiceStatus.ROLL_FAIL:
                 affinity_type = BattleEnums.EAffinityType.RESIST
 
+    #### HANDLE CRIT DAMAGE ####
     if (affinity_type != BattleEnums.EAffinityType.UNKNOWN):
-        if (affinity_type == BattleEnums.EAffinityType.WEAK
-        or debug_always_crit):
-            damage = _calculate_crit_damage(attacker as BattleCharacter, damage)
+        if (affinity_type == BattleEnums.EAffinityType.WEAK):
+            damage = _calculate_crit_damage(attacker, damage)
             result = BattleEnums.ESkillResult.SR_CRITICAL
+
+            # Handle down status for crits
+            if down_turns == 0:
+                BattleSignalBus.OnDowned.emit(self, down_turns)
+                _on_downed()
+            # More crits will wake the enemy up rather than keeping them down
+            else:
+                down_turns = 0
+                BattleSignalBus.OnDownRecovery.emit(self)
+                _on_down_recovery()
+
 
         elif affinity_type == BattleEnums.EAffinityType.REFLECT:
             # Prevent infinite reflection loops by just resisting an already reflected attack
@@ -224,13 +247,16 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
         print(character_name + " took " + str(damage) + " damage")
         if current_hp <= 0:
             current_hp = 0
-            BattleSignalBus.OnDeath.emit()
-            print(character_name + " has died")
-            battle_state.leave_battle(self)
-
-            # destroy parent object
-            get_parent().queue_free()
-
+            BattleSignalBus.OnDeath.emit(self)
+            print("[DEATH] " + character_name + " has died!!")
+            
+            if character_type != BattleEnums.CharacterType.PLAYER:
+                battle_state.leave_battle(self)
+                # destroy parent object
+                get_parent().queue_free()
+            else:
+                # Players are able to be revived once "dead"
+                behaviour_state_machine.set_state("DeadState")
     return result
 
 func _calculate_crit_damage(attacker: BattleCharacter, damage: int) -> int:

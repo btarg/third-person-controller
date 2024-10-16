@@ -70,5 +70,6 @@ enum EAffinityType {
     IMMUNE,
     REFLECT,
     ABSORB,
-    UNKNOWN
+    UNKNOWN,
+    # GENERIC
 }

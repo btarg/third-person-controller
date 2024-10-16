@@ -72,10 +72,7 @@ func on_state_transitioned(state : State, new_state_name : String) -> void:
         current_state.exit()
         new_state.active = false
         current_state.active = false
-    
-    # Allow for the parent state machine to be referenced from the state itself
-    new_state.state_machine = self
-    
+        
     new_state.active = true
     current_state = new_state
     new_state.enter()

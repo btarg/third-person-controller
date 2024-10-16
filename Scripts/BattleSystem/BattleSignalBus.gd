@@ -10,9 +10,15 @@ signal BattleEnded
 @warning_ignore("UNUSED_SIGNAL")
 signal OnHeal(character: BattleCharacter, amount: int)
 @warning_ignore("UNUSED_SIGNAL")
+signal OnRevive(character: BattleCharacter)
+@warning_ignore("UNUSED_SIGNAL")
 signal OnDeath(character: BattleCharacter)
 @warning_ignore("UNUSED_SIGNAL")
 signal OnTakeDamage(character: BattleCharacter, amount: int)
+@warning_ignore("UNUSED_SIGNAL")
+signal OnDowned(character: BattleCharacter, turns: int)
+@warning_ignore("UNUSED_SIGNAL")
+signal OnDownRecovery(character: BattleCharacter)
 
 func _ready() -> void:
     OnTakeDamage.connect(_on_take_damage)

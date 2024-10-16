@@ -1,18 +1,19 @@
 extends State
-class_name PlayerDownedState
+class_name DownedState
 
 @onready var battle_character := state_machine.get_parent() as BattleCharacter
 
 func _ready() -> void:
     battle_character.OnLeaveBattle.connect(_on_leave_battle)
-    
+
 func _on_leave_battle() -> void:
     if active:
         _stop_thinking()
 
 func enter() -> void:
-    print(battle_character.character_name + " is down and cannot take a turn!")
-
+    battle_character.down_turns -= 1
+    print(battle_character.character_name + " is down for the next " + str(battle_character.down_turns) + " turns!")
+    
     _stop_thinking()
     battle_character.battle_state.ready_next_turn()
 

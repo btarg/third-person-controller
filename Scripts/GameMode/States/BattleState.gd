@@ -171,18 +171,15 @@ func leave_battle(character: BattleCharacter, do_result_check: bool = true) -> v
 
 
 func enter() -> void:
-    
-    Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-
-    top_down_player.enabled = true
-    print("Battle state entered")
-    
     for child in get_tree().get_nodes_in_group("BattleCharacter"):
         if child is BattleCharacter:
             add_to_battle(child as BattleCharacter)
         else:
             printerr(child.name + " should not be tagged as a BattleCharacter!!")
             printerr(child)
+
+    Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+    top_down_player.enabled = true
 
     if turn_order.size() < 2 or enemy_units.is_empty():
         print("Cannot enter battle: invalid turn order (are there enough enemies?)")

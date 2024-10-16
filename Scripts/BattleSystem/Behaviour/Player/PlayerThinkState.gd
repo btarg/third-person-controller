@@ -5,7 +5,7 @@ extends State
 @onready var exploration_player := get_tree().get_nodes_in_group("Player").front() as PlayerController
 
 # TODO: get the battle character from the parent node
-@onready var battle_character := get_parent().get_parent() as BattleCharacter
+@onready var battle_character := state_machine.get_parent() as BattleCharacter
 # One level up is state machine, two levels up is the battle character. The inventory is on the same level
 @onready var inventory_manager := get_node("../../../Inventory") as InventoryManager
 @onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
@@ -44,8 +44,12 @@ func _on_leave_battle() -> void:
         exit()
 
 func enter() -> void:
-    player_think_ui.show()
+    if battle_character.current_hp <= 0:
+        # Players are able to be revived once "dead"
+        Transitioned.emit(self, "DeadState")
+        return
 
+    player_think_ui.show()
     print(battle_character.character_name + " is thinking about what to do")
 
     # remember last selected character

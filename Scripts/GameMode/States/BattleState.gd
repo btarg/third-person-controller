@@ -230,10 +230,10 @@ func exit() -> void:
     BattleSignalBus.BattleEnded.emit()
     print("Battle State left")
 
-func update(_delta) -> void:
+func _state_process(_delta) -> void:
     pass
 
-func physics_update(delta: float) -> void:
+func _state_physics_process(delta: float) -> void:
     top_down_player.player_process(delta)
     # Update navigation for active character
     if current_character:
@@ -257,7 +257,7 @@ func print_turn_order() -> void:
         # Print the entity with the highest initiative
         Console.print_line(turn_order.front().character_name + " has the highest initiative", true)
 
-func input_update(event) -> void:
+func _state_input(event) -> void:
     if current_character != null:
         current_character.battle_input(event)
         
@@ -271,5 +271,5 @@ func spawn_enemy() -> void:
     var enemy_battle_character := enemy_instance.get_node("BattleCharacter") as BattleCharacter
     add_to_battle(enemy_battle_character)
 
-func unhandled_input_update(event) -> void:
+func _state_unhandled_input(event) -> void:
     top_down_player.unhandled_input_update(event)

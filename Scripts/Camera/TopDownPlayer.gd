@@ -102,6 +102,7 @@ func player_process(_delta) -> void:
 
     move_and_slide()
 
+## Called from state
 func unhandled_input_update(event) -> void:
     if enabled:
         if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):

@@ -99,8 +99,8 @@ func exit() -> void:
     battle_state.selected_target_label.hide()
 
 
-func update(_delta: float) -> void: pass
-func physics_update(_delta: float) -> void: pass
+func _state_process(_delta: float) -> void: pass
+func _state_physics_process(_delta: float) -> void: pass
 
 
 func _process_targeting() -> void:
@@ -135,7 +135,7 @@ func _end_targeting() -> void:
         Transitioned.emit(self, "IdleState")
         battle_state.ready_next_turn()
 
-func input_update(event: InputEvent) -> void:
+func _state_input(event: InputEvent) -> void:
 
     if event.is_action_pressed("ui_select") or event.is_action_pressed("combat_attack"):
         if battle_state.player_selected_character == null:
@@ -155,6 +155,6 @@ func input_update(event: InputEvent) -> void:
         else:
             Transitioned.emit(self, "ThinkState")
 
-func unhandled_input_update(event: InputEvent) -> void:
+func _state_unhandled_input(event: InputEvent) -> void:
     if event.is_action_pressed("combat_select_target"):
         shoot_ray()

@@ -60,12 +60,12 @@ func exit() -> void:
         _current_character.character_controller.stop_moving()
 
 
-func update(_delta: float) -> void: pass
-func physics_update(_delta: float) -> void: pass
-func input_update(event: InputEvent) -> void:
+func _state_process(_delta: float) -> void: pass
+func _state_physics_process(_delta: float) -> void: pass
+func _state_input(event: InputEvent) -> void:
     if event.is_action_pressed("ui_cancel"):
         _back_to_think()
-func unhandled_input_update(event: InputEvent) -> void:
+func _state_unhandled_input(event: InputEvent) -> void:
     if event.is_action_pressed("combat_select_target"):
         shoot_ray()
     elif event.is_action_pressed("ui_cancel"):

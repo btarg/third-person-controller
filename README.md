@@ -20,8 +20,11 @@
 - Movement
     - [x] In-battle player movement state
     - [x] Movement in metres as a stat (speed)
+    - [x] Pathfinding for players
+    - [ ] Pathfinding for enemies
+    - [ ] Stuck detection
 - Spells and items
-    - [ ] Spells, attacks etc. can have a radius for targets (range)
+    - [x] Spells, attacks etc. can have a radius for targets (range)
         - [ ] Draw the radius visually around the player
 - UI/UX
     - [ ] Victory screen / game over screen
@@ -36,6 +39,7 @@
 - Visuals
     - [ ] Animated characters
 - AI
+    - [ ] Look into beehaviour
     - [ ] Enemies seek the player and attack
         - [ ] Enemies choose how we enter battle: either by attacking the player or by being attacked by the player
     - [ ] Enemies can attack in battle

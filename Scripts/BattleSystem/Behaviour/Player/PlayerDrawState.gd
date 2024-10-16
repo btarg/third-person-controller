@@ -61,10 +61,10 @@ func exit() -> void:
     draw_ui.hide()
 
 
-func update(_delta: float) -> void: pass
-func physics_update(_delta: float) -> void: pass
-func input_update(event: InputEvent) -> void:
+func _state_process(_delta: float) -> void: pass
+func _state_physics_process(_delta: float) -> void: pass
+func _state_input(event: InputEvent) -> void:
     if event.is_action_pressed("ui_cancel"):
         _back_to_target()
 
-func unhandled_input_update(_event: InputEvent) -> void: pass
+func _state_unhandled_input(_event: InputEvent) -> void: pass

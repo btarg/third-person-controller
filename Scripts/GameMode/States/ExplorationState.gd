@@ -12,13 +12,13 @@ func enter() -> void:
 func exit() -> void:
     player.exploration_control_enabled = false
 
-func update(_delta) -> void:
+func _state_process(_delta) -> void:
     pass
 
-func physics_update(delta: float) -> void:
+func _state_physics_process(delta: float) -> void:
     player.player_process(delta)
 
-func input_update(event: InputEvent) -> void:
+func _state_input(event: InputEvent) -> void:
     if event is InputEventKey:
         if event.is_pressed() and event.keycode == KEY_R:
             Transitioned.emit(self, "BattleState")

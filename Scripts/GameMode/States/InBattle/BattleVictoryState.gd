@@ -10,7 +10,7 @@ func enter() -> void:
     Transitioned.emit(self, "ExplorationState")
 
 func exit() -> void: pass
-func update(_delta: float) -> void: pass
-func physics_update(_delta: float) -> void: pass
-func input_update(_event: InputEvent) -> void: pass
-func unhandled_input_update(_event: InputEvent) -> void: pass
+func _state_process(_delta: float) -> void: pass
+func _state_physics_process(_delta: float) -> void: pass
+func _state_input(_event: InputEvent) -> void: pass
+func _state_unhandled_input(_event: InputEvent) -> void: pass

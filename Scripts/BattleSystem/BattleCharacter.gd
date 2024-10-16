@@ -10,6 +10,9 @@ class_name BattleCharacter
 @export var affinities: Dictionary = {}
 @export var basic_attack_element: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS
 
+@export var debug_always_crit: bool = true
+
+# TODO: replace this draw list for every character
 @export var draw_list: Array[SpellItem] = [
     preload("res://Scripts/Inventory/Resources/Spells/test_fire_spell.tres"),
     preload("res://Scripts/Inventory/Resources/Spells/test_healing_spell.tres"),
@@ -33,6 +36,9 @@ signal OnCharacterTurnStarted
 
 var character_active := false
 var initiative: int = 0
+
+# How many turns this character should be "down" for (when crit - ONE MORE system)
+var down_turns := 0
 
 func _ready() -> void:
     print("%s internal name %s" % [character_name, character_internal_name])
@@ -83,8 +89,13 @@ func start_turn() -> void:
     print(character_name + " is starting their turn")
     print("========")
     character_active = true
-    behaviour_state_machine.set_state("ThinkState")
     OnCharacterTurnStarted.emit()
+
+    if down_turns > 0:
+        behaviour_state_machine.set_state("DownState")
+    else:
+        behaviour_state_machine.set_state("ThinkState")
+        down_turns = 0
 
 func roll_initiative() -> int:
     var vitality := ceili(stats.get_stat(CharacterStatEntry.ECharacterStat.Vitality))
@@ -133,15 +144,17 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
     or affinity_type == BattleEnums.EAffinityType.REFLECT)
     and damage_type != BattleEnums.EAffinityElement.ALMIGHTY):
         # crits only apply to UNKNOWN and RESIST affinities
-        if dice_status == DiceRoller.DiceStatus.ROLL_CRIT_SUCCESS:
-            affinity_type = BattleEnums.EAffinityType.WEAK
-        elif dice_status == DiceRoller.DiceStatus.ROLL_CRIT_FAIL:
-            affinity_type = BattleEnums.EAffinityType.IMMUNE
-        elif dice_status == DiceRoller.DiceStatus.ROLL_FAIL:
-            affinity_type = BattleEnums.EAffinityType.RESIST
+        match dice_status:
+            DiceRoller.DiceStatus.ROLL_CRIT_SUCCESS:
+                affinity_type = BattleEnums.EAffinityType.WEAK
+            DiceRoller.DiceStatus.ROLL_CRIT_FAIL:
+                affinity_type = BattleEnums.EAffinityType.IMMUNE
+            DiceRoller.DiceStatus.ROLL_FAIL:
+                affinity_type = BattleEnums.EAffinityType.RESIST
 
     if (affinity_type != BattleEnums.EAffinityType.UNKNOWN):
-        if (affinity_type == BattleEnums.EAffinityType.WEAK):
+        if (affinity_type == BattleEnums.EAffinityType.WEAK
+        or debug_always_crit):
             damage = _calculate_crit_damage(attacker as BattleCharacter, damage)
             result = BattleEnums.ESkillResult.SR_CRITICAL
 

@@ -41,9 +41,9 @@ func _back_to_think() -> void:
 func exit() -> void:
     spell_ui.hide()
 
-func update(_delta: float) -> void: pass
-func physics_update(_delta: float) -> void: pass
-func input_update(event: InputEvent) -> void:
+func _state_process(_delta: float) -> void: pass
+func _state_physics_process(_delta: float) -> void: pass
+func _state_input(event: InputEvent) -> void:
     if event.is_action_pressed("ui_cancel"):
         _back_to_think()
     elif (event.is_action_pressed("combat_spellitem")
@@ -51,4 +51,4 @@ func input_update(event: InputEvent) -> void:
         # TODO: use UI for choosing spells
         _choose_spell(think_state.heal_spell)
 
-func unhandled_input_update(_event: InputEvent) -> void: pass
+func _state_unhandled_input(_event: InputEvent) -> void: pass

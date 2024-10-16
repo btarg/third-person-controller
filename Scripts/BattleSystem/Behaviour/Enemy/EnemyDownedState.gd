@@ -1,10 +1,7 @@
 extends State
-class_name TestEnemyThinkState
+class_name EnemyDownedState
 
-@onready var battle_character := get_owner().get_node("BattleCharacter") as BattleCharacter
-
-func wait(seconds: float) -> void:
-    await get_tree().create_timer(seconds).timeout
+@onready var battle_character := state_machine.get_parent() as BattleCharacter
 
 func _ready() -> void:
     battle_character.OnLeaveBattle.connect(_on_leave_battle)
@@ -14,19 +11,16 @@ func _on_leave_battle() -> void:
         _stop_thinking()
 
 func enter() -> void:
-    print(battle_character.character_name + " has %s HP" % battle_character.current_hp)
-    print(battle_character.character_name + " is thinking about what to do")
-    await wait(0.75)
-
+    print(battle_character.character_name + " is down!")
+    battle_character.down_turns -= 1
+    
     _stop_thinking()
     battle_character.battle_state.ready_next_turn()
 
 func _stop_thinking() -> void:
     Transitioned.emit(self, "IdleState")
 
-func exit() -> void:
-    print(battle_character.character_name + " has stopped thinking")
-    
+func exit() -> void: pass
 func _state_process(_delta: float) -> void: pass
 func _state_physics_process(_delta: float) -> void: pass
 func _state_input(_event: InputEvent) -> void: pass

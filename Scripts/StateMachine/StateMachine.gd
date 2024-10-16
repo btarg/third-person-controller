@@ -32,27 +32,27 @@ func _process(delta: float) -> void:
     if current_state:
         if not current_state.active:
             return
-        current_state.update(delta)
+        current_state._state_process(delta)
 
 func _physics_process(delta: float) -> void:
     if current_state:
         if not current_state.active:
             return
-        current_state.physics_update(delta)
+        current_state._state_physics_process(delta)
 
 func _input(event: InputEvent) -> void:
     if current_state:
         if (not current_state.active or event.is_echo()):
             return
 
-        current_state.input_update(event)
+        current_state._state_input(event)
 
 func _unhandled_input(event: InputEvent) -> void:
     if current_state:
         if (not current_state.active or event.is_echo()):
             return
 
-        current_state.unhandled_input_update(event)
+        current_state._state_unhandled_input(event)
 
 func on_state_transitioned(state : State, new_state_name : String) -> void:
     if state != current_state:
@@ -72,6 +72,9 @@ func on_state_transitioned(state : State, new_state_name : String) -> void:
         current_state.exit()
         new_state.active = false
         current_state.active = false
+    
+    # Allow for the parent state machine to be referenced from the state itself
+    new_state.state_machine = self
     
     new_state.active = true
     current_state = new_state

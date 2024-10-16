@@ -59,10 +59,10 @@ func exit() -> void:
     print(battle_character.character_name + " has stopped thinking")
     player_think_ui.hide()
 
-func update(_delta: float) -> void: pass
-func physics_update(_delta: float) -> void: pass
+func _state_process(_delta: float) -> void: pass
+func _state_physics_process(_delta: float) -> void: pass
 
-func input_update(event: InputEvent) -> void:
+func _state_input(event: InputEvent) -> void:
 
     if event.is_action_pressed("combat_attack"):
         chosen_action = BattleEnums.EPlayerCombatAction.CA_ATTACK
@@ -80,4 +80,4 @@ func input_update(event: InputEvent) -> void:
         Transitioned.emit(self, "MoveState")
 
 
-func unhandled_input_update(_event: InputEvent) -> void: pass
+func _state_unhandled_input(_event: InputEvent) -> void: pass

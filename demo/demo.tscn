@@ -10,7 +10,7 @@ shading_mode = 0
 albedo_color = Color(0.458824, 1, 1, 1)
 albedo_texture = ExtResource("2")
 
-[sub_resource type="ImmediateMesh" id="ImmediateMesh_cmkfr"]
+[sub_resource type="ImmediateMesh" id="ImmediateMesh_tjr3g"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_47h4w"]
 
@@ -25,10 +25,11 @@ sky = SubResource("Sky_mouyc")
 
 [node name="LineRenderer3D" type="MeshInstance3D" parent="."]
 material_override = SubResource("StandardMaterial3D_x7n3p")
-mesh = SubResource("ImmediateMesh_cmkfr")
+mesh = SubResource("ImmediateMesh_tjr3g")
 script = ExtResource("2_c14b5")
 points = Array[Vector3]([Vector3(0, 0, 0), Vector3(0, 1, 0), Vector3(0, 3, 4)])
 cap_resolution = 10
+draw_corners = null
 
 [node name="Orbit" type="Node3D" parent="."]
 

@@ -2,24 +2,15 @@
 class_name LineRenderer3D
 extends MeshInstance3D
 
-@export var points: Array[Vector3] = [Vector3(0, 0, 0), Vector3(0, 5, 0)]:
-    set(new_points): points = new_points
-@export var start_thickness: float = 0.1:
-    set(new_start_thickness): start_thickness = new_start_thickness
-@export var end_thickness: float = 0.1:
-    set(new_end_thickness): end_thickness = new_end_thickness
-@export var corner_resolution: int = 5:
-    set(new_corner_resolution): corner_resolution = new_corner_resolution
-@export var cap_resolution: int = 5:
-    set(new_cap_resolution): cap_resolution = new_cap_resolution
-@export var draw_caps: bool = true:
-    set(new_draw_caps): draw_caps = new_draw_caps
-@export var draw_crners: bool = true:
-    set(new_draw_crners): draw_crners = new_draw_crners
-@export var use_global_coords: bool = true:
-    set(new_use_global_coords): use_global_coords = new_use_global_coords
-@export var tile_texture: bool = true:
-    set(new_tile_texture): tile_texture = new_tile_texture
+@export var points: Array[Vector3] = [Vector3(0, 0, 0), Vector3(0, 5, 0)]
+@export var start_thickness := 0.1
+@export var end_thickness := 0.1
+@export var corner_resolution := 5
+@export var cap_resolution := 5
+@export var draw_caps := true
+@export var draw_corners := true
+@export var use_global_coords := true
+@export var tile_texture := true
 
 var camera: Camera3D
 var cameraOrigin: Vector3
@@ -34,7 +25,6 @@ func remove_line() -> void:
 func _process(_delta) -> void:
     if points.size() < 2:
         return
-    
     camera = get_viewport().get_camera_3d()
     if camera == null:
         return
@@ -104,7 +94,7 @@ func _process(_delta) -> void:
             if draw_caps:
                 cap(B, A, nextThickness, cap_resolution)
         else:
-            if draw_crners:
+            if draw_corners:
                 var C = points[i + 2]
                 if use_global_coords:
                     C = to_local(C)

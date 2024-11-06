@@ -2669,3 +2669,4 @@ parameters/iwr_blend/blend_amount = -1.0
 [node name="LineRenderer3D" parent="." instance=ExtResource("6_bj0dr")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 mesh = SubResource("ImmediateMesh_mfm0c")
+draw_corners = null

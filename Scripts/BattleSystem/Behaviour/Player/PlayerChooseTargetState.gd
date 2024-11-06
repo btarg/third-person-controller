@@ -11,7 +11,7 @@ var last_selected_index := 0
 
 @export_group("Target line rendering")
 const CURVE_SEGMENTS := 20
-const CURVE_HEIGHT_OFFSET := 4.0
+const CURVE_HEIGHT_OFFSET := 6.0
 const CURVE_TARGET_HEIGHT_OFFSET := 0.1
 
 var _line_current_character: BattleCharacter
@@ -93,12 +93,14 @@ func select_character(character: BattleCharacter) -> void:
         if renderer:
             var selected_self := character == battle_state.current_character
             if not selected_self:
-                _should_render_line = true
+                renderer.material_override = ResourceLoader.load("res://demo/target_line_renderer.tres") as Material
+                _current_line_renderer = renderer
+
 
                 _line_target_character = character
                 _line_current_character = battle_state.current_character
 
-                _current_line_renderer = renderer
+                _should_render_line = true
 
         else:
             _should_render_line = false
@@ -123,7 +125,8 @@ func cleanup_line_renderers() -> void:
     _line_current_character = null
     _line_target_character = null
 
-    _current_line_renderer.remove_line()
+    if _current_line_renderer:
+        _current_line_renderer.remove_line()
 
 func enter() -> void:
     var selection := BattleEnums.get_combat_action_selection(think_state.chosen_action, think_state.chosen_spell_or_item)

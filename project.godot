@@ -36,6 +36,7 @@ enabled=PackedStringArray("res://addons/console/plugin.cfg")
 Player=""
 BattleCharacter=""
 TopDownPlayer="top down camera player controller"
+TargetLines=""
 
 [input]
 

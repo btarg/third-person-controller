@@ -5,24 +5,24 @@ class_name ExplorationState
 
 # Runs when the state is entered
 func enter() -> void:
-    print("Exploration entered")
-    player.exploration_control_enabled = true
+	print("Exploration entered")
+	player.exploration_control_enabled = true
 
 # Runs when the state is exited
 func exit() -> void:
-    player.exploration_control_enabled = false
+	player.exploration_control_enabled = false
 
 func _state_process(_delta) -> void:
-    pass
+	pass
 
 func _state_physics_process(delta: float) -> void:
-    player.player_process(delta)
+	player.player_process(delta)
 
 func _state_input(event: InputEvent) -> void:
-    if event is InputEventKey:
-        if event.is_pressed() and event.keycode == KEY_R:
-            Transitioned.emit(self, "BattleState")
-        elif event.is_pressed() and event.keycode == KEY_ESCAPE:
-            get_tree().quit()
-    else:
-        player.input_update(event)
+	if event is InputEventKey:
+		if event.is_pressed() and event.keycode == KEY_R:
+			Transitioned.emit(self, "BattleState")
+		elif event.is_pressed() and event.keycode == KEY_ESCAPE:
+			get_tree().quit()
+	else:
+		player.input_update(event)

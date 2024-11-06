@@ -124,8 +124,7 @@ func heal(amount: int, from_absorb: bool = false) -> void:
 
 func _on_downed() -> void:
     # TODO: play an animation for being downed
-    # down_turns = DiceRoller.roll_flat(4, 1)
-    down_turns = 3
+    down_turns = DiceRoller.roll_flat(4, 1)
     print("[DOWN] " + character_name + " is downed for " + str(down_turns) + " turns")
 
 func _on_down_recovery() -> void:
@@ -179,7 +178,7 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
                 BattleSignalBus.OnDowned.emit(self, down_turns)
                 _on_downed()
                 # Give the attacker a ONE MORE turn
-                attacker.award_turns(3)
+                attacker.award_turns(1)
 
             # More crits will wake the enemy up rather than keeping them down
             # TODO: this event should be calulated based on a stat like vitality

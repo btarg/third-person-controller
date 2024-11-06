@@ -10,7 +10,7 @@
 - Battle basics
     - [x] Multiple player characters
     - [ ] Special skills and MP usage
-    
+        - [ ] Drawing uses MP?
     - [ ] Money and XP
     - [ ] Level up system
     - [ ] Enemies drop items

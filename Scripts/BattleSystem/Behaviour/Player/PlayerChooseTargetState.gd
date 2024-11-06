@@ -8,7 +8,11 @@ var _can_select_enemies := true
 var _can_select_allies := true
 
 var last_selected_index := 0
-    
+
+@export_group("Curve Settings")
+const CURVE_SEGMENTS := 20
+const CURVE_HEIGHT_OFFSET := 4.0
+
 func _ready() -> void:
     BattleSignalBus.BattleEnded.connect(_on_battle_ended)
     battle_state.turn_order_ui.connect("item_selected", _select)
@@ -54,6 +58,8 @@ func shoot_ray() -> void:
         else:
             battle_state.player_selected_character = null
 
+var line_renderers : Array[LineRenderer3D] = []
+
 func select_character(character: BattleCharacter) -> void:
     var success := false
     if _can_select_enemies and character.character_type == BattleEnums.CharacterType.ENEMY:
@@ -64,6 +70,8 @@ func select_character(character: BattleCharacter) -> void:
     if not (_can_select_allies or _can_select_enemies) and character == battle_state.current_character:
         success = true # can only select self
 
+    cleanup_line_renderers()
+
     if success:
         battle_state.player_selected_character = character
         battle_state.selected_target_label.text = "Selected: " + character.character_name
@@ -73,12 +81,49 @@ func select_character(character: BattleCharacter) -> void:
 
         last_selected_index = battle_state.turn_order.find(character)
 
+        var renderer := battle_state.current_character.get_node_or_null("../LineRenderer3D") as LineRenderer3D
+        if renderer:
+            var selected_self := character == battle_state.current_character
+            if not selected_self:
+
+                # draw a line between the player and the selected character
+                var current_character_pos := renderer.global_position
+                var target_character_collision := character.get_parent().get_node("CollisionShape3D") as CollisionShape3D
+                var shape := target_character_collision.shape as BoxShape3D
+                var target_character_pos: Vector3 = character.get_parent().global_position
+                # place end of the line on top of target's head
+                target_character_pos.y += shape.size.y
+                
+                var middle := current_character_pos.lerp(target_character_pos, 0.5)
+                middle.y += CURVE_HEIGHT_OFFSET
+
+                # use quadratic bezier to create a curve and add the curve to the line renderer
+                var segments := CURVE_SEGMENTS
+                var points: Array[Vector3] = []
+                for i in range(segments + 1):
+                    var t := float(i) / float(segments)
+                    points.append(_quadratic_bezier(current_character_pos, middle, target_character_pos, t))
+            
+                renderer.points = points
+                line_renderers.append(renderer)
+        
+
     else:
         print("Cannot select " + character.character_name)
         battle_state.player_selected_character = null
         battle_state.selected_target_label.text = "Select a target"
         last_selected_index = 0
-    
+
+func _quadratic_bezier(p0: Vector3, p1: Vector3, p2: Vector3, t: float) -> Vector3:
+    var q0 := p0.lerp(p1, t)
+    var q1 := p1.lerp(p2, t)
+    var r := q0.lerp(q1, t)
+    return r
+
+func cleanup_line_renderers() -> void:
+    for renderer in line_renderers:
+        renderer.remove_line()
+    line_renderers.clear()
 
 func enter() -> void:
     var selection := BattleEnums.get_combat_action_selection(think_state.chosen_action, think_state.chosen_spell_or_item)
@@ -97,6 +142,7 @@ func exit() -> void:
     print("Exiting target selection")
     battle_state.turn_order_ui.hide()
     battle_state.selected_target_label.hide()
+    cleanup_line_renderers()
 
 
 func _state_process(_delta: float) -> void: pass

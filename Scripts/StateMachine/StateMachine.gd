@@ -10,7 +10,8 @@ var states : Dictionary = {}
 
 func _ready() -> void:
 
-    if get_tree().current_scene.scene_file_path.ends_with("_test.tscn"):
+    if (get_tree().current_scene.scene_file_path.ends_with("_test.tscn")
+    or get_tree().current_scene.scene_file_path.ends_with("demo.tscn")):
         print("In test mode!")
         queue_free()
         return

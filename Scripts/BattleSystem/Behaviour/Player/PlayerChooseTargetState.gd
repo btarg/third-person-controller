@@ -16,9 +16,8 @@ const CURVE_TARGET_HEIGHT_OFFSET := 0.1
 
 var _line_current_character: BattleCharacter
 var _line_target_character: BattleCharacter
-var _current_line_renderer: LineRenderer3D
 
-var _line_renderers : Array[LineRenderer3D] = []
+var _current_line_renderer: LineRenderer3D
 var _should_render_line := false
 
 var _current_segment := 0
@@ -95,12 +94,11 @@ func select_character(character: BattleCharacter) -> void:
             var selected_self := character == battle_state.current_character
             if not selected_self:
                 _should_render_line = true
-                _current_line_renderer = renderer
 
                 _line_target_character = character
                 _line_current_character = battle_state.current_character
 
-                _line_renderers.append(_current_line_renderer)
+                _current_line_renderer = renderer
 
         else:
             _should_render_line = false
@@ -124,11 +122,8 @@ func cleanup_line_renderers() -> void:
     _current_segment = 0
     _line_current_character = null
     _line_target_character = null
-    _current_line_renderer = null
 
-    for renderer in _line_renderers:
-        renderer.remove_line()
-    _line_renderers.clear()
+    _current_line_renderer.remove_line()
 
 func enter() -> void:
     var selection := BattleEnums.get_combat_action_selection(think_state.chosen_action, think_state.chosen_spell_or_item)

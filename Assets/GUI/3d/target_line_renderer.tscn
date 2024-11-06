@@ -1,0 +1,19 @@
+[gd_scene load_steps=5 format=3 uid="uid://cclit0nmwr0cn"]
+
+[ext_resource type="Texture2D" uid="uid://mblnkohmbep2" path="res://demo/line.png" id="1_sl6mb"]
+[ext_resource type="Script" path="res://addons/LineRenderer/line_renderer.gd" id="2_1t2qo"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ifa5h"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.458824, 1, 1, 1)
+albedo_texture = ExtResource("1_sl6mb")
+
+[sub_resource type="ImmediateMesh" id="ImmediateMesh_dd3n4"]
+
+[node name="LineRenderer3D" type="MeshInstance3D" groups=["TargetLines"]]
+material_override = SubResource("StandardMaterial3D_ifa5h")
+mesh = SubResource("ImmediateMesh_dd3n4")
+script = ExtResource("2_1t2qo")
+points = Array[Vector3]([])
+cap_resolution = 10

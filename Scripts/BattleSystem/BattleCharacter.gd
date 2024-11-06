@@ -135,6 +135,7 @@ func _on_down_recovery() -> void:
 func award_turns(turns: int) -> void:
     turns_left += turns
     print("[ONE MORE] " + character_name + " has been awarded " + str(turns) + " turns")
+    BattleSignalBus.OnTurnsAwarded.emit(self, turns)
 
 func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoller.DiceStatus = DiceRoller.DiceStatus.ROLL_SUCCESS, reflected: bool = false) -> BattleEnums.ESkillResult:
     if damage <= 0:

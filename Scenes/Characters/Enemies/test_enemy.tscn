@@ -3669,7 +3669,7 @@ stat_value = 1.0
 [sub_resource type="BoxShape3D" id="BoxShape3D_t84g8"]
 size = Vector3(0.664993, 1.66133, 0.850566)
 
-[sub_resource type="ImmediateMesh" id="ImmediateMesh_kt6ek"]
+[sub_resource type="ImmediateMesh" id="ImmediateMesh_ntur3"]
 
 [node name="TestEnemy" type="CharacterBody3D"]
 script = ExtResource("1_lm07u")
@@ -4176,5 +4176,4 @@ shape = SubResource("BoxShape3D_t84g8")
 
 [node name="LineRenderer3D" parent="." instance=ExtResource("11_h7rtx")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
-mesh = SubResource("ImmediateMesh_kt6ek")
-draw_corners = true
+mesh = SubResource("ImmediateMesh_ntur3")

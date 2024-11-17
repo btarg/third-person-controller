@@ -11,7 +11,7 @@ var last_selected_index := 0
 
 @export_group("Target line rendering")
 const CURVE_SEGMENTS := 20
-const CURVE_HEIGHT_OFFSET := 6.0
+const CURVE_HEIGHT_OFFSET := 5.0
 const CURVE_TARGET_HEIGHT_OFFSET := 0.1
 
 var _line_current_character: BattleCharacter

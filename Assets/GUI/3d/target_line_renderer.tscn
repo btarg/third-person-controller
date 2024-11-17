@@ -3,10 +3,10 @@
 [ext_resource type="Script" path="res://addons/LineRenderer/line_renderer.gd" id="2_1t2qo"]
 [ext_resource type="Material" uid="uid://umtwtaf6qplm" path="res://demo/target_line_renderer.tres" id="2_e1i7s"]
 
-[sub_resource type="ImmediateMesh" id="ImmediateMesh_3skvb"]
+[sub_resource type="ImmediateMesh" id="ImmediateMesh_4vsht"]
 
 [node name="LineRenderer3D" type="MeshInstance3D" groups=["TargetLines"]]
 material_override = ExtResource("2_e1i7s")
-mesh = SubResource("ImmediateMesh_3skvb")
+mesh = SubResource("ImmediateMesh_4vsht")
 script = ExtResource("2_1t2qo")
 points = Array[Vector3]([])

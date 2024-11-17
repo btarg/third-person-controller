@@ -7,6 +7,14 @@
 - [Mixamo Bone Map by catprisbrey](https://github.com/catprisbrey/Godot4-OpenAnimationLibraries/blob/main/BoneMaps/Mixamo%20BoneMap.tres)
 
 # TODO
+- Priority:
+    - [ ] Fix movement bug 
+    - [ ] Get basic UI visuals in place for player and enemy health bars
+    - [ ] Basic visual feedback such as damage numbers and attack animations
+    - [ ] Implement basic form of enemy AI
+    - [ ] Implement overworld to combat transitions
+    - [ ] Implement junction UI
+
 - Battle basics
     - [x] Multiple player characters
     - [ ] Special skills and MP usage
@@ -30,17 +38,26 @@
     - [ ] Victory screen / game over screen
     - [ ] Pause menu with options to save, load, quit, etc.
     - [ ] health bars for each player character
+    - [ ] UI for choosing which enemies to attack
     - [ ] UI for choosing spells
     - [ ] UI for choosing what to draw
         - [ ] UI for choosing whether to stock or cast a draw
     - [ ] UI for choosing junctioned items
     - [ ] UI for inventory: able to use items out of combat (e.g. healing potions/spells)
     - [ ] Damage numbers and other hit feedback
+    - [x] Target line UI
 - Visuals
     - [ ] Animated characters
+    - [ ] Spell projectiles and animations for attacks
 - AI
     - [ ] Look into beehaviour
     - [ ] Enemies seek the player and attack
         - [ ] Enemies choose how we enter battle: either by attacking the player or by being attacked by the player
     - [ ] Enemies can attack in battle
         - [ ] Enemies can use spells
+        - [ ] Enemies can draw
+- Out of battle
+    - [ ] Dialogue system
+    - [ ] Shops
+    - [ ] Side quests
+    - [ ] Save/load system

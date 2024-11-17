@@ -50,10 +50,10 @@ func _process(_delta) -> void:
         var orthogonalABStart: Vector3 = (cameraOrigin - ((A + B) / 2)).cross(AB).normalized() * thickness;
         var orthogonalABEnd: Vector3 = (cameraOrigin - ((A + B) / 2)).cross(AB).normalized() * nextThickness;
         
-        var AtoABStart: Vector3 = A + orthogonalABStart
-        var AfromABStart: Vector3 = A - orthogonalABStart
-        var BtoABEnd: Vector3 = B + orthogonalABEnd
-        var BfromABEnd: Vector3 = B - orthogonalABEnd
+        var AtoABStart := A + orthogonalABStart
+        var AfromABStart := A - orthogonalABStart
+        var BtoABEnd := B + orthogonalABEnd
+        var BfromABEnd := B - orthogonalABEnd
         
         if i == 0:
             if draw_caps:
@@ -95,14 +95,14 @@ func _process(_delta) -> void:
                 cap(B, A, nextThickness, cap_resolution)
         else:
             if draw_corners:
-                var C = points[i + 2]
+                var C := points[i + 2]
                 if use_global_coords:
                     C = to_local(C)
                 
-                var BC = C - B;
-                var orthogonalBCStart = (cameraOrigin - ((B + C) / 2)).cross(BC).normalized() * nextThickness;
+                var BC := C - B;
+                var orthogonalBCStart = (cameraOrigin - ((B + C) * 0.5)).cross(BC).normalized() * nextThickness;
                 
-                var angleDot = AB.dot(orthogonalBCStart)
+                var angleDot := AB.dot(orthogonalBCStart)
                 
                 if angleDot > 0 and not angleDot == 1:
                     corner(B, BtoABEnd, B + orthogonalBCStart, corner_resolution)
@@ -116,12 +116,12 @@ func _process(_delta) -> void:
     mesh.surface_end()
 
 func cap(center: Vector3, pivot: Vector3, thickness: float, cap_resolution: int) -> void:
-    var orthogonal: Vector3 = (cameraOrigin - center).cross(center - pivot).normalized() * thickness;
-    var axis: Vector3 = (center - cameraOrigin).normalized();
+    var orthogonal := (cameraOrigin - center).cross(center - pivot).normalized() * thickness;
+    var axis := (center - cameraOrigin).normalized();
     
-    var vertex_array: Array = []
+    var vertex_array: Array[Vector3] = []
     for i in range(cap_resolution + 1):
-        vertex_array.append(Vector3(0, 0, 0))
+        vertex_array.append(Vector3.ZERO)
     vertex_array[0] = center + orthogonal;
     vertex_array[cap_resolution] = center - orthogonal;
     
@@ -139,13 +139,13 @@ func cap(center: Vector3, pivot: Vector3, thickness: float, cap_resolution: int)
 func corner(center: Vector3, start: Vector3, end: Vector3, cap_resolution: int) -> void:
     var vertex_array: Array = []
     for i in range(cap_resolution + 1):
-        vertex_array.append(Vector3(0, 0, 0))
+        vertex_array.append(Vector3.ZERO)
     vertex_array[0] = start;
     vertex_array[cap_resolution] = end;
     
-    var axis: Vector3 = start.cross(end).normalized()
-    var offset: Vector3 = start - center
-    var angle: float = offset.angle_to(end - center)
+    var axis := start.cross(end).normalized()
+    var offset := start - center
+    var angle := offset.angle_to(end - center)
     
     for i in range(1, cap_resolution):
         vertex_array[i] = center + offset.rotated(axis, lerp(0.0, angle, float(i) / cap_resolution));

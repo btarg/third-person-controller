@@ -89,7 +89,6 @@ func _setup_camera() -> void:
 
 func pivot_input_update(event: InputEvent) -> void:
     if enabled:
-        # print("[SpringArmPivot] Got input update: " + event.to_string())
         if camera_mode == CameraMode.THIRD_PERSON:
             if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
                 rotate_y(-event.relative.x * 0.005)
@@ -100,11 +99,41 @@ func pivot_input_update(event: InputEvent) -> void:
                 rotate_y(-event.relative.x * 0.005)
                 spring_arm.rotate_x(-event.relative.y * 0.005)
                 spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)
-            elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_WHEEL_UP:
-                target_spring_length = clamp(spring_arm.spring_length - spring_arm_scroll_speed, min_spring_arm_length, max_spring_arm_length)
-            elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-                target_spring_length = clamp(spring_arm.spring_length + spring_arm_scroll_speed, min_spring_arm_length, max_spring_arm_length)
+            elif event is InputEventMouseButton and event.is_pressed():
+                # Angle boundaries, same as in _handle_controller_input
+                var min_angle_r = deg_to_rad(top_down_min_angle_degrees)
+                var max_angle_r = deg_to_rad(top_down_max_angle_degrees)
 
+                if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+                    # Zoom in
+                    target_spring_length = clamp(
+                        spring_arm.spring_length - spring_arm_scroll_speed,
+                        min_spring_arm_length,
+                        max_spring_arm_length
+                    )
+                    # Flatten angle toward -min_angle_r
+                    var new_angle := spring_arm.rotation.x + angle_speed
+                    new_angle = clamp(new_angle, -max_angle_r, -min_angle_r)
+                    
+                    var angle_tween := get_tree().create_tween()
+                    angle_tween.tween_property(spring_arm, "rotation:x", spring_arm.rotation.x, new_angle)
+                    # spring_arm.rotation.x = new_angle
+
+                elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+                    # Zoom out
+                    target_spring_length = clamp(
+                        spring_arm.spring_length + spring_arm_scroll_speed,
+                        min_spring_arm_length,
+                        max_spring_arm_length
+                    )
+                    # Look more down toward -max_angle_r
+                    var new_angle := spring_arm.rotation.x - angle_speed
+                    new_angle = clamp(new_angle, -max_angle_r, -min_angle_r)
+
+                    var angle_tween := get_tree().create_tween()
+                    angle_tween.tween_property(spring_arm, "rotation:x", spring_arm.rotation.x, new_angle)
+
+                    # spring_arm.rotation.x = new_angle
 
 func camera_physics_process(_delta) -> void:
     if not enabled:
@@ -139,7 +168,13 @@ func _handle_controller_input() -> void:
     )
     
     if camera_mode == CameraMode.TOP_DOWN:
-        # Use the speed curve for horizontal rotation
+         # ---------------------------------------------------------
+        # Baldur's Gate 3–style top-down camera
+        # Up on stick => zoom in + flatten angle
+        # Down on stick => zoom out + look down more
+        # ---------------------------------------------------------
+
+        # Use the speed curve for horizontal rotation:
         # The exploration camera's curve accelerates way too fast for the top-down camera,
         # so I'm being lazy and just multiplying the curve sample value by a small number rather
         # than making a separate curve for it. - 14/01/2025
@@ -192,7 +227,9 @@ func _handle_controller_input() -> void:
             rotate_y(rotation_velocity_y)
 
     else:
-        # Third-person exploration camera
+        # ---------------------------------------------------------
+        # Persona-style third-person "exploration" camera
+        # ---------------------------------------------------------
 
         if (abs(right_stick.x) + abs(right_stick.y)) >= 1:
             curve_lerp_value = lerp(curve_lerp_value, 1.0, curve_acceleration_rate)

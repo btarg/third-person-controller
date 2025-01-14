@@ -168,7 +168,7 @@ func _handle_controller_input() -> void:
     )
     
     if camera_mode == CameraMode.TOP_DOWN:
-         # ---------------------------------------------------------
+        # ---------------------------------------------------------
         # Baldur's Gate 3–style top-down camera
         # Up on stick => zoom in + flatten angle
         # Down on stick => zoom out + look down more
@@ -258,5 +258,5 @@ func _handle_controller_input() -> void:
         
         if abs(rotation_velocity_y) > 0.001 or abs(rotation_velocity_x) > 0.001:
             rotate_y(rotation_velocity_y)
-            spring_arm.rotate_x(rotation_velocity_x)
+            spring_arm.rotation.x = lerp_angle(spring_arm.rotation.x, spring_arm.rotation.x + rotation_velocity_x, LERP_VALUE)
             spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)

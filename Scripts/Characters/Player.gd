@@ -25,7 +25,7 @@ func _ready() -> void:
 
 ## Called from state
 func input_update(event: InputEvent) -> void:
-    spring_arm_pivot.input_update(event)
+    spring_arm_pivot.pivot_input_update(event)
 
 ## Called from state
 func player_process(delta: float) -> void:

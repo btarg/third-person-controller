@@ -108,7 +108,7 @@ transform = Transform3D(-0.866026, -0.433013, 0.249999, 0.5, -0.75, 0.433012, -1
 shadow_enabled = true
 
 [node name="TopDownPlayer" parent="." instance=ExtResource("5_kwyn1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.2782, 0, 9.35357)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.489686, 0, 9.35357)
 
 [node name="Player" parent="." instance=ExtResource("2_1g73n")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.0888, 1.19209e-07, 5.2839)

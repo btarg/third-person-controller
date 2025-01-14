@@ -1,16 +1,9 @@
 extends CharacterBody3D
 class_name TopDownPlayerController
 
-@onready var player := get_tree().get_nodes_in_group("Player")[0] as PlayerController
-@onready var spring_arm_pivot := $TopDownPlayerPivot as Node3D
-@onready var spring_arm := spring_arm_pivot.get_node("SpringArm3D") as SpringArm3D
-@onready var camera := spring_arm.get_node("TopDownCamera") as Camera3D
-
-@export_group("Rotation")
-## How far the camera can rotate up and down in degrees
-@export var spring_arm_clamp_degrees: float = 90
-var spring_arm_clamp := deg_to_rad(spring_arm_clamp_degrees)
-const LERP_VALUE: float = 0.15
+@onready var player := get_tree().get_first_node_in_group("Player") as PlayerController
+@onready var spring_arm_pivot := get_child(0) as SpringArmCameraPivot
+@onready var camera := spring_arm_pivot.camera
 
 @export_group("Player control")
 var speed: float = 7.0
@@ -26,9 +19,6 @@ var xz_focus_acceleration: float = 0.05
         focused_node = value
         moved_from_focus = false
 
-
-@onready var target_spring_length := spring_arm.spring_length
-
 # player has moved away from focused node
 var moved_from_focus: bool = false
 
@@ -37,26 +27,17 @@ var moved_from_focus: bool = false
         return enabled
     set(value):
         enabled = value
-        if enabled and camera != null:
-            camera.make_current()
-
-@export_group("Camera control")
-var min_spring_arm_length: float = 1.0
-var max_spring_arm_length: float = 12.0
-var spring_arm_scroll_speed: float = 1.0
-
-func _ready() -> void:
-    if enabled:
-        camera.make_current()
-        print("Hello from TopDownPlayerController")
+        spring_arm_pivot.enabled = enabled
 
 func player_process(_delta) -> void:
     if not enabled:
         return
 
-    var move_direction: Vector3 = Vector3.ZERO
+    var move_direction := Vector3.ZERO
     move_direction.x = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
     move_direction.z = Input.get_action_strength("move_backwards") - Input.get_action_strength("move_forwards")
+
+    # print("[Top Down Camera] Move direction: ", move_direction)
 
     # if we have moved set moved_from_focus
     if move_direction.length() > 0.0:
@@ -87,9 +68,6 @@ func player_process(_delta) -> void:
         # Lerp the velocity for smoother movement
         velocity.x = lerp(velocity.x, target_velocity.x, acceleration)
         velocity.z = lerp(velocity.z, target_velocity.z, acceleration)
-
-    # Lerp the spring length
-    spring_arm.spring_length = lerp(spring_arm.spring_length, target_spring_length, LERP_VALUE)
     
     # Keep the same Y level as the focused node
     if focused_node:
@@ -102,20 +80,16 @@ func player_process(_delta) -> void:
 
     move_and_slide()
 
+func camera_physics_process(_delta) -> void:
+    spring_arm_pivot.camera_physics_process(_delta)
+
 ## Called from state
-func unhandled_input_update(event) -> void:
+func input_update_from_battle_state(event: InputEvent) -> void:
     if enabled:
-        if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
-            rotate_y(-event.relative.x * 0.005)
-            spring_arm.rotate_x(-event.relative.y * 0.005)
-            spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)
-        elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_WHEEL_UP:
-            target_spring_length = clamp(spring_arm.spring_length - spring_arm_scroll_speed, min_spring_arm_length, max_spring_arm_length)
-        elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-            target_spring_length = clamp(spring_arm.spring_length + spring_arm_scroll_speed, min_spring_arm_length, max_spring_arm_length)
-        elif event is InputEventKey and event.is_pressed() and event.keycode == KEY_F:
-            # instantiate an empty node
+        if event is InputEventKey and event.is_pressed() and event.keycode == KEY_F:
             var new_focus := Node3D.new()
             focused_node = new_focus
         elif event is InputEventKey and event.is_pressed() and event.keycode == KEY_P:
             focused_node = player
+
+        spring_arm_pivot.pivot_input_update(event)

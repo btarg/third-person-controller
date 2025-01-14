@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://yfkuk4d0rodi"]
+[gd_scene load_steps=5 format=3 uid="uid://yfkuk4d0rodi"]
 
 [ext_resource type="Script" path="res://Scripts/Camera/TopDownPlayer.gd" id="1_2afxu"]
 [ext_resource type="PackedScene" uid="uid://m6ntkjjojwa0" path="res://Scenes/Camera/top_down_player_pivot.tscn" id="2_cwmnp"]
+[ext_resource type="Curve" uid="uid://ch35oxe57h1jf" path="res://Assets/Data/pivot_camera_curve.tres" id="3_7fagh"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_43k4c"]
 
@@ -9,6 +10,7 @@
 script = ExtResource("1_2afxu")
 
 [node name="TopDownPlayerPivot" parent="." instance=ExtResource("2_cwmnp")]
+camera_speed_curve = ExtResource("3_7fagh")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)

@@ -178,7 +178,6 @@ func enter() -> void:
             printerr(child.name + " should not be tagged as a BattleCharacter!!")
             printerr(child)
 
-    Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
     top_down_player.enabled = true
 
     if turn_order.size() < 2 or enemy_units.is_empty():
@@ -240,10 +239,10 @@ func exit() -> void:
     print("Battle State left")
 
 func _state_process(_delta) -> void:
-    pass
+    top_down_player.player_process(_delta)
 
 func _state_physics_process(delta: float) -> void:
-    top_down_player.player_process(delta)
+    top_down_player.camera_physics_process(delta)
     # Update navigation for active character
     if current_character:
         current_character.character_controller.nav_update(delta)
@@ -276,5 +275,5 @@ func spawn_enemy() -> void:
     var enemy_battle_character := enemy_instance.get_node("BattleCharacter") as BattleCharacter
     add_to_battle(enemy_battle_character)
 
-func _state_unhandled_input(event) -> void:
-    top_down_player.unhandled_input_update(event)
+func _state_input(event: InputEvent) -> void:
+    top_down_player.input_update_from_battle_state(event)

@@ -7,6 +7,9 @@ class_name PlayerMoveState
 
 var _current_character: BattleCharacter
 
+@onready var top_down_camera := battle_state.top_down_player.get_node("TopDownPlayerPivot/SpringArm3D/TopDownCamera") as Camera3D
+
+
 func _ready() -> void:
     move_ui.hide()
 
@@ -33,26 +36,28 @@ func shoot_ray() -> void:
     if not active:
         return
 
-    var camera := battle_state.top_down_player.camera
-
     # center the raycast origin position if using controller
-    var mouse_pos := (camera.get_viewport().get_mouse_position() if not ControllerHelper.is_using_controller
-    else Vector2.ZERO)
-    print("Raycast origin pos: " + str(mouse_pos))
+    var viewport_center := Vector2(top_down_camera.get_viewport().size.x / 2, top_down_camera.get_viewport().size.y / 2)
+    var mouse_pos := (top_down_camera.get_viewport().get_mouse_position() if not ControllerHelper.is_using_controller
+    else viewport_center)
+    print("[Move] Raycast origin 2d position: " + str(mouse_pos))
 
-    var space := camera.get_world_3d().direct_space_state
+    var space := top_down_camera.get_world_3d().direct_space_state
     var ray_query := PhysicsRayQueryParameters3D.new()
-    ray_query.from = camera.project_ray_origin(mouse_pos)
-    ray_query.to = camera.project_ray_normal(mouse_pos) * 1000
-    ray_query.exclude = [battle_state.top_down_player]
+    ray_query.from = top_down_camera.project_ray_origin(mouse_pos)
+    ray_query.to = top_down_camera.project_ray_normal(mouse_pos) * 1000
+    ray_query.exclude = [battle_state.top_down_player, top_down_camera.get_parent().get_parent()]
     var result := space.intersect_ray(ray_query)
 
-    var position: Vector3 = Vector3.INF
+    var position := Vector3.INF
     if result.has("position"):
         position = (result.position as Vector3)
+
     if position != Vector3.INF:
         _current_character.character_controller.set_move_target(position)
-
+        print("[Move] Got raycast position: " + str(position))
+    else:
+        print("[Move] No raycast position found")
 
 func exit() -> void:
     move_ui.hide()

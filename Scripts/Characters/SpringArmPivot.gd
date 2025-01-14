@@ -1,7 +1,15 @@
 extends Node3D
 class_name SpringArmCameraPivot
 
+enum CameraMode {
+	TOP_DOWN,
+	THIRD_PERSON,
+}
+@export var camera_mode: CameraMode = CameraMode.THIRD_PERSON
+
 @export_group("Rotation")
+const LERP_VALUE: float = 0.15
+
 @export var max_sensitivity : float = 0.15
 @export var min_sensitivity : float = 0.075
 var current_sensitivity : float = min_sensitivity
@@ -30,54 +38,84 @@ var spring_arm_clamp := deg_to_rad(spring_arm_clamp_degrees)
 const CAMERA_BLEND : float = 0.1
 
 @onready var spring_arm : SpringArm3D = $SpringArm3D
-@onready var camera : Camera3D = $SpringArm3D/FreelookCamera
+# The camera is the first child of the spring arm
+@onready var camera : Camera3D = $SpringArm3D.get_child(0) as Camera3D
+
+# If we are the third person character, then our owner is the exploration player
 @onready var player := owner as CharacterBody3D
 
 @export var enabled : bool:
-    get:
-        return enabled
-    set(value):
-        enabled = value
-        if enabled and camera != null:
-            _setup_camera()
-            Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	get:
+		return enabled
+	set(value):
+		enabled = value
+		if enabled and camera != null:
+			_setup_camera()
+
+			if camera_mode == CameraMode.THIRD_PERSON:
+				Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+			else:
+				Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+
+@export_group("Freelook camera control")
+## Spring arm length used for zooming in and out
+@onready var target_spring_length := spring_arm.spring_length
+var min_spring_arm_length: float = 1.0
+var max_spring_arm_length: float = 12.0
+var spring_arm_scroll_speed: float = 1.0
 
 func _ready() -> void:
-    Console.add_command("toggle_mouse", _show_mouse, 0)
-    _setup_camera()
+	# only automatically setup the exploration camera
+	if camera_mode == CameraMode.THIRD_PERSON:
+		Console.add_command("toggle_mouse", _show_mouse, 0)
+		_setup_camera()
 
 func _show_mouse() -> void:
-    if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-        Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-    else:
-        Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	else:
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 func _setup_camera() -> void:
-    if enabled:
-        camera.make_current()
+	if enabled:
+		camera.make_current()
 
-func input_update(event: InputEvent) -> void:
-    if enabled:
-        if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-            rotate_y(-event.relative.x * 0.005)
-            spring_arm.rotate_x(-event.relative.y * 0.005)
-            spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)
+func pivot_input_update(event: InputEvent) -> void:
+	if enabled:
+		# print("[SpringArmPivot] Got input update: " + event.to_string())
+		if camera_mode == CameraMode.THIRD_PERSON:
+			if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+				rotate_y(-event.relative.x * 0.005)
+				spring_arm.rotate_x(-event.relative.y * 0.005)
+				spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)
+		else:
+			if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+				rotate_y(-event.relative.x * 0.005)
+				spring_arm.rotate_x(-event.relative.y * 0.005)
+				spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)
+			elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_WHEEL_UP:
+				target_spring_length = clamp(spring_arm.spring_length - spring_arm_scroll_speed, min_spring_arm_length, max_spring_arm_length)
+			elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+				target_spring_length = clamp(spring_arm.spring_length + spring_arm_scroll_speed, min_spring_arm_length, max_spring_arm_length)
 
 
 func camera_physics_process(_delta) -> void:
-    if not enabled or not Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-        return
+	if not enabled:
+		return
 
-    if change_fov_on_run:
-        if player.is_on_floor() and player.velocity.length() > 0:
-            if player.is_running:
-                camera.fov = lerp(camera.fov, run_fov, CAMERA_BLEND)
-            else:
-                camera.fov = lerp(camera.fov, normal_fov, CAMERA_BLEND)
-        else:
-            camera.fov = lerp(camera.fov, normal_fov, CAMERA_BLEND)
+	if change_fov_on_run and camera_mode == CameraMode.THIRD_PERSON:
+		if player.is_on_floor() and player.velocity.length() > 0:
+			if player.is_running:
+				camera.fov = lerp(camera.fov, run_fov, CAMERA_BLEND)
+			else:
+				camera.fov = lerp(camera.fov, normal_fov, CAMERA_BLEND)
+		else:
+			camera.fov = lerp(camera.fov, normal_fov, CAMERA_BLEND)
 
-    _handle_controller_input()
+	# Lerp the spring length
+	spring_arm.spring_length = lerp(spring_arm.spring_length, target_spring_length, LERP_VALUE)
+
+	_handle_controller_input()
 
 
 # These variables are not inside _handle_controller_input because
@@ -88,46 +126,46 @@ var rotation_velocity_x: float = 0.0
 var curve_lerp_value : float = 0.0
 
 func _handle_controller_input() -> void:
-    var right_stick := Vector2(
-        (Input.get_action_strength("look_left") - Input.get_action_strength("look_right")),
-        (Input.get_action_strength("look_up") - Input.get_action_strength("look_down"))
-    )
-    # If the stick is fully pushed in any direction, accelerate the curve lerp value
-    if (abs(right_stick.x) + abs(right_stick.y)) >= 1:
-        curve_lerp_value = lerp(curve_lerp_value, 1.0, curve_acceleration_rate)
-    else:
-        curve_lerp_value = 0.0
+	var right_stick := Vector2(
+		(Input.get_action_strength("look_left") - Input.get_action_strength("look_right")),
+		(Input.get_action_strength("look_up") - Input.get_action_strength("look_down"))
+	)
+	# If the stick is fully pushed in any direction, accelerate the curve lerp value
+	if (abs(right_stick.x) + abs(right_stick.y)) >= 1:
+		curve_lerp_value = lerp(curve_lerp_value, 1.0, curve_acceleration_rate)
+	else:
+		curve_lerp_value = 0.0
 
-    # Sample the curve using the current lerp value
-    var curve_value := camera_speed_curve.sample(curve_lerp_value)
+	# Sample the curve using the current lerp value
+	var curve_value := camera_speed_curve.sample(curve_lerp_value)
 
-    if debug_messages:
-        print("X axis:" + str(right_stick.x))
-        print("Y axis:" + str(right_stick.y))
-        
-        if curve_lerp_value > 0:
-            print("Curve Lerp Value: " + str(curve_lerp_value))
-            print("Curve Sample: " + str(curve_value))
-    
-    current_sensitivity = min_sensitivity + (max_sensitivity - min_sensitivity) * curve_value
+	if debug_messages:
+		print("X axis:" + str(right_stick.x))
+		print("Y axis:" + str(right_stick.y))
+		
+		if curve_lerp_value > 0:
+			print("Curve Lerp Value: " + str(curve_lerp_value))
+			print("Curve Sample: " + str(curve_value))
+	
+	current_sensitivity = min_sensitivity + (max_sensitivity - min_sensitivity) * curve_value
 
-    # Multiply by current sensitivity
-    right_stick *= current_sensitivity
+	# Multiply by current sensitivity
+	right_stick *= current_sensitivity
 
-    # Accelerate or decelerate towards the new right stick value
-    rotation_velocity_x = lerp(rotation_velocity_x, right_stick.y, rotation_acceleration if right_stick.y != 0 else rotation_deceleration)
-    rotation_velocity_y = lerp(rotation_velocity_y, right_stick.x, rotation_acceleration if right_stick.x != 0 else rotation_deceleration)
+	# Accelerate or decelerate towards the new right stick value
+	rotation_velocity_x = lerp(rotation_velocity_x, right_stick.y, rotation_acceleration if right_stick.y != 0 else rotation_deceleration)
+	rotation_velocity_y = lerp(rotation_velocity_y, right_stick.x, rotation_acceleration if right_stick.x != 0 else rotation_deceleration)
 
-    # Clamp the rotation velocities - otherwise the camera will spin out of control
-    rotation_velocity_x = clamp(rotation_velocity_x, -current_sensitivity, current_sensitivity)
-    rotation_velocity_y = clamp(rotation_velocity_y, -current_sensitivity, current_sensitivity)
+	# Clamp the rotation velocities - otherwise the camera will spin out of control
+	rotation_velocity_x = clamp(rotation_velocity_x, -current_sensitivity, current_sensitivity)
+	rotation_velocity_y = clamp(rotation_velocity_y, -current_sensitivity, current_sensitivity)
 
-    if debug_messages:
-            print("Rotation Velocity Y: " + str(rotation_velocity_y))
-            print("Rotation Velocity X: " + str(rotation_velocity_x))
+	if debug_messages:
+			print("Rotation Velocity Y: " + str(rotation_velocity_y))
+			print("Rotation Velocity X: " + str(rotation_velocity_x))
 
-    # Apply the rotation velocity to the camera
-    if rotation_velocity_y != 0 or rotation_velocity_x != 0:
-        rotate_y(rotation_velocity_y)
-        spring_arm.rotate_x(rotation_velocity_x)
-        spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)
+	# Apply the rotation velocity to the camera
+	if rotation_velocity_y != 0 or rotation_velocity_x != 0:
+		rotate_y(rotation_velocity_y)
+		spring_arm.rotate_x(rotation_velocity_x)
+		spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)

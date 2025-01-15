@@ -10,15 +10,15 @@ const IMG_SIZE: int = 48
 func _ready() -> void:
     crosshair.visible = false
     ControllerHelper.OnInputDeviceChanged.connect(set_text)
-    set_text()
+    set_text(ControllerHelper.is_using_controller)
 
-func set_text() -> void:
+func set_text(device_is_controller: bool) -> void:
     if not battle_state.active or not battle_state.current_character:
         return
     if battle_state.current_character.character_type != BattleEnums.CharacterType.PLAYER:
         return
 
-    crosshair.visible = ControllerHelper.is_using_controller
+    crosshair.visible = device_is_controller
 
     label.bbcode_enabled = true
     label.text = ""

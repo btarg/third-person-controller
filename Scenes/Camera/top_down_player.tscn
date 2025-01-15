@@ -17,3 +17,4 @@ camera_speed_curve = ExtResource("3_7fagh")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
 shape = SubResource("CapsuleShape3D_b8oc0")
+disabled = true

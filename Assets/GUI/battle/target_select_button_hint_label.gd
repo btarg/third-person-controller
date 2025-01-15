@@ -6,7 +6,7 @@ func _ready() -> void:
     ControllerHelper.OnInputDeviceChanged.connect(_set_text)
     _set_text()
 
-func _set_text() -> void:
+func _set_text(_device_is_controller: bool = true) -> void:
     bbcode_enabled = true
     text = ""
     text += ControllerHelper.get_button_glyph_img_embed("combat_attack", IMG_SIZE) + " Confirm\n"

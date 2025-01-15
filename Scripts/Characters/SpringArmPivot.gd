@@ -24,6 +24,10 @@ var spring_arm_clamp := deg_to_rad(spring_arm_clamp_degrees)
 @export_group("Top-down camera")
 @export var top_down_min_angle_degrees : float = 10.0
 @export var top_down_max_angle_degrees : float = 75.0
+
+var min_angle_r := deg_to_rad(top_down_min_angle_degrees)  # near horizontal is -min_angle_r
+var max_angle_r := deg_to_rad(top_down_max_angle_degrees)  # very top-down is -max_angle_r
+
 ## How fast the top-down camera can zoom when using the zoom input (right stick on controller)
 @export var zoom_speed : float = 0.25
 ## How fast the angle changes when zooming in/out (typically higher = flatter)
@@ -103,10 +107,6 @@ func pivot_input_update(event: InputEvent) -> void:
                 spring_arm.rotate_x(-event.relative.y * 0.005)
                 spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)
             elif event is InputEventMouseButton and event.is_pressed():
-                # Angle boundaries, same as in _handle_controller_input
-                var min_angle_r = deg_to_rad(top_down_min_angle_degrees)
-                var max_angle_r = deg_to_rad(top_down_max_angle_degrees)
-
                 if event.button_index == MOUSE_BUTTON_WHEEL_UP:
                     # Zoom in
                     target_spring_length = clamp(
@@ -192,9 +192,6 @@ func _handle_controller_input() -> void:
         current_sensitivity = min_sensitivity + (max_sensitivity - min_sensitivity) * curve_value
 
         # Treat Y > 0 as zooming in (flatten angle) and Y < 0 as zooming out (more top-down)
-        var min_angle_r := deg_to_rad(top_down_min_angle_degrees)  # near horizontal is -min_angle_r
-        var max_angle_r := deg_to_rad(top_down_max_angle_degrees)  # very top-down is -max_angle_r
-
         if right_stick.y > 0.1:
             # Zoom in
             target_spring_length = clamp(
@@ -205,7 +202,8 @@ func _handle_controller_input() -> void:
             # Flatten angle toward -min_angle_r
             var new_angle := spring_arm.rotation.x + angle_speed
             new_angle = clamp(new_angle, -max_angle_r, -min_angle_r)
-            spring_arm.rotation.x = new_angle
+            rotation_velocity_x += new_angle
+
         elif right_stick.y < -0.1:
             # Zoom out
             target_spring_length = clamp(
@@ -216,16 +214,10 @@ func _handle_controller_input() -> void:
             # Look down more toward -max_angle_r
             var new_angle := spring_arm.rotation.x - angle_speed
             new_angle = clamp(new_angle, -max_angle_r, -min_angle_r)
-            spring_arm.rotation.x = new_angle
+            rotation_velocity_x += new_angle
 
         # Horizontal rotation (X axis of stick)
         right_stick.x *= current_sensitivity
-        rotation_velocity_y = lerp(
-            rotation_velocity_y,
-            right_stick.x,
-            rotation_acceleration if abs(right_stick.x) > 0.01 else rotation_deceleration
-        )
-        rotation_velocity_y = clamp(rotation_velocity_y, -current_sensitivity, current_sensitivity)
 
     else:
         # ---------------------------------------------------------
@@ -242,19 +234,19 @@ func _handle_controller_input() -> void:
 
         right_stick *= current_sensitivity
 
-        rotation_velocity_x = lerp(
-            rotation_velocity_x,
-            right_stick.y,
-            rotation_acceleration if abs(right_stick.y) > 0.01 else rotation_deceleration
-        )
-        rotation_velocity_y = lerp(
-            rotation_velocity_y,
-            right_stick.x,
-            rotation_acceleration if abs(right_stick.x) > 0.01 else rotation_deceleration
-        )
+    rotation_velocity_x = lerp(
+        rotation_velocity_x,
+        right_stick.y,
+        rotation_acceleration if abs(right_stick.y) > 0.01 else rotation_deceleration
+    )
+    rotation_velocity_y = lerp(
+        rotation_velocity_y,
+        right_stick.x,
+        rotation_acceleration if abs(right_stick.x) > 0.01 else rotation_deceleration
+    )
 
-        rotation_velocity_x = clamp(rotation_velocity_x, -current_sensitivity, current_sensitivity)
-        rotation_velocity_y = clamp(rotation_velocity_y, -current_sensitivity, current_sensitivity)
+    rotation_velocity_x = clamp(rotation_velocity_x, -current_sensitivity, current_sensitivity)
+    rotation_velocity_y = clamp(rotation_velocity_y, -current_sensitivity, current_sensitivity)
 
     # APPLY TO BOTH CAMERA MODES
     if abs(rotation_velocity_y) > 0.001 or abs(rotation_velocity_x) > 0.001:
@@ -264,3 +256,7 @@ func _handle_controller_input() -> void:
 
     # on the spring arm, rotation X is up/down and rotation Y is left/right
     # print(Vector2(spring_arm.rotation.x, spring_arm.rotation.y))
+
+    # Clamp the actual rotation to min and max angles
+    spring_arm.rotation.x = clamp(spring_arm.rotation.x, -max_angle_r, -min_angle_r)
+    # print(rad_to_deg(spring_arm.rotation.x))

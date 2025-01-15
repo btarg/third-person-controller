@@ -18,7 +18,7 @@ var last_input_event: InputEvent = null
 const JOYSTICK_DEADZONE := 0.25
 
 ## This signal is listened to by UI elements so they can call `get_button_glyph` to display the correct button
-signal OnInputDeviceChanged()
+signal OnInputDeviceChanged(device_is_controller: bool)
 
 @export var is_using_controller := false:
     get:
@@ -34,7 +34,7 @@ signal OnInputDeviceChanged()
                 return
 
         is_using_controller = value
-        OnInputDeviceChanged.emit()
+        OnInputDeviceChanged.emit(is_using_controller)
 
 func _ready() -> void:
     Console.pause_enabled = true

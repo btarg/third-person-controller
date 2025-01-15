@@ -24,6 +24,7 @@ var chosen_action: BattleEnums.EPlayerCombatAction = BattleEnums.EPlayerCombatAc
 @onready var almighty_spell: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_almighty_spell.tres")
 @onready var chosen_spell_or_item: BaseInventoryItem = heal_spell
 
+var available_actions := BattleEnums.EAvailableCombatActions.SELF
 
 func _ready() -> void:
     Console.add_command("choose_item", _choose_item_command, 1)
@@ -55,6 +56,7 @@ func enter() -> void:
         return
 
     player_think_ui.show()
+    player_think_ui.set_text()
     print(battle_character.character_name + " is thinking about what to do")
 
     # remember last selected character
@@ -83,6 +85,7 @@ func exit() -> void:
 # ==============================================================================
 
 func _state_physics_process(_delta: float) -> void:
+
     var ray_result := shoot_ray()
 
     var position := Vector3.INF
@@ -101,22 +104,25 @@ func _state_physics_process(_delta: float) -> void:
     # to avoid spamming this intensive function
     var children := collider.find_children("BattleCharacter")
     if children.is_empty():
-        player_think_ui.update_ground()
+        available_actions = BattleEnums.EAvailableCombatActions.GROUND
+        player_think_ui.set_text()
         return
 
     var character := children.front() as BattleCharacter
     if character:
         if character.character_type == BattleEnums.CharacterType.PLAYER:
             if character == battle_state.current_character:
-                player_think_ui.update_self()
+                available_actions = BattleEnums.EAvailableCombatActions.SELF
             else:
-                player_think_ui.update_ally(character)
+                available_actions = BattleEnums.EAvailableCombatActions.ALLY
 
         elif character.character_type == BattleEnums.CharacterType.ENEMY:
-            player_think_ui.update_enemy(character)
+            available_actions = BattleEnums.EAvailableCombatActions.ENEMY
     else:
-        player_think_ui.update_ground()
+        available_actions = BattleEnums.EAvailableCombatActions.GROUND
 
+    # set_text reads our available_actions and decides what to display based on that
+    player_think_ui.set_text()
 
 
 ## Returns an intersect_ray dictionary

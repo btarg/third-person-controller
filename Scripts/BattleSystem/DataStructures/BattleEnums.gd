@@ -19,6 +19,14 @@ enum EAffinityElement {
     MANA,
     ALMIGHTY
 }
+# TODO: Add more object types, e.g. doors or buttons that can be used in combat
+enum EAvailableCombatActions {
+    NONE,
+    SELF,
+    ALLY,
+    ENEMY,
+    GROUND,
+}
 
 enum EPlayerCombatAction {
     CA_ATTACK, ## Choose a target to attack

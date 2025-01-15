@@ -43,6 +43,9 @@ func _ready() -> void:
         is_using_controller = true
 
 func get_button_glyph_img_embed(action: String, size: int = 48) -> String:
+    var glyph_path := get_button_glyph(action)
+    if glyph_path == "NONE":
+        return "[color=red]NO GLYPH FOUND[/color]"
     return "[img=%s]%s[/img]" % [str(size), get_button_glyph(action)]
 
 ## Returns the path to the button glyph texture for the current input device based on the action name[br]

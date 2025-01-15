@@ -3,6 +3,12 @@ class_name Util
 static func print_rainbow(text: String) -> void:
     print_rich("[rainbow freq=1.0 sat=0.8 val=0.8]%s[/rainbow]" % text)
 
+## Calculates a quadratic bezier curve
+static func _quadratic_bezier(p0: Vector3, p1: Vector3, p2: Vector3, t: float) -> Vector3:
+    var q0 := p0.lerp(p1, t)
+    var q1 := p1.lerp(p2, t)
+    var r := q0.lerp(q1, t)
+    return r
 
 ## Returns an intersect_ray dictionary
 static func raycast_from_center_or_mouse(cam: Camera3D, exclude: Array[RID]) -> Dictionary:

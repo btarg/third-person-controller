@@ -34,6 +34,7 @@ signal OnInputDeviceChanged(device_is_controller: bool)
                 return
 
         is_using_controller = value
+        
         OnInputDeviceChanged.emit(is_using_controller)
 
 func _ready() -> void:

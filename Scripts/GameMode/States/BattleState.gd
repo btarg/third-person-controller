@@ -22,7 +22,27 @@ var available_actions := BattleEnums.EAvailableCombatActions.SELF
 
 ## The BattleCharacter which the player has targeted
 ## This is used for attacking enemies etc
-var player_selected_character = null
+
+@export var player_selected_character : BattleCharacter:
+    get:
+        return player_selected_character
+    set(character):
+        player_selected_character = character
+
+        # Set available actions based on selected character
+        if not character:
+            available_actions = BattleEnums.EAvailableCombatActions.GROUND
+        else:
+            if character.character_type == BattleEnums.CharacterType.PLAYER:
+                if character == current_character:
+                    available_actions = BattleEnums.EAvailableCombatActions.SELF
+                else:
+                    available_actions = BattleEnums.EAvailableCombatActions.ALLY
+
+            elif character.character_type == BattleEnums.CharacterType.ENEMY:
+                available_actions = BattleEnums.EAvailableCombatActions.ENEMY
+
+
 
 @onready var turn_order_ui := get_node_or_null("ChooseTargetUI/ItemList") as ItemList
 @onready var selected_target_label := get_node_or_null("ChooseTargetUI/SelectedEnemyLabel") as Label

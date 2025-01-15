@@ -85,7 +85,7 @@ func exit() -> void:
 
 func _state_physics_process(_delta: float) -> void:
 
-    var ray_result := shoot_ray()
+    var ray_result := Util.raycast_from_center_or_mouse(top_down_camera, [battle_state.top_down_player.get_rid()])
 
     var position := Vector3.INF
     if ray_result.has("position"):
@@ -123,22 +123,6 @@ func _state_physics_process(_delta: float) -> void:
     # set_text reads our available_actions and decides what to display based on that
     player_think_ui.set_text()
 
-
-## Returns an intersect_ray dictionary
-func shoot_ray() -> Dictionary:
-    # center the raycast origin position if using controller
-    var viewport_center := Vector2(top_down_camera.get_viewport().size.x / 2, top_down_camera.get_viewport().size.y / 2)
-    var mouse_pos := (top_down_camera.get_viewport().get_mouse_position() if not ControllerHelper.is_using_controller
-    else viewport_center)
-
-    var space := top_down_camera.get_world_3d().direct_space_state
-    var ray_query := PhysicsRayQueryParameters3D.new()
-    ray_query.from = top_down_camera.project_ray_origin(mouse_pos)
-    ray_query.to = top_down_camera.project_ray_normal(mouse_pos) * 1000
-    ray_query.exclude = [battle_state.top_down_player]
-    var result := space.intersect_ray(ray_query)
-
-    return result
 
 
 func _state_process(_delta: float) -> void: pass

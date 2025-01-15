@@ -5,8 +5,10 @@ class_name PlayerThinkUI
 const IMG_SIZE: int = 48
 
 @onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
+@onready var crosshair := $Crosshair as TextureRect
 
 func _ready() -> void:
+    crosshair.visible = false
     ControllerHelper.OnInputDeviceChanged.connect(set_text)
     set_text()
 
@@ -15,6 +17,8 @@ func set_text() -> void:
         return
     if battle_state.current_character.character_type != BattleEnums.CharacterType.PLAYER:
         return
+
+    crosshair.visible = ControllerHelper.is_using_controller
 
     label.bbcode_enabled = true
     label.text = ""

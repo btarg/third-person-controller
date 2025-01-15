@@ -4,7 +4,9 @@
 [ext_resource type="PackedScene" uid="uid://m6ntkjjojwa0" path="res://Scenes/Camera/top_down_player_pivot.tscn" id="2_cwmnp"]
 [ext_resource type="Curve" uid="uid://ch35oxe57h1jf" path="res://Assets/Data/pivot_camera_curve.tres" id="3_7fagh"]
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_43k4c"]
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_b8oc0"]
+radius = 0.2
+height = 1.2
 
 [node name="TopDownPlayer" type="CharacterBody3D" groups=["TopDownPlayer"]]
 script = ExtResource("1_2afxu")
@@ -13,5 +15,5 @@ script = ExtResource("1_2afxu")
 camera_speed_curve = ExtResource("3_7fagh")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-shape = SubResource("CapsuleShape3D_43k4c")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+shape = SubResource("CapsuleShape3D_b8oc0")

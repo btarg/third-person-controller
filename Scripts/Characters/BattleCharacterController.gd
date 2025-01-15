@@ -109,7 +109,7 @@ func nav_update(delta: float) -> void:
             sum_deltas += _last_movement_deltas[i]
         var average_delta := sum_deltas / MOVEMENT_DELTA_SAMPLES
     
-        print("[MOVE] Average delta: " + str(average_delta))
+        # print("[MOVE] Average delta: " + str(average_delta))
         
         if is_zero_approx(average_delta):
             print("[MOVE] Stuck detected!")

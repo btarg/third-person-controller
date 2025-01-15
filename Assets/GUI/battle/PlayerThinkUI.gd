@@ -15,21 +15,17 @@ func set_text() -> void:
         return
     if battle_state.current_character.character_type != BattleEnums.CharacterType.PLAYER:
         return
-    var current_player_think_state := battle_state.current_character.behaviour_state_machine.find_child("ThinkState") as PlayerThinkState
-    if not current_player_think_state:
-        return
-    var _current_update_mode := current_player_think_state.available_actions
 
     label.bbcode_enabled = true
     label.text = ""
     
-    if _current_update_mode == BattleEnums.EAvailableCombatActions.SELF:
+    if battle_state.available_actions == BattleEnums.EAvailableCombatActions.SELF:
         label.text += ControllerHelper.get_button_glyph_img_embed("combat_defend", IMG_SIZE) + " Defend\n"
-    if _current_update_mode == BattleEnums.EAvailableCombatActions.ENEMY:
+    if battle_state.available_actions == BattleEnums.EAvailableCombatActions.ENEMY:
         label.text += ControllerHelper.get_button_glyph_img_embed("combat_attack", IMG_SIZE) + " Attack\n"
         label.text += ControllerHelper.get_button_glyph_img_embed("combat_draw", IMG_SIZE) + " Draw\n"
 
-    if _current_update_mode == BattleEnums.EAvailableCombatActions.GROUND:
+    if battle_state.available_actions == BattleEnums.EAvailableCombatActions.GROUND:
         label.text += ControllerHelper.get_button_glyph_img_embed("combat_move", IMG_SIZE) + " Move\n"
     else:
         label.text += ControllerHelper.get_button_glyph_img_embed("combat_spellitem", IMG_SIZE) + " Cast spell / use item\n"

@@ -18,7 +18,7 @@ var character_counts: Dictionary = {}
 
 var current_character_index: int = 0
 var current_character: BattleCharacter
-
+var available_actions := BattleEnums.EAvailableCombatActions.SELF
 
 ## The BattleCharacter which the player has targeted
 ## This is used for attacking enemies etc

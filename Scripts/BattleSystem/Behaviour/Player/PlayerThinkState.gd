@@ -24,7 +24,6 @@ var chosen_action: BattleEnums.EPlayerCombatAction = BattleEnums.EPlayerCombatAc
 @onready var almighty_spell: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_almighty_spell.tres")
 @onready var chosen_spell_or_item: BaseInventoryItem = heal_spell
 
-var available_actions := BattleEnums.EAvailableCombatActions.SELF
 
 func _ready() -> void:
     Console.add_command("choose_item", _choose_item_command, 1)
@@ -104,7 +103,7 @@ func _state_physics_process(_delta: float) -> void:
     # to avoid spamming this intensive function
     var children := collider.find_children("BattleCharacter")
     if children.is_empty():
-        available_actions = BattleEnums.EAvailableCombatActions.GROUND
+        battle_state.available_actions = BattleEnums.EAvailableCombatActions.GROUND
         player_think_ui.set_text()
         return
 
@@ -112,14 +111,14 @@ func _state_physics_process(_delta: float) -> void:
     if character:
         if character.character_type == BattleEnums.CharacterType.PLAYER:
             if character == battle_state.current_character:
-                available_actions = BattleEnums.EAvailableCombatActions.SELF
+                battle_state.available_actions = BattleEnums.EAvailableCombatActions.SELF
             else:
-                available_actions = BattleEnums.EAvailableCombatActions.ALLY
+                battle_state.available_actions = BattleEnums.EAvailableCombatActions.ALLY
 
         elif character.character_type == BattleEnums.CharacterType.ENEMY:
-            available_actions = BattleEnums.EAvailableCombatActions.ENEMY
+            battle_state.available_actions = BattleEnums.EAvailableCombatActions.ENEMY
     else:
-        available_actions = BattleEnums.EAvailableCombatActions.GROUND
+        battle_state.available_actions = BattleEnums.EAvailableCombatActions.GROUND
 
     # set_text reads our available_actions and decides what to display based on that
     player_think_ui.set_text()

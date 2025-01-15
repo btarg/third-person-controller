@@ -20,6 +20,7 @@ var current_sensitivity : float = min_sensitivity
 @export var spring_arm_clamp_degrees: float = 75.0
 var spring_arm_clamp := deg_to_rad(spring_arm_clamp_degrees)
 
+
 @export_group("Top-down camera")
 @export var top_down_min_angle_degrees : float = 10.0
 @export var top_down_max_angle_degrees : float = 75.0
@@ -72,10 +73,10 @@ var max_spring_arm_length: float = 12.0
 var spring_arm_scroll_speed: float = 1.0
 
 func _ready() -> void:
-    # only automatically setup the exploration camera
     if camera_mode == CameraMode.THIRD_PERSON:
         Console.add_command("toggle_mouse", _show_mouse, 0)
         _setup_camera()
+    
 
 func _show_mouse() -> void:
     if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -91,9 +92,11 @@ func pivot_input_update(event: InputEvent) -> void:
     if enabled:
         if camera_mode == CameraMode.THIRD_PERSON:
             if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-                rotate_y(-event.relative.x * 0.005)
+                var mouse_input_target_yaw : float = -event.relative.x * 0.005
+                rotate_y(mouse_input_target_yaw)
                 spring_arm.rotate_x(-event.relative.y * 0.005)
                 spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)
+
         else:
             if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
                 rotate_y(-event.relative.x * 0.005)
@@ -159,7 +162,8 @@ func camera_physics_process(_delta) -> void:
 var rotation_velocity_y: float = 0.0
 var rotation_velocity_x: float = 0.0
 # Current value for sampling the curve
-var curve_lerp_value : float = 0.0
+var curve_lerp_value_top_down : float = 0.0
+var curve_lerp_value_tp : float = 0.0
 
 func _handle_controller_input() -> void:
     var right_stick := Vector2(
@@ -179,11 +183,11 @@ func _handle_controller_input() -> void:
         # so I'm being lazy and just multiplying the curve sample value by a small number rather
         # than making a separate curve for it. - 14/01/2025
         if (abs(right_stick.x) + abs(right_stick.y)) >= 1:
-            curve_lerp_value = lerp(curve_lerp_value, 1.0, curve_acceleration_rate * top_down_horizontal_speed_modifier)
+            curve_lerp_value_top_down = lerp(curve_lerp_value_top_down, 1.0, curve_acceleration_rate * top_down_horizontal_speed_modifier)
         else:
-            curve_lerp_value = 0.0
+            curve_lerp_value_top_down = 0.0
 
-        var curve_value := camera_speed_curve.sample(curve_lerp_value)
+        var curve_value := camera_speed_curve.sample(curve_lerp_value_top_down)
 
         current_sensitivity = min_sensitivity + (max_sensitivity - min_sensitivity) * curve_value
 
@@ -223,20 +227,17 @@ func _handle_controller_input() -> void:
         )
         rotation_velocity_y = clamp(rotation_velocity_y, -current_sensitivity, current_sensitivity)
 
-        if abs(rotation_velocity_y) > 0.001:
-            rotate_y(rotation_velocity_y)
-
     else:
         # ---------------------------------------------------------
         # Persona-style third-person "exploration" camera
         # ---------------------------------------------------------
 
         if (abs(right_stick.x) + abs(right_stick.y)) >= 1:
-            curve_lerp_value = lerp(curve_lerp_value, 1.0, curve_acceleration_rate)
+            curve_lerp_value_tp = lerp(curve_lerp_value_tp, 1.0, curve_acceleration_rate)
         else:
-            curve_lerp_value = 0.0
+            curve_lerp_value_tp = 0.0
 
-        var curve_value_tp := camera_speed_curve.sample(curve_lerp_value)
+        var curve_value_tp := camera_speed_curve.sample(curve_lerp_value_tp)
         current_sensitivity = min_sensitivity + (max_sensitivity - min_sensitivity) * curve_value_tp
 
         right_stick *= current_sensitivity
@@ -255,8 +256,11 @@ func _handle_controller_input() -> void:
         rotation_velocity_x = clamp(rotation_velocity_x, -current_sensitivity, current_sensitivity)
         rotation_velocity_y = clamp(rotation_velocity_y, -current_sensitivity, current_sensitivity)
 
-        
-        if abs(rotation_velocity_y) > 0.001 or abs(rotation_velocity_x) > 0.001:
-            rotate_y(rotation_velocity_y)
-            spring_arm.rotation.x = lerp_angle(spring_arm.rotation.x, spring_arm.rotation.x + rotation_velocity_x, LERP_VALUE)
-            spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)
+    # APPLY TO BOTH CAMERA MODES
+    if abs(rotation_velocity_y) > 0.001 or abs(rotation_velocity_x) > 0.001:
+        rotate_y(rotation_velocity_y)
+        spring_arm.rotate_x(rotation_velocity_x)
+        spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)
+
+    # on the spring arm, rotation X is up/down and rotation Y is left/right
+    # print(Vector2(spring_arm.rotation.x, spring_arm.rotation.y))

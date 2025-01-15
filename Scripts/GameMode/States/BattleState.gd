@@ -169,7 +169,6 @@ func leave_battle(character: BattleCharacter, do_result_check: bool = true) -> v
         elif enemy_units.is_empty():
             Transitioned.emit(self, "BattleVictoryState")
 
-
 func enter() -> void:
     for child in get_tree().get_nodes_in_group("BattleCharacter"):
         if child is BattleCharacter:

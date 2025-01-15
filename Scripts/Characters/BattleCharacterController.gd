@@ -10,6 +10,10 @@ class_name BattleCharacterController
 @onready var nav_agent : NavigationAgent3D = get_node_or_null("NavigationAgent3D")
 @onready var battle_character := $BattleCharacter as BattleCharacter
 
+@onready var character_mesh := $Mesh as Node3D
+# Used for lerping the rotation animation
+const LERP_VALUE : float = 0.15
+
 # Animation
 @onready var animator : AnimationTree = get_node_or_null("AnimationTree")
 var is_running: bool = false
@@ -125,9 +129,8 @@ func nav_update(delta: float) -> void:
     velocity.x = direction.x * run_speed
     velocity.z = direction.z * run_speed
 
-    # rotate towards the destination
-    var target_rotation := atan2(direction.x, direction.z)
-    rotation.y = lerp_angle(rotation.y, target_rotation, 0.1)
+    # FIX: Only rotate the mesh, not the actual player body (this is how third-person camera does it)
+    character_mesh.rotation.y = lerp_angle(character_mesh.rotation.y, atan2(velocity.x, velocity.z), LERP_VALUE)
 
     # this needs to be set before move_and_slide
     _last_successful_position = global_position

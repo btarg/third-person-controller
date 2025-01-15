@@ -27,7 +27,7 @@ class_name BattleCharacter
 @onready var inventory := get_node_or_null("../Inventory") as InventoryManager
 
 @onready var current_hp: int = ceil(stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP))
-
+# The third person player controller extends from the BattleCharacterController to make this possible
 @onready var character_controller := get_parent() as BattleCharacterController
 
 signal OnJoinBattle

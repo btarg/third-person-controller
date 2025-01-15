@@ -1,12 +1,9 @@
 extends BattleCharacterController
 class_name PlayerController
 
-const LERP_VALUE : float = 0.15
-
 var snap_vector : Vector3 = Vector3.DOWN
 var speed : float
 
-@onready var player_mesh : Node3D = $Mesh
 @onready var spring_arm_pivot := $FreelookPivot as SpringArmCameraPivot
 
 @export var exploration_control_enabled : bool:
@@ -49,7 +46,7 @@ func player_process(delta: float) -> void:
     velocity.z = move_direction.z * speed
     
     if move_direction:
-        player_mesh.rotation.y = lerp_angle(player_mesh.rotation.y, atan2(velocity.x, velocity.z), LERP_VALUE)
+        character_mesh.rotation.y = lerp_angle(character_mesh.rotation.y, atan2(velocity.x, velocity.z), LERP_VALUE)
     
     var just_landed := is_on_floor() and snap_vector == Vector3.ZERO
     var is_jumping := is_on_floor() and Input.is_action_just_pressed("jump")

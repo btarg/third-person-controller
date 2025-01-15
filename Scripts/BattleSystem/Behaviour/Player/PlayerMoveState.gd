@@ -43,6 +43,7 @@ func _state_process(_delta: float) -> void: pass
 func _state_physics_process(_delta: float) -> void: pass
 
 func _state_input(event: InputEvent) -> void:
+    print(_current_character.character_controller)
     if event.is_action_pressed("ui_cancel"):
         _back_to_think()
         if _current_character:
@@ -61,5 +62,5 @@ func _state_input(event: InputEvent) -> void:
         else:
             print("[Move] No raycast position found")
 
-func _state_unhandled_input(event: InputEvent) -> void:
+func _state_unhandled_input(_event: InputEvent) -> void:
     pass

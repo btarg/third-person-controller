@@ -31,28 +31,6 @@ func _select(index: int) -> void:
     print("Selecting: " + selected_character.character_name)
     select_character(selected_character)
 
-func shoot_ray() -> void:
-    if not active:
-        return
-
-    # center the raycast origin position if using controller
-    var mouse_pos := (frelook_camera.get_viewport().get_mouse_position() if not ControllerHelper.is_using_controller
-    else Vector2.ZERO)
-    print("Raycast origin pos: " + str(mouse_pos))
-
-    var space := frelook_camera.get_world_3d().direct_space_state
-    var ray_query := PhysicsRayQueryParameters3D.new()
-    ray_query.from = frelook_camera.project_ray_origin(mouse_pos)
-    ray_query.to = frelook_camera.project_ray_normal(mouse_pos) * 1000
-    ray_query.exclude = [battle_state.top_down_player]
-    var result := space.intersect_ray(ray_query)
-    if result.size() > 0:
-        print(result.collider)
-        var character = result.collider.get_node_or_null("BattleCharacter")
-        if character:
-            select_character(character as BattleCharacter)
-        else:
-            battle_state.player_selected_character = null
 
 func select_character(character: BattleCharacter) -> void:
     var success := false
@@ -191,4 +169,11 @@ func _state_input(event: InputEvent) -> void:
 
 func _state_unhandled_input(event: InputEvent) -> void:
     if event.is_action_pressed("combat_select_target"):
-        shoot_ray()
+        var result := Util.raycast_from_center_or_mouse(frelook_camera, [battle_state.top_down_player.get_rid()])
+        if result.size() > 0:
+            print(result.collider)
+            var character := result.collider.get_node_or_null("BattleCharacter") as BattleCharacter
+            if character:
+                select_character(character)
+            else:
+                battle_state.player_selected_character = null

@@ -1,0 +1,27 @@
+[gd_scene load_steps=3 format=3 uid="uid://dgy3c157wl5dn"]
+
+[ext_resource type="Script" path="res://Scripts/GUI/fps_label.gd" id="1_ag3p7"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_6c44t"]
+font_size = 32
+
+[node name="FPSLabel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -192.0
+offset_bottom = 64.0
+grow_horizontal = 0
+text = "FPS: 9000"
+label_settings = SubResource("LabelSettings_6c44t")
+horizontal_alignment = 2
+script = ExtResource("1_ag3p7")

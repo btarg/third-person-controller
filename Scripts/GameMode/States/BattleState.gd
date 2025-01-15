@@ -254,17 +254,20 @@ func exit() -> void:
 
     top_down_player.enabled = false
 
+    player_selected_character = null
+    current_character = null
+
     BattleSignalBus.BattleEnded.emit()
     print("Battle State left")
 
 func _state_process(_delta) -> void:
-    top_down_player.player_process(_delta)
+    pass
 
 func _state_physics_process(delta: float) -> void:
-    top_down_player.camera_physics_process(delta)
     # Update navigation for active character
     if current_character:
         current_character.character_controller.nav_update(delta)
+    top_down_player.player_process(delta)
 
 func print_turn_order() -> void:
     if not turn_order.is_empty():

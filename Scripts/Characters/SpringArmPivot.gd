@@ -31,7 +31,7 @@ var max_angle_r := deg_to_rad(top_down_max_angle_degrees)  # very top-down is -m
 ## How fast the top-down camera can zoom when using the zoom input (right stick on controller)
 @export var zoom_speed : float = 0.25
 ## How fast the angle changes when zooming in/out (typically higher = flatter)
-@export var angle_speed : float = 0.015
+@export var scroll_angle_speed : float = 0.1
 
 
 @export_group("Acceleration")
@@ -115,7 +115,7 @@ func pivot_input_update(event: InputEvent) -> void:
                         max_spring_arm_length
                     )
                     # Flatten angle toward -min_angle_r
-                    var new_angle := spring_arm.rotation.x + angle_speed
+                    var new_angle := spring_arm.rotation.x + scroll_angle_speed
                     new_angle = clamp(new_angle, -max_angle_r, -min_angle_r)
                     
                     var angle_tween := get_tree().create_tween()
@@ -130,7 +130,7 @@ func pivot_input_update(event: InputEvent) -> void:
                         max_spring_arm_length
                     )
                     # Look more down toward -max_angle_r
-                    var new_angle := spring_arm.rotation.x - angle_speed
+                    var new_angle := spring_arm.rotation.x - scroll_angle_speed
                     new_angle = clamp(new_angle, -max_angle_r, -min_angle_r)
 
                     var angle_tween := get_tree().create_tween()
@@ -200,7 +200,7 @@ func _handle_controller_input() -> void:
                 max_spring_arm_length
             )
             # Flatten angle toward -min_angle_r
-            var new_angle := spring_arm.rotation.x + angle_speed
+            var new_angle := spring_arm.rotation.x + scroll_angle_speed
             new_angle = clamp(new_angle, -max_angle_r, -min_angle_r)
             rotation_velocity_x += new_angle
 
@@ -212,7 +212,7 @@ func _handle_controller_input() -> void:
                 max_spring_arm_length
             )
             # Look down more toward -max_angle_r
-            var new_angle := spring_arm.rotation.x - angle_speed
+            var new_angle := spring_arm.rotation.x - scroll_angle_speed
             new_angle = clamp(new_angle, -max_angle_r, -min_angle_r)
             rotation_velocity_x += new_angle
 

@@ -79,9 +79,8 @@ func player_process(_delta) -> void:
         printerr("No focused node set!")
 
     move_and_slide()
-
-func camera_physics_process(_delta) -> void:
     spring_arm_pivot.camera_physics_process(_delta)
+
 
 ## Called from state
 func input_update_from_battle_state(event: InputEvent) -> void:

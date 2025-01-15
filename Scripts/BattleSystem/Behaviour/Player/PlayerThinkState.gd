@@ -86,7 +86,9 @@ func exit() -> void:
 func _state_physics_process(_delta: float) -> void:
     battle_state.player_selected_character = battle_state.current_character
     var ray_result := Util.raycast_from_center_or_mouse(top_down_camera, [battle_state.top_down_player.get_rid()])
-
+    if not ray_result:
+        return
+    
     var position := Vector3.INF
     if ray_result.has("position"):
         position = (ray_result.position as Vector3)
@@ -121,10 +123,20 @@ func _state_process(_delta: float) -> void: pass
 
 func _state_input(event: InputEvent) -> void:
 
-    if not battle_state.player_selected_character:
+    if ((not battle_state.player_selected_character)
+    or battle_state.available_actions == BattleEnums.EAvailableCombatActions.NONE):
         return
 
-    if battle_state.available_actions == BattleEnums.EAvailableCombatActions.ENEMY:
+    if battle_state.available_actions == BattleEnums.EAvailableCombatActions.GROUND:
+        if event.is_action_pressed("combat_move"):
+            chosen_action = BattleEnums.EPlayerCombatAction.CA_MOVE
+            Transitioned.emit(self, "MoveState")
+
+    # Spell/item selection is available for allies and enemies, and self
+    elif event.is_action_pressed("combat_spellitem"):
+        Transitioned.emit(self, "ChooseSpellItemState")
+
+    elif battle_state.available_actions == BattleEnums.EAvailableCombatActions.ENEMY:
 
         if event.is_action_pressed("combat_attack"):
             chosen_action = BattleEnums.EPlayerCombatAction.CA_ATTACK
@@ -133,16 +145,8 @@ func _state_input(event: InputEvent) -> void:
         elif event.is_action_pressed("combat_draw"):
             chosen_action = BattleEnums.EPlayerCombatAction.CA_DRAW
             Transitioned.emit(self, "ChooseTargetState")
-
-    elif battle_state.available_actions == BattleEnums.EAvailableCombatActions.GROUND:
-        if event.is_action_pressed("combat_move"):
-            chosen_action = BattleEnums.EPlayerCombatAction.CA_MOVE
-            Transitioned.emit(self, "MoveState")
-            return
     
-    # Spell/item selection is available for allies and enemies
-    if event.is_action_pressed("combat_spellitem"):
-        Transitioned.emit(self, "ChooseSpellItemState")
+    
     
 
 

@@ -18,7 +18,11 @@ static func raycast_from_center_or_mouse(cam: Camera3D, exclude: Array[RID]) -> 
     var raycast_start_pos := (viewport.get_mouse_position() if not ControllerHelper.is_using_controller
     else viewport_center)
 
+    # BUG: using a separate thread for 3d physics will cause a crash
+    # due to the space not being accessible
     var space := cam.get_world_3d().direct_space_state
+
+
     var ray_query := PhysicsRayQueryParameters3D.new()
     ray_query.from = cam.project_ray_origin(raycast_start_pos)
     ray_query.to = cam.project_ray_normal(raycast_start_pos) * 1000

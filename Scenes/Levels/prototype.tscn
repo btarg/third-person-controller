@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://coue2qehpn4fr"]
+[gd_scene load_steps=23 format=3 uid="uid://coue2qehpn4fr"]
 
 [ext_resource type="Texture2D" uid="uid://b8q44ipg8a3cq" path="res://Assets/Textures/Black.png" id="1_hwes2"]
 [ext_resource type="Texture2D" uid="uid://doyodkg1ds7td" path="res://Assets/Textures/Sky.png" id="1_rrvcb"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://yfkuk4d0rodi" path="res://Scenes/Camera/top_down_player.tscn" id="5_kwyn1"]
 [ext_resource type="PackedScene" uid="uid://c3n3msiln48rn" path="res://Scenes/Characters/Enemies/test_enemy.tscn" id="7_i4kkb"]
 [ext_resource type="PackedScene" uid="uid://lithrctytmps" path="res://Scenes/Characters/Party/test_ally.tscn" id="7_kmrsy"]
+[ext_resource type="PackedScene" uid="uid://dgy3c157wl5dn" path="res://Assets/GUI/fps_label.tscn" id="9_fe2w1"]
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_7qgmm"]
 vertices = PackedVector3Array(-5.25, 0.5, 1, -5, 0.5, -1.75, -5.5, 0.5, -2, -11.25, 0.5, 1, -5.5, 0.5, -3.75, -3.25, 0.5, -4, -3.25, 0.5, -24.5, -24.5, 0.5, 3.25, -11.5, 0.5, 3.25, -24.5, 0.5, -24.5, 3.5, 0.5, -4, 3.5, 0.5, -24.5, 5.5, 0.5, -4, 5.75, 0.5, -3, 24.5, 0.5, -3, 24.5, 0.5, -24.5, -2.25, 0.5, 4.5, -5, 0.75, 6.5, -5.25, 0.5, 7.25, -6.5, 0.5, 24.5, 1, 0.5, 4.25, -0.5, 0.5, -1.75, -0.75, 0.5, 3, 0.75, 0.5, 3, 5.25, 0.5, -1.75, 24.5, 0.5, 24.5, -6.75, 0.5, 7.25, -2.75, 0.5, 4.25, -5.25, 1, 6, -5, 0.75, 2, -2.75, 0.5, 3.25, -14, 3.75, 2, -14, 3.75, 6, -11.5, 0.5, 7, -10, 0.5, 24.5, -9.75, 0.5, 7.25, -24.5, 0.5, 24.5)
@@ -122,3 +123,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.14488, 2.38419e-07, 0.85816
 [node name="CSGBox3D" type="CSGBox3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.8996, 0, 12.5181)
 size = Vector3(1, 1, 15)
+
+[node name="FPSLabel" parent="." instance=ExtResource("9_fe2w1")]

@@ -61,6 +61,9 @@ func get_use_sound() -> AudioStream:
             return null
 
 func can_use_on(user: BattleCharacter, target: BattleCharacter) -> bool:
+    if user == null or target == null:
+        return false
+   
     # Allow self-use if the item cannot be used on allies or enemies
     if not can_use_on_allies and not can_use_on_enemies:
         return (user.character.type == BattleEnums.CharacterType.PLAYER

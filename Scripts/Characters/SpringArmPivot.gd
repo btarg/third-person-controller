@@ -56,7 +56,8 @@ const CAMERA_BLEND : float = 0.1
 # If we are the third person character, then our owner is the exploration player
 @onready var player := owner as CharacterBody3D
 
-@export var enabled : bool:
+# FIX: Enable by default to prevent desync that causes jittering on mouse
+@export var enabled : bool = true:
     get:
         return enabled
     set(value):
@@ -77,6 +78,8 @@ var max_spring_arm_length: float = 12.0
 var spring_arm_scroll_speed: float = 1.0
 
 func _ready() -> void:
+    # Make the Third Person camera take priority
+    # TODO: Make this a setting in editor
     if camera_mode == CameraMode.THIRD_PERSON:
         Console.add_command("toggle_mouse", _show_mouse, 0)
         _setup_camera()
@@ -91,18 +94,31 @@ func _show_mouse() -> void:
 func _setup_camera() -> void:
     if enabled:
         camera.make_current()
+        rotation_velocity_x = 0.0
+        rotation_velocity_y = 0.0
+        curve_lerp_value_tp = 0.0
+        curve_lerp_value_top_down = 0.0
+        spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)
+
+# The controller helper doesn't check for mouse motion as this would be laggy,
+# so if we are using the mouse but it thinks we are using a controller, we need to correct it
+# we don't need to do this the other way around, as joystick input is always checked
+func _controller_helper_use_mouse() -> void:
+    if ControllerHelper.is_using_controller:
+        ControllerHelper.is_using_controller = false
 
 func pivot_input_update(event: InputEvent) -> void:
     if enabled:
         if camera_mode == CameraMode.THIRD_PERSON:
             if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-                var mouse_input_target_yaw : float = -event.relative.x * 0.005
-                rotate_y(mouse_input_target_yaw)
+                _controller_helper_use_mouse()
+                rotate_y(-event.relative.x * 0.005)
                 spring_arm.rotate_x(-event.relative.y * 0.005)
                 spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)
-
+                print(Vector2(spring_arm.rotation.x, spring_arm.rotation.y))
         else:
             if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+                _controller_helper_use_mouse()
                 rotate_y(-event.relative.x * 0.005)
                 spring_arm.rotate_x(-event.relative.y * 0.005)
                 spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)
@@ -154,7 +170,8 @@ func camera_physics_process(_delta) -> void:
     # Lerp the spring length
     spring_arm.spring_length = lerp(spring_arm.spring_length, target_spring_length, LERP_VALUE)
 
-    _handle_controller_input()
+    if ControllerHelper.is_using_controller:
+        _handle_controller_input()
 
 
 # These variables are not declared inside _handle_controller_input because
@@ -166,6 +183,7 @@ var curve_lerp_value_top_down : float = 0.0
 var curve_lerp_value_tp : float = 0.0
 
 func _handle_controller_input() -> void:
+
     var right_stick := Vector2(
         Input.get_action_strength("look_left") - Input.get_action_strength("look_right"),
         Input.get_action_strength("look_up") - Input.get_action_strength("look_down")
@@ -219,6 +237,9 @@ func _handle_controller_input() -> void:
         # Horizontal rotation (X axis of stick)
         right_stick.x *= current_sensitivity
 
+        # clamp angles for top-down
+        spring_arm.rotation.x = clamp(spring_arm.rotation.x, -max_angle_r, -min_angle_r)
+
     else:
         # ---------------------------------------------------------
         # Persona-style third-person "exploration" camera
@@ -256,7 +277,3 @@ func _handle_controller_input() -> void:
 
     # on the spring arm, rotation X is up/down and rotation Y is left/right
     # print(Vector2(spring_arm.rotation.x, spring_arm.rotation.y))
-
-    # Clamp the actual rotation to min and max angles
-    spring_arm.rotation.x = clamp(spring_arm.rotation.x, -max_angle_r, -min_angle_r)
-    # print(rad_to_deg(spring_arm.rotation.x))

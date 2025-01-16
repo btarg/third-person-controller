@@ -115,7 +115,7 @@ func pivot_input_update(event: InputEvent) -> void:
                 rotate_y(-event.relative.x * 0.005)
                 spring_arm.rotate_x(-event.relative.y * 0.005)
                 spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)
-                print(Vector2(spring_arm.rotation.x, spring_arm.rotation.y))
+                # print(Vector2(spring_arm.rotation.x, spring_arm.rotation.y))
         else:
             if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
                 _controller_helper_use_mouse()

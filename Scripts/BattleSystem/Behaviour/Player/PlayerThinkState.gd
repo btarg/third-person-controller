@@ -127,6 +127,9 @@ func _state_input(event: InputEvent) -> void:
     or battle_state.available_actions == BattleEnums.EAvailableCombatActions.NONE):
         return
 
+    # ==============================================================================
+    # PLAYER MOVEMENT
+    # ==============================================================================
     if battle_state.available_actions == BattleEnums.EAvailableCombatActions.GROUND:
         # we need a character selected to move
         if not battle_state.current_character:
@@ -144,11 +147,13 @@ func _state_input(event: InputEvent) -> void:
             else:
                 print("[Move] No raycast position found")
 
-        if event.is_action_pressed("ui_cancel"):
-            battle_state.current_character.character_controller.stop_moving()
-            battle_state.available_actions = BattleEnums.EAvailableCombatActions.GROUND
+    if event.is_action_pressed("ui_cancel"):
+        battle_state.current_character.character_controller.stop_moving()
 
-            
+    # ==============================================================================
+    # SPELLS AND ATTACKS
+    # ==============================================================================
+
     # Spell/item selection is available for allies and enemies, and self
     elif event.is_action_pressed("combat_spellitem"):
         Transitioned.emit(self, "ChooseSpellItemState")

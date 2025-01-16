@@ -84,6 +84,10 @@ func exit() -> void:
 # ==============================================================================
 
 func _state_physics_process(_delta: float) -> void:
+
+    if battle_state.available_actions == BattleEnums.EAvailableCombatActions.NONE:
+        return
+    
     battle_state.player_selected_character = battle_state.current_character
     var ray_result := Util.raycast_from_center_or_mouse(top_down_camera, [battle_state.top_down_player.get_rid()])
     if not ray_result:

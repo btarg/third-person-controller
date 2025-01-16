@@ -33,14 +33,19 @@ var available_actions := BattleEnums.EAvailableCombatActions.SELF
         if not character:
             available_actions = BattleEnums.EAvailableCombatActions.GROUND
         else:
-            if character.character_type == BattleEnums.CharacterType.PLAYER:
-                if character == current_character:
-                    available_actions = BattleEnums.EAvailableCombatActions.SELF
-                else:
-                    available_actions = BattleEnums.EAvailableCombatActions.ALLY
+            # if we are currently moving, we shouldn't be able to select a character to attack etc
+            if (character.character_controller.is_moving()
+            or current_character.character_controller.is_moving()):
+                available_actions = BattleEnums.EAvailableCombatActions.GROUND
+            else:
+                if character.character_type == BattleEnums.CharacterType.PLAYER:
+                    if character == current_character:
+                        available_actions = BattleEnums.EAvailableCombatActions.SELF
+                    else:
+                        available_actions = BattleEnums.EAvailableCombatActions.ALLY
 
-            elif character.character_type == BattleEnums.CharacterType.ENEMY:
-                available_actions = BattleEnums.EAvailableCombatActions.ENEMY
+                elif character.character_type == BattleEnums.CharacterType.ENEMY:
+                    available_actions = BattleEnums.EAvailableCombatActions.ENEMY
 
 
 

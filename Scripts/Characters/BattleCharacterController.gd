@@ -30,21 +30,32 @@ var _should_move := false
 var amount_moved := 0.0
 
 var _last_successful_position := Vector3.INF
+
+
 # Stuck detection
 var _last_movement_deltas := PackedFloat32Array()
+var _position_buffer := PackedVector3Array()
 var _buffer_head_idx := 0
-const MOVEMENT_DELTA_SAMPLES := 6
+const POSITION_SAMPLES := 5
+const STUCK_THRESHOLD := 0.3
+var _tick_counter := 0
+const TICKS_BETWEEN_SAMPLES := 5
 
 
 func _ready() -> void:
     BattleSignalBus.TurnStarted.connect(reset_movement)
     reset_movement(battle_character)
 
+
 func reset_movement(character: BattleCharacter) -> void:
     if character != battle_character:
         return
     movement_left = base_movement
     _last_successful_position = global_position
+
+    if nav_agent:
+        if not nav_agent.target_reached.is_connected(stop_moving):
+            nav_agent.target_reached.connect(stop_moving)
 
 func set_move_target(target_pos: Vector3) -> void:
     if _last_successful_position == Vector3.INF:
@@ -76,7 +87,9 @@ func stop_moving() -> void:
     velocity = Vector3.ZERO
     reset_to_idle()
 
+    # Reset the buffer
     _last_movement_deltas.clear()
+    _position_buffer.clear()
     _buffer_head_idx = 0
 
     print(battle_character.character_name + " stopped moving")
@@ -88,38 +101,27 @@ func nav_update(delta: float) -> void:
         return
 
     var destination := nav_agent.get_next_path_position()
-    var local_destination := destination - global_position
-
+    var local_destination : Vector3 = destination - nav_agent.get_parent().global_position
     
-    # TODO: figure out why we need an offset for destination
-    if (local_destination.length() <= 0.6
-    or movement_left <= 0):
-        stop_moving()
-        return
-    
-    var last_amount_moved := amount_moved
     amount_moved = (_last_successful_position - global_position).length()
-    var delta_move := absf(amount_moved - last_amount_moved)
     
-    if _last_movement_deltas.size() < MOVEMENT_DELTA_SAMPLES:
-        _last_movement_deltas.append(delta_move)
-    else:
-        _last_movement_deltas[_buffer_head_idx] = delta_move
-        _buffer_head_idx = (_buffer_head_idx + 1) % MOVEMENT_DELTA_SAMPLES
-
-    # print(_last_movement_deltas)
+    # Store position every N ticks
+    _tick_counter += 1
+    if _tick_counter >= TICKS_BETWEEN_SAMPLES:
+        _tick_counter = 0
+        if _position_buffer.size() < POSITION_SAMPLES:
+            _position_buffer.append(global_position)
+        else:
+            _position_buffer[_buffer_head_idx] = global_position
+            _buffer_head_idx = (_buffer_head_idx + 1) % POSITION_SAMPLES
     
-    # Sum the deltas
-    if _last_movement_deltas.size() == MOVEMENT_DELTA_SAMPLES:
-        var sum_deltas := 0.0
-        for i in range(_last_movement_deltas.size()):
-            sum_deltas += _last_movement_deltas[i]
-        var average_delta := sum_deltas / MOVEMENT_DELTA_SAMPLES
-    
-        # print("[MOVE] Average delta: " + str(average_delta))
-        
-        if is_zero_approx(average_delta):
-            print("[MOVE] Stuck detected!")
+    # Check for stuck condition when buffer is full
+    if _position_buffer.size() == POSITION_SAMPLES:
+        var oldest_pos := _position_buffer[(_buffer_head_idx + 1) % POSITION_SAMPLES]
+        var total_movement := (global_position - oldest_pos).length()
+        print("[MOVE] Total movement this sample: ", total_movement)
+        if total_movement < STUCK_THRESHOLD:
+            print("[MOVE] Stuck detected! Movement: ", total_movement)
             stop_moving()
             return
 

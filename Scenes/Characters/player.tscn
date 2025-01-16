@@ -54,13 +54,16 @@ nodes/iwr_blend/position = Vector2(420, 160)
 nodes/output/position = Vector2(880, 180)
 node_connections = [&"ground_air_transition", 0, &"iwr_blend", &"ground_air_transition", 1, &"Air", &"iwr_blend", 0, &"Idle", &"iwr_blend", 1, &"Walk", &"iwr_blend", 2, &"Run", &"output", 0, &"ground_air_transition"]
 
-[sub_resource type="ImmediateMesh" id="ImmediateMesh_jkj4t"]
+[sub_resource type="ImmediateMesh" id="ImmediateMesh_k3plm"]
 
 [node name="Player" type="CharacterBody3D" groups=["Player"]]
 process_mode = 1
 script = ExtResource("1_hn6di")
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
+avoidance_enabled = true
+height = 1.7
+radius = 0.6
 debug_enabled = true
 
 [node name="Mesh" parent="." instance=ExtResource("2_ndt0q")]
@@ -104,4 +107,4 @@ script = ExtResource("12_dpkcw")
 [node name="LineRenderer3D" parent="." instance=ExtResource("7_pggr3")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 material_override = null
-mesh = SubResource("ImmediateMesh_jkj4t")
+mesh = SubResource("ImmediateMesh_k3plm")

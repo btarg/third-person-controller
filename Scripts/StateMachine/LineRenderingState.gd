@@ -12,7 +12,7 @@ var line_target_character: BattleCharacter
 var _current_line_renderer: LineRenderer3D
 
 
-@export var should_render_line : bool = false:
+var should_render_line : bool = false:
     get:
         return should_render_line
     set(value):

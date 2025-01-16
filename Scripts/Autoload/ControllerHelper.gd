@@ -23,15 +23,15 @@ var glyph_cache_controller := {}
 
 ## This signal is listened to by UI elements so they can call `get_button_glyph` to display the correct button
 signal OnInputDeviceChanged()
+var _last_device_change_time := 0
 
-@export var is_using_controller := false:
+var is_using_controller := false:
     get:
         return is_using_controller
     set(value):
         if Time.get_ticks_msec() - _last_device_change_time < 250:
-            print("[Input] Device changed too quickly, ignoring")
+            # print("[Input] Device changed too quickly, ignoring")
             return
-
         # if the device has changed, update the controller layout
         if last_input_event:
             if player1_device != last_input_event.device:
@@ -42,10 +42,9 @@ signal OnInputDeviceChanged()
                 return
 
         is_using_controller = value
-        OnInputDeviceChanged.emit()
         _last_device_change_time = Time.get_ticks_msec()
+        OnInputDeviceChanged.emit()
 
-var _last_device_change_time := 0
 
 func _ready() -> void:
     Console.pause_enabled = true

@@ -12,7 +12,7 @@ var deceleration: float = 0.2
 var y_focus_acceleration: float = 0.01
 var xz_focus_acceleration: float = 0.05
 
-@onready var focused_node: Node3D = player:
+var focused_node: Node3D = player:
     get:
         return focused_node
     set(value):
@@ -22,7 +22,7 @@ var xz_focus_acceleration: float = 0.05
 # player has moved away from focused node
 var moved_from_focus: bool = false
 
-@export var enabled: bool:
+var enabled: bool:
     get:
         return enabled
     set(value):

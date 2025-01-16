@@ -105,7 +105,7 @@ func _command_set_dmg_element(type) -> void:
         Console.print_line("Setting damage element to %s for %s" % [Util.get_enum_name(BattleEnums.EAffinityElement, damage_type), current_character.character_name])
         current_character.basic_attack_element = damage_type
 
-@export var is_in_battle : bool = false:
+var is_in_battle : bool = false:
     get:
         return not turn_order.is_empty()
 

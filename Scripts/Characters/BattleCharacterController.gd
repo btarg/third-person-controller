@@ -41,6 +41,7 @@ const STUCK_THRESHOLD := 0.3
 var _tick_counter := 0
 const TICKS_BETWEEN_SAMPLES := 5
 
+signal OnMovementFinished
 
 func _ready() -> void:
     BattleSignalBus.TurnStarted.connect(reset_movement)
@@ -94,6 +95,8 @@ func stop_moving() -> void:
 
     print(battle_character.character_name + " stopped moving")
     print("Movement left: " + str(movement_left))
+
+    OnMovementFinished.emit()
 
 func nav_update(delta: float) -> void:
     velocity.y -= gravity * delta

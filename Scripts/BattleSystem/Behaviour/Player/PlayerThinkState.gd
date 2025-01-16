@@ -124,6 +124,13 @@ func _state_physics_process(_delta: float) -> void:
 
 func _state_process(_delta: float) -> void: pass
 
+func _on_movement_finished() -> void:
+    # Disconnect ourselves to prevent multiple connections
+    battle_state.current_character.character_controller.OnMovementFinished.disconnect(_on_movement_finished)
+
+    battle_state.player_selected_character = battle_state.current_character
+    player_think_ui.set_text()
+
 func _state_input(event: InputEvent) -> void:
 
     if ((not battle_state.player_selected_character)
@@ -146,13 +153,16 @@ func _state_input(event: InputEvent) -> void:
                 position = (result.position as Vector3)
             if position != Vector3.INF:
                 battle_state.current_character.character_controller.set_move_target(position)
+
+                # Update the UI when moving
+                player_think_ui.set_text()
+                battle_state.current_character.character_controller.OnMovementFinished.connect(_on_movement_finished)
+
                 print("[Move] Got raycast position: " + str(position))
-            else:
-                print("[Move] No raycast position found")
 
         if event.is_action_pressed("ui_cancel"):
             battle_state.current_character.character_controller.stop_moving()
-            battle_state.player_selected_character = battle_state.current_character
+            _on_movement_finished()
 
     # ==============================================================================
     # SPELLS AND ATTACKS

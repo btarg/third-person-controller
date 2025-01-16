@@ -26,14 +26,13 @@ var available_actions : BattleEnums.EAvailableCombatActions = BattleEnums.EAvail
     set(value):
         available_actions = value
         if value != _last_available_actions:
-            print("Available actions changed to " + Util.get_enum_name(BattleEnums.EAvailableCombatActions, value))
+            # print("Available actions changed to " + Util.get_enum_name(BattleEnums.EAvailableCombatActions, value))
             BattleSignalBus.OnAvailableActionsChanged.emit()
         
         _last_available_actions = value
 
 ## The BattleCharacter which the player has targeted
 ## This is used for attacking enemies etc
-
 var player_selected_character : BattleCharacter:
     get:
         return player_selected_character

@@ -64,11 +64,14 @@ func set_move_target(target_pos: Vector3) -> void:
         return
     _should_move = true
 
+func is_moving() -> bool:
+    return _should_move && velocity.length() > 0
+
 func stop_moving() -> void:
-    _should_move = false
-    if velocity.length() == 0:
+    if not is_moving():
         print(battle_character.character_name + " is not moving")
         return
+    _should_move = false
 
     velocity = Vector3.ZERO
     reset_to_idle()

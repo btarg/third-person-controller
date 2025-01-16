@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://dilt8hwo0hvca"]
+[gd_scene load_steps=22 format=3 uid="uid://dilt8hwo0hvca"]
 
 [ext_resource type="Script" path="res://Scripts/BattleSystem/BattleCharacter.gd" id="1_bgai8"]
 [ext_resource type="Script" path="res://Scripts/StateMachine/StateMachine.gd" id="2_iyxf5"]
@@ -7,7 +7,6 @@
 [ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerChooseTargetState.gd" id="5_4bmfj"]
 [ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerDrawState.gd" id="6_6wono"]
 [ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerChooseSpellItemState.gd" id="7_tqx6b"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerMoveState.gd" id="8_0ivic"]
 [ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/DownedState.gd" id="9_dybv6"]
 [ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/CharacterStats.gd" id="9_pe6mx"]
 [ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/CharacterStatEntry.gd" id="10_8eke6"]
@@ -84,9 +83,6 @@ script = ExtResource("6_6wono")
 
 [node name="ChooseSpellItemState" type="Node" parent="StateMachine"]
 script = ExtResource("7_tqx6b")
-
-[node name="MoveState" type="Node" parent="StateMachine"]
-script = ExtResource("8_0ivic")
 
 [node name="DownedState" type="Node" parent="StateMachine"]
 script = ExtResource("9_dybv6")

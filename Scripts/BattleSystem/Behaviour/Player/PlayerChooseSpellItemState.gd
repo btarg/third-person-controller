@@ -32,6 +32,8 @@ func enter() -> void:
         line_target_character = battle_state.player_selected_character
         should_render_line = true
 
+    battle_state.top_down_player.focused_node = battle_state.player_selected_character.get_parent()
+
 func _choose_spell(spell: SpellItem) -> void:
     print("[SPELL/ITEM] Spell chosen: " + spell.item_name)
     think_state.chosen_spell_or_item = spell

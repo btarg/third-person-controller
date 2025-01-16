@@ -31,5 +31,9 @@ func set_text(device_is_controller: bool) -> void:
 
     if battle_state.available_actions == BattleEnums.EAvailableCombatActions.GROUND:
         label.text += ControllerHelper.get_button_glyph_img_embed("combat_move", IMG_SIZE) + " Move\n"
+        if battle_state.current_character.character_controller.is_moving():
+            label.text += ControllerHelper.get_button_glyph_img_embed("ui_cancel", IMG_SIZE) + " Cancel movement\n"
+    
     else:
         label.text += ControllerHelper.get_button_glyph_img_embed("combat_spellitem", IMG_SIZE) + " Cast spell / use item\n"
+

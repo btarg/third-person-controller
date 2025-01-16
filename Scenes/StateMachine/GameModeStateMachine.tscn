@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://bltuudv1kjphy"]
+[gd_scene load_steps=10 format=3 uid="uid://bltuudv1kjphy"]
 
 [ext_resource type="Script" path="res://Scripts/StateMachine/StateMachine.gd" id="1_d4v8q"]
 [ext_resource type="Script" path="res://Scripts/GameMode/States/BattleState.gd" id="2_soqi2"]
@@ -9,7 +9,6 @@
 [ext_resource type="PackedScene" uid="uid://csfxejlurjwkc" path="res://Assets/GUI/battle/player_choose_spellitem_ui.tscn" id="6_q8oc2"]
 [ext_resource type="PackedScene" uid="uid://cm485fldbqcp1" path="res://Assets/GUI/battle/player_draw_ui.tscn" id="7_67hvs"]
 [ext_resource type="PackedScene" uid="uid://k5nbstqmbqve" path="res://Assets/GUI/battle/player_think_ui.tscn" id="7_i4i4r"]
-[ext_resource type="PackedScene" uid="uid://buexnu3js8q7w" path="res://Assets/GUI/battle/player_move_ui.tscn" id="8_xhkwx"]
 
 [node name="GameModeStateMachine" type="Node"]
 process_mode = 1
@@ -28,8 +27,6 @@ script = ExtResource("2_soqi2")
 [node name="PlayerChooseSpellitemUi" parent="BattleState" instance=ExtResource("6_q8oc2")]
 
 [node name="PlayerDrawUI" parent="BattleState" instance=ExtResource("7_67hvs")]
-
-[node name="PlayerMoveUI" parent="BattleState" instance=ExtResource("8_xhkwx")]
 
 [node name="BattleLostState" type="Node" parent="."]
 script = ExtResource("4_0ymg5")

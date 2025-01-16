@@ -21,11 +21,11 @@ enum EAffinityElement {
 }
 # TODO: Add more object types, e.g. doors or buttons that can be used in combat
 enum EAvailableCombatActions {
-    NONE,
-    SELF,
-    ALLY,
-    ENEMY,
-    GROUND,
+    NONE, # No actions available
+    SELF, # Allows selecting the current character only
+    ALLY, # Allows selecting an ally to target for spells or items
+    ENEMY, # Allows selecting a target to attack
+    GROUND, # Allows selecting a position to move to
 }
 
 enum EPlayerCombatAction {

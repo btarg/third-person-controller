@@ -8,8 +8,9 @@
 
 # TODO
 - Priority:
-    - [ ] Fix movement bug 
+    - [x] Fix movement bug 
     - [ ] Get basic UI visuals in place for player and enemy health bars
+    - [ ] UI for dynamic combat choice system
     - [ ] Basic visual feedback such as damage numbers and attack animations
     - [ ] Implement basic form of enemy AI
     - [ ] Implement overworld to combat transitions

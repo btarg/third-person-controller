@@ -101,7 +101,7 @@ func nav_update(delta: float) -> void:
         return
 
     var destination := nav_agent.get_next_path_position()
-    var local_destination : Vector3 = destination - nav_agent.get_parent().global_position
+    var local_destination := destination - global_position
     
     amount_moved = (_last_successful_position - global_position).length()
     
@@ -119,7 +119,7 @@ func nav_update(delta: float) -> void:
     if _position_buffer.size() == POSITION_SAMPLES:
         var oldest_pos := _position_buffer[(_buffer_head_idx + 1) % POSITION_SAMPLES]
         var total_movement := (global_position - oldest_pos).length()
-        print("[MOVE] Total movement this sample: ", total_movement)
+        # print("[MOVE] Total movement this sample: ", total_movement)
         if total_movement < STUCK_THRESHOLD:
             print("[MOVE] Stuck detected! Movement: ", total_movement)
             stop_moving()

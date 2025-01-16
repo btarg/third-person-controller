@@ -28,6 +28,10 @@ signal OnInputDeviceChanged()
     get:
         return is_using_controller
     set(value):
+        if Time.get_ticks_msec() - _last_device_change_time < 250:
+            print("[Input] Device changed too quickly, ignoring")
+            return
+
         # if the device has changed, update the controller layout
         if last_input_event:
             if player1_device != last_input_event.device:
@@ -39,6 +43,9 @@ signal OnInputDeviceChanged()
 
         is_using_controller = value
         OnInputDeviceChanged.emit()
+        _last_device_change_time = Time.get_ticks_msec()
+
+var _last_device_change_time := 0
 
 func _ready() -> void:
     Console.pause_enabled = true

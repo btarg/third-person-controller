@@ -10,18 +10,28 @@ const IMG_SIZE: int = 48
 func _ready() -> void:
     crosshair.visible = false
     ControllerHelper.OnInputDeviceChanged.connect(set_text)
-    set_text(ControllerHelper.is_using_controller)
+    BattleSignalBus.OnAvailableActionsChanged.connect(set_text)
+    set_text()
 
-func set_text(device_is_controller: bool) -> void:
+func set_text() -> void:
     if not battle_state.active or not battle_state.current_character:
         return
     if battle_state.current_character.character_type != BattleEnums.CharacterType.PLAYER:
         return
 
-    crosshair.visible = device_is_controller
-
     label.bbcode_enabled = true
     label.text = ""
+
+    if ControllerHelper.is_using_controller:
+        crosshair.visible = true
+
+        label.text += ControllerHelper.get_button_glyph_img_embed("look_up", IMG_SIZE, true, false) + " Move camera\n"
+        label.text += ControllerHelper.get_button_glyph_img_embed("look_up", IMG_SIZE, false, true) + " Zoom\n"
+    else:
+        crosshair.visible = false
+
+        label.text += ControllerHelper.get_button_glyph_img_embed("right_click", IMG_SIZE) + " Move camera\n"
+        label.text += ControllerHelper.get_button_glyph_img_embed_by_name("keyboard_mouse/mouse_scroll_vertical", IMG_SIZE) + " Zoom\n"
     
     if battle_state.available_actions == BattleEnums.EAvailableCombatActions.SELF:
         label.text += ControllerHelper.get_button_glyph_img_embed("combat_defend", IMG_SIZE) + " Defend\n"
@@ -36,4 +46,4 @@ func set_text(device_is_controller: bool) -> void:
     
     else:
         label.text += ControllerHelper.get_button_glyph_img_embed("combat_spellitem", IMG_SIZE) + " Cast spell / use item\n"
-
+    

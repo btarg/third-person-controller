@@ -17,8 +17,12 @@ var player1_device := 0
 var last_input_event: InputEvent = null
 const JOYSTICK_DEADZONE := 0.25
 
+## Key: action name, Value: path to the glyph texture
+var glyph_cache_keyboard_mouse := {}
+var glyph_cache_controller := {}
+
 ## This signal is listened to by UI elements so they can call `get_button_glyph` to display the correct button
-signal OnInputDeviceChanged(device_is_controller: bool)
+signal OnInputDeviceChanged()
 
 @export var is_using_controller := false:
     get:
@@ -34,8 +38,7 @@ signal OnInputDeviceChanged(device_is_controller: bool)
                 return
 
         is_using_controller = value
-        
-        OnInputDeviceChanged.emit(is_using_controller)
+        OnInputDeviceChanged.emit()
 
 func _ready() -> void:
     Console.pause_enabled = true
@@ -43,20 +46,40 @@ func _ready() -> void:
     if Input.get_connected_joypads().size() > 0:
         is_using_controller = true
 
-func get_button_glyph_img_embed(action: String, size: int = 48) -> String:
+func get_button_glyph_img_embed(action: String, size: int = 48, horizontal_decoration: bool = false, vertical_decoration: bool = false) -> String:
     var glyph_path := get_button_glyph(action)
     if glyph_path == "NONE":
         return "[color=red]NO GLYPH FOUND[/color]"
-    return "[img=%s]%s[/img]" % [str(size), get_button_glyph(action)]
+    return "[img=%s]%s[/img]" % [str(size), get_button_glyph(action, horizontal_decoration, vertical_decoration)]
+
+func get_button_glyph_img_embed_by_name(path: String, size: int = 48) -> String:
+    return "[img=%s]%s[/img]" % [str(size), get_button_glyph_by_name(path)]
+
+## Return the full path to the button glyph texture, e.g.
+## "keyboard_mouse/mouse_scroll_vertical" -> "res://Assets/GUI/Icons/ControllerGlyphs/keyboard_mouse/mouse_scroll_vertical"
+func get_button_glyph_by_name(path: String) -> String:
+    return PATH + path + EXTENSION
 
 ## Returns the path to the button glyph texture for the current input device based on the action name[br]
 ## [param action_name] Needs to be the name of an action in the InputMap
 ## TODO: Add support for multiple glyphs for the same action (return array of Strings)
 func get_button_glyph(action_name: String, horizontal_decoration: bool = false, vertical_decoration: bool = false) -> String:
     var events := InputMap.action_get_events(action_name)
+    var to_return := "NONE"
+
+    if is_using_controller:
+        if action_name in glyph_cache_controller:
+            return glyph_cache_controller.get(action_name)
+    else:
+        if action_name in glyph_cache_keyboard_mouse:
+            return glyph_cache_keyboard_mouse.get(action_name)
 
     for event in events:
+        # ==============================================================================
+        # GAMEPAD
+        # ==============================================================================
         if is_using_controller:
+
             var controller_prefix := ""
             match current_controller_layout:
                 ControllerLayout.XBOX:
@@ -81,16 +104,19 @@ func get_button_glyph(action_name: String, horizontal_decoration: bool = false, 
                     elif horizontal_decoration:
                         dpad_direction = "horizontal"
                     
-                    return PATH + controller_prefix + "dpad_" + dpad_direction.to_lower() + EXTENSION
+                    to_return = PATH + controller_prefix + "dpad_" + dpad_direction.to_lower() + EXTENSION
+                    glyph_cache_controller.get_or_add(action_name, to_return)
 
                 match event.button_index:
                     8:
-                        return PATH + "stick/stick_r_press" + EXTENSION
+                        to_return = PATH + "stick/stick_r_press" + EXTENSION
                     7:
-                        return PATH + "stick/stick_l_press" + EXTENSION
+                        to_return = PATH + "stick/stick_l_press" + EXTENSION
                     _:
                         var button_name: String = "BUTTON_" + str(event.button_index)
-                        return PATH + controller_prefix + button_name + EXTENSION
+                        to_return = PATH + controller_prefix + button_name + EXTENSION
+                
+                glyph_cache_controller.get_or_add(action_name, to_return)
 
             elif event is InputEventJoypadMotion:
                 var joystick_path := PATH
@@ -135,30 +161,38 @@ func get_button_glyph(action_name: String, horizontal_decoration: bool = false, 
                         elif axis_value > 0:
                             joystick_path += "_down"
 
-                return joystick_path + EXTENSION
-        
-        elif event is InputEventKey:
-            var keyboard_prefix := "keyboard_mouse/keyboard_"
-            var key_name := event.as_text().split(" ")[0].to_lower()
+                to_return = joystick_path + EXTENSION
+                glyph_cache_controller.get_or_add(action_name, to_return)
 
-            if (key_name == "down" or key_name == "up") and vertical_decoration:
-                key_name = ("arrows_all" if horizontal_decoration else "arrows_vertical")
-            elif (key_name == "left" or key_name == "right") and horizontal_decoration:
-                key_name = ("arrows_all" if vertical_decoration else "arrows_horizontal")
-        
-            return PATH + keyboard_prefix + key_name + EXTENSION
+        # ==============================================================================
+        # KEYBOARD AND MOUSE
+        # ==============================================================================
+        else:
+            if event is InputEventKey:
+                var keyboard_prefix := "keyboard_mouse/keyboard_"
+                var key_name := event.as_text().split(" ")[0].to_lower()
 
-        elif event is InputEventMouseButton:
-            var mouse_split := event.as_text().split(" ")
-            if mouse_split.has("Wheel"):
-                return PATH + "keyboard_mouse/mouse_scroll_" + mouse_split[2].to_lower() + EXTENSION
-            elif mouse_split.has("Thumb"):
-                # the sprite pack doesn't have mouse4/mouse5, so we use a normal mouse image
-                return PATH + "keyboard_mouse/mouse" + EXTENSION
-            else:
-                return PATH + "keyboard_mouse/mouse_" + mouse_split[0].to_lower() + EXTENSION
+                if (key_name == "down" or key_name == "up") and vertical_decoration:
+                    key_name = ("arrows_all" if horizontal_decoration else "arrows_vertical")
+                elif (key_name == "left" or key_name == "right") and horizontal_decoration:
+                    key_name = ("arrows_all" if vertical_decoration else "arrows_horizontal")
+            
+                to_return = PATH + keyboard_prefix + key_name + EXTENSION
+                glyph_cache_keyboard_mouse.get_or_add(action_name, to_return)
 
-    return "NONE"
+            elif event is InputEventMouseButton:
+                var mouse_split := event.as_text().split(" ")
+                if mouse_split.has("Wheel"):
+                    to_return = PATH + "keyboard_mouse/mouse_scroll_" + mouse_split[2].to_lower() + EXTENSION
+                elif mouse_split.has("Thumb"):
+                    # the sprite pack doesn't have mouse4/mouse5, so we use a normal mouse image
+                    to_return = PATH + "keyboard_mouse/mouse" + EXTENSION
+                else:
+                    to_return = PATH + "keyboard_mouse/mouse_" + mouse_split[0].to_lower() + EXTENSION
+                
+                glyph_cache_keyboard_mouse.get_or_add(action_name, to_return)
+
+    return to_return
 
 func _update_controller_layout() -> void:
     var player1_name := Input.get_joy_name(player1_device)

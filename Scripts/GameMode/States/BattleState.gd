@@ -18,12 +18,23 @@ var character_counts: Dictionary = {}
 
 var current_character_index: int = 0
 var current_character: BattleCharacter
-var available_actions := BattleEnums.EAvailableCombatActions.SELF
+var _last_available_actions := BattleEnums.EAvailableCombatActions.NONE
+
+var available_actions : BattleEnums.EAvailableCombatActions = BattleEnums.EAvailableCombatActions.SELF:
+    get:
+        return available_actions
+    set(value):
+        available_actions = value
+        if value != _last_available_actions:
+            print("Available actions changed to " + Util.get_enum_name(BattleEnums.EAvailableCombatActions, value))
+            BattleSignalBus.OnAvailableActionsChanged.emit()
+        
+        _last_available_actions = value
 
 ## The BattleCharacter which the player has targeted
 ## This is used for attacking enemies etc
 
-@export var player_selected_character : BattleCharacter:
+var player_selected_character : BattleCharacter:
     get:
         return player_selected_character
     set(character):
@@ -45,8 +56,7 @@ var available_actions := BattleEnums.EAvailableCombatActions.SELF
                         available_actions = BattleEnums.EAvailableCombatActions.ALLY
 
                 elif character.character_type == BattleEnums.CharacterType.ENEMY:
-                    available_actions = BattleEnums.EAvailableCombatActions.ENEMY
-
+                    available_actions = BattleEnums.EAvailableCombatActions.ENEMY   
 
 
 @onready var turn_order_ui := get_node_or_null("ChooseTargetUI/ItemList") as ItemList

@@ -11,64 +11,59 @@ enum CameraMode {
 @export_group("Rotation")
 const LERP_VALUE: float = 0.15
 
-@export var max_sensitivity : float = 0.15
-@export var min_sensitivity : float = 0.075
-var current_sensitivity : float = min_sensitivity
+@export var max_sensitivity: float = 0.15
+@export var min_sensitivity: float = 0.075
+var current_sensitivity: float = min_sensitivity
 ## Camera speed multiplier curve for when the stick is pushed fully in any direction.
-@export var camera_speed_curve : Curve
+@export var camera_speed_curve: Curve
 ## How far the camera can rotate up and down in degrees
 @export var spring_arm_clamp_degrees: float = 75.0
 var spring_arm_clamp := deg_to_rad(spring_arm_clamp_degrees)
 
 
 @export_group("Top-down camera")
-@export var top_down_min_angle_degrees : float = 10.0
-@export var top_down_max_angle_degrees : float = 75.0
+@export var top_down_min_angle_degrees: float = 10.0
+@export var top_down_max_angle_degrees: float = 75.0
 
-var min_angle_r := deg_to_rad(top_down_min_angle_degrees)  # near horizontal is -min_angle_r
-var max_angle_r := deg_to_rad(top_down_max_angle_degrees)  # very top-down is -max_angle_r
+var min_angle_r := deg_to_rad(top_down_min_angle_degrees) # near horizontal is -min_angle_r
+var max_angle_r := deg_to_rad(top_down_max_angle_degrees) # very top-down is -max_angle_r
 
 ## How fast the top-down camera can zoom when using the zoom input (right stick on controller)
-@export var zoom_speed : float = 0.25
+@export var zoom_speed: float = 0.25
 ## How fast the angle changes when zooming in/out (typically higher = flatter)
-@export var scroll_angle_speed : float = 0.1
+@export var scroll_angle_speed: float = 0.1
 
 
 @export_group("Acceleration")
 @export var rotation_acceleration: float = 0.75
 @export var rotation_deceleration: float = 0.2
 ## How fast we lerp through the curve
-@export var curve_acceleration_rate : float = 0.015
+@export var curve_acceleration_rate: float = 0.015
 ## Modifier for how fast we lerp through the curve when moving horizontally (top down camera only)
-@export var top_down_horizontal_speed_modifier : float = 0.05
+@export var top_down_horizontal_speed_modifier: float = 0.05
 
 @export_group("FOV")
-@export var change_fov_on_run : bool = true
-@export var normal_fov : float = 75.0
-@export var run_fov : float = 90.0
+@export var change_fov_on_run: bool = true
+@export var normal_fov: float = 75.0
+@export var run_fov: float = 90.0
 
-const CAMERA_BLEND : float = 0.1
+const CAMERA_BLEND: float = 0.1
 
-@onready var spring_arm : SpringArm3D = $SpringArm3D
+@onready var spring_arm: SpringArm3D = $SpringArm3D
 # The camera is the first child of the spring arm
-@onready var camera : Camera3D = $SpringArm3D.get_child(0) as Camera3D
+@onready var camera: Camera3D = $SpringArm3D.get_child(0) as Camera3D
 
 # If we are the third person character, then our owner is the exploration player
 @onready var player := owner as CharacterBody3D
 
 # FIX: Enable by default to prevent desync that causes jittering on mouse
-@export var enabled : bool = true:
+@export var enabled: bool = true:
     get:
         return enabled
     set(value):
         enabled = value
         if enabled and camera != null:
             _setup_camera()
-
-            if camera_mode == CameraMode.THIRD_PERSON:
-                Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-            else:
-                Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 @export_group("Freelook camera control")
 ## Spring arm length used for zooming in and out
@@ -81,16 +76,8 @@ func _ready() -> void:
     # Make the Third Person camera take priority
     # TODO: Make this a setting in editor
     if camera_mode == CameraMode.THIRD_PERSON:
-        Console.add_command("toggle_mouse", _show_mouse, 0)
         _setup_camera()
     
-
-func _show_mouse() -> void:
-    if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-        Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-    else:
-        Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-
 func _setup_camera() -> void:
     if enabled:
         camera.make_current()
@@ -106,53 +93,67 @@ func _setup_camera() -> void:
 func _controller_helper_use_mouse() -> void:
     if ControllerHelper.is_using_controller:
         ControllerHelper.is_using_controller = false
+        Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 func pivot_input_update(event: InputEvent) -> void:
-    if enabled:
-        if camera_mode == CameraMode.THIRD_PERSON:
-            if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-                _controller_helper_use_mouse()
-                rotate_y(-event.relative.x * 0.005)
-                spring_arm.rotate_x(-event.relative.y * 0.005)
-                spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)
-                # print(Vector2(spring_arm.rotation.x, spring_arm.rotation.y))
+    if not enabled:
+        return
+
+    # Always capture mouse in third person, otherwise only when using the mouse
+    if camera_mode == CameraMode.THIRD_PERSON:
+        Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+    else:
+        if not ControllerHelper.is_using_controller:
+            Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
         else:
-            if event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
-                _controller_helper_use_mouse()
-                rotate_y(-event.relative.x * 0.005)
-                spring_arm.rotate_x(-event.relative.y * 0.005)
-                spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)
-            elif event is InputEventMouseButton and event.is_pressed():
-                if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-                    # Zoom in
-                    target_spring_length = clamp(
-                        spring_arm.spring_length - spring_arm_scroll_speed,
-                        min_spring_arm_length,
-                        max_spring_arm_length
-                    )
-                    # Flatten angle toward -min_angle_r
-                    var new_angle := spring_arm.rotation.x + scroll_angle_speed
-                    new_angle = clamp(new_angle, -max_angle_r, -min_angle_r)
-                    
-                    var angle_tween := get_tree().create_tween()
-                    angle_tween.tween_property(spring_arm, "rotation:x", spring_arm.rotation.x, new_angle)
-                    # spring_arm.rotation.x = new_angle
+            Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
-                elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-                    # Zoom out
-                    target_spring_length = clamp(
-                        spring_arm.spring_length + spring_arm_scroll_speed,
-                        min_spring_arm_length,
-                        max_spring_arm_length
-                    )
-                    # Look more down toward -max_angle_r
-                    var new_angle := spring_arm.rotation.x - scroll_angle_speed
-                    new_angle = clamp(new_angle, -max_angle_r, -min_angle_r)
+    # Handle mouse input mode changes
+    if event is InputEventMouseMotion and Input.mouse_mode != Input.MOUSE_MODE_VISIBLE:
+        _controller_helper_use_mouse()
 
-                    var angle_tween := get_tree().create_tween()
-                    angle_tween.tween_property(spring_arm, "rotation:x", spring_arm.rotation.x, new_angle)
+    if camera_mode == CameraMode.THIRD_PERSON:
+        if event is InputEventMouseMotion:
+            rotate_y(-event.relative.x * 0.005)
+            spring_arm.rotate_x(-event.relative.y * 0.005)
+            spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)
+            # print(Vector2(spring_arm.rotation.x, spring_arm.rotation.y))
+    else:
+        if event is InputEventMouseMotion and Input.is_action_pressed("right_click"):
+            rotate_y(-event.relative.x * 0.005)
+            spring_arm.rotate_x(-event.relative.y * 0.005)
+            spring_arm.rotation.x = clamp(spring_arm.rotation.x, -spring_arm_clamp, spring_arm_clamp)
+        elif event is InputEventMouseButton and event.is_pressed():
+            if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+                # Zoom in
+                target_spring_length = clamp(
+                    spring_arm.spring_length - spring_arm_scroll_speed,
+                    min_spring_arm_length,
+                    max_spring_arm_length
+                )
+                # Flatten angle toward -min_angle_r
+                var new_angle := spring_arm.rotation.x + scroll_angle_speed
+                new_angle = clamp(new_angle, -max_angle_r, -min_angle_r)
+                
+                var angle_tween := get_tree().create_tween()
+                angle_tween.tween_property(spring_arm, "rotation:x", spring_arm.rotation.x, new_angle)
+                # spring_arm.rotation.x = new_angle
 
-                    # spring_arm.rotation.x = new_angle
+            elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+                # Zoom out
+                target_spring_length = clamp(
+                    spring_arm.spring_length + spring_arm_scroll_speed,
+                    min_spring_arm_length,
+                    max_spring_arm_length
+                )
+                # Look more down toward -max_angle_r
+                var new_angle := spring_arm.rotation.x - scroll_angle_speed
+                new_angle = clamp(new_angle, -max_angle_r, -min_angle_r)
+
+                var angle_tween := get_tree().create_tween()
+                angle_tween.tween_property(spring_arm, "rotation:x", spring_arm.rotation.x, new_angle)
+
+                # spring_arm.rotation.x = new_angle
 
 func camera_physics_process(_delta) -> void:
     if not enabled:
@@ -179,8 +180,8 @@ func camera_physics_process(_delta) -> void:
 var rotation_velocity_y: float = 0.0
 var rotation_velocity_x: float = 0.0
 # Current value for sampling the curve
-var curve_lerp_value_top_down : float = 0.0
-var curve_lerp_value_tp : float = 0.0
+var curve_lerp_value_top_down: float = 0.0
+var curve_lerp_value_tp: float = 0.0
 
 func _handle_controller_input() -> void:
 

@@ -55,7 +55,7 @@ func enter() -> void:
         return
 
     player_think_ui.show()
-    player_think_ui.set_text(ControllerHelper.is_using_controller)
+    player_think_ui.set_text()
     print(battle_character.character_name + " is thinking about what to do")
 
     # remember last selected character
@@ -88,7 +88,6 @@ func _state_physics_process(_delta: float) -> void:
     if battle_state.available_actions == BattleEnums.EAvailableCombatActions.NONE:
         return
     
-    battle_state.player_selected_character = battle_state.current_character
     var ray_result := Util.raycast_from_center_or_mouse(top_down_camera, [battle_state.top_down_player.get_rid()])
     if not ray_result:
         return
@@ -110,7 +109,7 @@ func _state_physics_process(_delta: float) -> void:
     var children := collider.find_children("BattleCharacter")
     if children.is_empty():
         battle_state.available_actions = BattleEnums.EAvailableCombatActions.GROUND
-        player_think_ui.set_text(ControllerHelper.is_using_controller)
+        # player_think_ui.set_text(ControllerHelper.is_using_controller)
         return
 
     var character := children.front() as BattleCharacter
@@ -120,7 +119,7 @@ func _state_physics_process(_delta: float) -> void:
         battle_state.player_selected_character = null
 
     # set_text reads our available_actions and decides what to display based on that
-    player_think_ui.set_text(ControllerHelper.is_using_controller)
+    # player_think_ui.set_text(ControllerHelper.is_using_controller)
     
 
 func _state_process(_delta: float) -> void: pass

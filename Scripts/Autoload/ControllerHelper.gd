@@ -76,16 +76,31 @@ func get_button_glyph_img_embed_by_name(path: String, size: int = 48) -> String:
 func get_button_glyph_by_name(path: String) -> String:
     return PATH + path + EXTENSION
 
-## Returns the path to the button glyph texture for the current input device based on the action name[br]
+func get_layout_prefix(layout: ControllerLayout) -> String:
+    match layout:
+        ControllerLayout.XBOX:
+            return "xbox/"
+        ControllerLayout.PS4,\
+        ControllerLayout.PS5:
+            return "playstation/"
+        ControllerLayout.NINTENDO_PRO,\
+        ControllerLayout.NINTENDO_JOYCON:
+            return "switch/"
+        _:
+            return "xbox/"
+
+## Returns the path to the first button glyph texture for the current input device based on the action name[br]
 ## [param action_name] Needs to be the name of an action in the InputMap
 func get_button_glyph(action_name: String, horizontal_decoration: bool = false, vertical_decoration: bool = false) -> String:
     var all := get_button_glyphs(action_name, horizontal_decoration, vertical_decoration)
     if all.is_empty():
         return "NONE"
-    return all[0]
+    return all.front()
 
+## Returns an array of button glyph texture paths for the current input device based on the action name[br]
+## [param action_name] Needs to be the name of an action in the InputMap
 func get_button_glyphs(action_name: String, horizontal_decoration: bool = false, vertical_decoration: bool = false) -> Array[String]:
-    var action_cache_key := "%s|h=%s|v=%s" % [action_name, horizontal_decoration, vertical_decoration]
+    var action_cache_key := "%s|%s|%s" % [action_name, horizontal_decoration, vertical_decoration]
 
     if is_using_controller:
         if action_cache_key in glyph_cache_controller:
@@ -103,18 +118,8 @@ func get_button_glyphs(action_name: String, horizontal_decoration: bool = false,
         # GAMEPAD
         # ==============================================================================
         if is_using_controller:
-
-            var controller_prefix := ""
-            match current_controller_layout:
-                ControllerLayout.XBOX:
-                    controller_prefix = "xbox/"
-                ControllerLayout.PS4,\
-                ControllerLayout.PS5:
-                    controller_prefix = "playstation/"
-                ControllerLayout.NINTENDO_PRO,\
-                ControllerLayout.NINTENDO_JOYCON:
-                    controller_prefix = "switch/"
-
+            var controller_prefix := get_layout_prefix(current_controller_layout)
+            
             if event is InputEventJoypadButton:
                 
                 if event.as_text().contains("D-pad"):

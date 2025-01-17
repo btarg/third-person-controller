@@ -24,8 +24,7 @@ func set_text() -> void:
 
     if ControllerHelper.is_using_controller:
         crosshair.visible = true
-
-        label.text += ControllerHelper.get_button_glyph_img_embed("look_up", IMG_SIZE, true, false) + " Move camera\n"
+        label.text += ControllerHelper.get_button_glyph_img_embed("look_left", IMG_SIZE, true, false) + " Move camera\n"
         label.text += ControllerHelper.get_button_glyph_img_embed("look_up", IMG_SIZE, false, true) + " Zoom\n"
     else:
         crosshair.visible = false

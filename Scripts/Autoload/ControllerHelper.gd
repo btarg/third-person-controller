@@ -73,12 +73,14 @@ func get_button_glyph(action_name: String, horizontal_decoration: bool = false, 
     var events := InputMap.action_get_events(action_name)
     var to_return := "NONE"
 
+    var action_cache_key := "%s|h=%s|v=%s" % [action_name, horizontal_decoration, vertical_decoration]
+
     if is_using_controller:
-        if action_name in glyph_cache_controller:
-            return glyph_cache_controller.get(action_name)
+        if action_cache_key in glyph_cache_controller:
+            return glyph_cache_controller.get(action_cache_key)
     else:
-        if action_name in glyph_cache_keyboard_mouse:
-            return glyph_cache_keyboard_mouse.get(action_name)
+        if action_cache_key in glyph_cache_keyboard_mouse:
+            return glyph_cache_keyboard_mouse.get(action_cache_key)
 
     for event in events:
         # ==============================================================================
@@ -111,7 +113,7 @@ func get_button_glyph(action_name: String, horizontal_decoration: bool = false, 
                         dpad_direction = "horizontal"
                     
                     to_return = PATH + controller_prefix + "dpad_" + dpad_direction.to_lower() + EXTENSION
-                    glyph_cache_controller.get_or_add(action_name, to_return)
+                    glyph_cache_controller.get_or_add(action_cache_key, to_return)
 
                 match event.button_index:
                     8:
@@ -122,7 +124,7 @@ func get_button_glyph(action_name: String, horizontal_decoration: bool = false, 
                         var button_name: String = "BUTTON_" + str(event.button_index)
                         to_return = PATH + controller_prefix + button_name + EXTENSION
                 
-                glyph_cache_controller.get_or_add(action_name, to_return)
+                glyph_cache_controller.get_or_add(action_cache_key, to_return)
 
             elif event is InputEventJoypadMotion:
                 var joystick_path := PATH
@@ -168,7 +170,7 @@ func get_button_glyph(action_name: String, horizontal_decoration: bool = false, 
                             joystick_path += "_down"
 
                 to_return = joystick_path + EXTENSION
-                glyph_cache_controller.get_or_add(action_name, to_return)
+                glyph_cache_controller.get_or_add(action_cache_key, to_return)
 
         # ==============================================================================
         # KEYBOARD AND MOUSE
@@ -184,7 +186,7 @@ func get_button_glyph(action_name: String, horizontal_decoration: bool = false, 
                     key_name = ("arrows_all" if vertical_decoration else "arrows_horizontal")
             
                 to_return = PATH + keyboard_prefix + key_name + EXTENSION
-                glyph_cache_keyboard_mouse.get_or_add(action_name, to_return)
+                glyph_cache_keyboard_mouse.get_or_add(action_cache_key, to_return)
 
             elif event is InputEventMouseButton:
                 var mouse_split := event.as_text().split(" ")
@@ -196,7 +198,7 @@ func get_button_glyph(action_name: String, horizontal_decoration: bool = false, 
                 else:
                     to_return = PATH + "keyboard_mouse/mouse_" + mouse_split[0].to_lower() + EXTENSION
                 
-                glyph_cache_keyboard_mouse.get_or_add(action_name, to_return)
+                glyph_cache_keyboard_mouse.get_or_add(action_cache_key, to_return)
 
     return to_return
 

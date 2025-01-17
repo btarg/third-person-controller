@@ -1,0 +1,21 @@
+[gd_scene load_steps=4 format=3 uid="uid://du2yvt0iosg4j"]
+
+[ext_resource type="Shader" path="res://Assets/Shaders/radius_visual.gdshader" id="1_jme2q"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_r8ghm"]
+size = Vector2(1, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jhclq"]
+render_priority = 0
+shader = ExtResource("1_jme2q")
+shader_parameter/ring_radius = 0.5
+shader_parameter/thickness_scalar = 0.1
+shader_parameter/oscillation_scalar = 0.025
+shader_parameter/speed = 1.0
+shader_parameter/main_color = Color(1, 1, 1, 1)
+shader_parameter/lerp_color = Color(1, 1, 1, 1)
+shader_parameter/oscillate_size = false
+
+[node name="RadiusVisual" type="CSGMesh3D"]
+mesh = SubResource("PlaneMesh_r8ghm")
+material = SubResource("ShaderMaterial_jhclq")

@@ -23,7 +23,7 @@ const ANIMATION_BLEND : float = 7.0
 # @onready var base_movement := battle_character.stats.get_stat(CharacterStatEntry.ECharacterStat.Movement)
 
 # DEBUG
-var base_movement := 999999999.0
+var base_movement := 20.0
 var movement_left := 0.0
 
 var _should_move := false
@@ -59,15 +59,16 @@ func reset_movement(character: BattleCharacter) -> void:
             nav_agent.target_reached.connect(stop_moving)
 
 func set_move_target(target_pos: Vector3) -> void:
+    if movement_left <= 0:
+        stop_moving()
+        print("[MOVE] %s has no movement left" % battle_character.character_name)
+        return
+    
     if _last_successful_position == Vector3.INF:
         _last_successful_position = global_position
     amount_moved = 0.0
     
     print("[MOVE] %s has %s movement" % [battle_character.character_name, str(movement_left)])
-
-    if movement_left <= 0:
-        print("[MOVE] %s has no movement left" % battle_character.character_name)
-        return
 
     if nav_agent:
         nav_agent.set_target_position(target_pos)
@@ -92,9 +93,6 @@ func stop_moving() -> void:
     _last_movement_deltas.clear()
     _position_buffer.clear()
     _buffer_head_idx = 0
-
-    print(battle_character.character_name + " stopped moving")
-    print("Movement left: " + str(movement_left))
 
     OnMovementFinished.emit()
 
@@ -129,8 +127,12 @@ func nav_update(delta: float) -> void:
             return
 
     movement_left -= amount_moved
-    if movement_left < 0:
+    print("[MOVE] %s has %s movement left" % [battle_character.character_name, str(movement_left)])
+
+    if movement_left <= 0:
         movement_left = 0
+        stop_moving()
+        return
 
     var direction := local_destination.normalized()
     # FIX: Only set the X and Z to avoid gravity being discarded

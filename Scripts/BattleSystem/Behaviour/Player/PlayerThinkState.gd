@@ -2,10 +2,12 @@ class_name PlayerThinkState
 extends State
 
 # TODO: this isn't used for anything useful at the moment
-@onready var exploration_player := get_tree().get_nodes_in_group("Player").front() as PlayerController
+# @onready var exploration_player := get_tree().get_nodes_in_group("Player").front() as PlayerController
 
-# TODO: get the battle character from the parent node
 @onready var battle_character := state_machine.get_parent() as BattleCharacter
+var radius_visual_scene := preload("res://Scenes/Characters/radius_visual.tscn") as PackedScene
+var radius_visual: CSGMesh3D = null
+
 # One level up is state machine, two levels up is the battle character. The inventory is on the same level
 @onready var inventory_manager := get_node("../../../Inventory") as InventoryManager
 @onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
@@ -58,6 +60,11 @@ func enter() -> void:
     player_think_ui.set_text()
     print(battle_character.character_name + " is thinking about what to do")
 
+    if battle_character.character_controller:
+        BattleSignalBus.OnAvailableActionsChanged.connect(_process_radius_visual)
+    else:
+        print("No radius character controller found")
+
     # remember last selected character
     if battle_state.player_selected_character:
         print("Selected character: " + battle_state.player_selected_character.character_name)
@@ -68,6 +75,34 @@ func enter() -> void:
 func exit() -> void:
     print(battle_character.character_name + " has stopped thinking")
     player_think_ui.hide()
+
+func _process_radius_visual() -> void:
+    
+    if not radius_visual:
+        radius_visual = radius_visual_scene.instantiate() as CSGMesh3D
+        add_child(radius_visual)
+
+    radius_visual.visible = false
+    radius_visual.scale = Vector3.ONE
+
+    if battle_state.available_actions not in [BattleEnums.EAvailableCombatActions.GROUND,
+    BattleEnums.EAvailableCombatActions.SELF]:
+        return
+
+    var range_size := battle_character.character_controller.movement_left
+    if range_size <= 0:
+        # don't display a radius when we have no movement left
+        return
+
+    print("Processing radius visual: " + battle_character.character_name)
+    radius_visual.global_position = battle_character.character_controller.global_position
+    radius_visual.global_position.y += 0.01 # prevent Z-fighting
+    
+    # The mesh is 1mx1m, so we scale it to the movement range x 2
+    var scalar := range_size * 2
+    radius_visual.scale = Vector3(scalar, 1, scalar)
+    radius_visual.visible = true
+
 
 # ==============================================================================
 # PLAN FOR THINK STATE
@@ -109,7 +144,6 @@ func _state_physics_process(_delta: float) -> void:
     var children := collider.find_children("BattleCharacter")
     if children.is_empty():
         battle_state.available_actions = BattleEnums.EAvailableCombatActions.GROUND
-        # player_think_ui.set_text(ControllerHelper.is_using_controller)
         return
 
     var character := children.front() as BattleCharacter
@@ -117,9 +151,6 @@ func _state_physics_process(_delta: float) -> void:
         battle_state.player_selected_character = character
     else:
         battle_state.player_selected_character = null
-
-    # set_text reads our available_actions and decides what to display based on that
-    # player_think_ui.set_text(ControllerHelper.is_using_controller)
     
 
 func _state_process(_delta: float) -> void: pass
@@ -161,7 +192,7 @@ func _state_input(event: InputEvent) -> void:
                 print("[Move] Got raycast position: " + str(position))
 
         if event.is_action_pressed("ui_cancel"):
-            battle_state.current_character.character_controller.stop_moving()
+            battle_character.character_controller.stop_moving()
             _on_movement_finished()
 
     # ==============================================================================
@@ -172,10 +203,10 @@ func _state_input(event: InputEvent) -> void:
     if event.is_action_pressed("combat_spellitem"):
         # Select self if no other character is selected before handling a button press
         if (battle_state.player_selected_character == null
-        and battle_state.current_character):
-            battle_state.player_selected_character = battle_state.current_character
+        and battle_character):
+            battle_state.player_selected_character = battle_character
         # Don't allow selecting self if moving
-        if (battle_state.current_character.character_controller.is_moving()
+        if (battle_character.character_controller.is_moving()
         or battle_state.player_selected_character.character_controller.is_moving()):
             return
 

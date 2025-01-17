@@ -42,20 +42,22 @@ var player_selected_character : BattleCharacter:
         # Set available actions based on selected character
         if not character:
             available_actions = BattleEnums.EAvailableCombatActions.GROUND
-        else:
-            # if we are currently moving, we shouldn't be able to select a character to attack etc
-            if (character.character_controller.is_moving()
-            or current_character.character_controller.is_moving()):
-                available_actions = BattleEnums.EAvailableCombatActions.GROUND
-            else:
-                if character.character_type == BattleEnums.CharacterType.PLAYER:
-                    if character == current_character:
-                        available_actions = BattleEnums.EAvailableCombatActions.SELF
-                    else:
-                        available_actions = BattleEnums.EAvailableCombatActions.ALLY
+            return
 
-                elif character.character_type == BattleEnums.CharacterType.ENEMY:
-                    available_actions = BattleEnums.EAvailableCombatActions.ENEMY   
+        # if we are currently moving, we shouldn't be able to select a character to attack etc
+        if (character.character_controller.is_moving()
+        or current_character.character_controller.is_moving()):
+            available_actions = BattleEnums.EAvailableCombatActions.GROUND
+        else:
+            if character.character_type == BattleEnums.CharacterType.PLAYER:
+                if character == current_character:
+                    available_actions = BattleEnums.EAvailableCombatActions.SELF
+                else:
+                    available_actions = BattleEnums.EAvailableCombatActions.ALLY
+
+            elif character.character_type == BattleEnums.CharacterType.ENEMY:
+                available_actions = BattleEnums.EAvailableCombatActions.ENEMY
+        
 
 
 @onready var turn_order_ui := get_node_or_null("ChooseTargetUI/ItemList") as ItemList

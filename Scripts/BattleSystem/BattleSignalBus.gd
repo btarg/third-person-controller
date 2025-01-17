@@ -22,7 +22,7 @@ signal OnDownRecovery(character: BattleCharacter)
 @warning_ignore("UNUSED_SIGNAL")
 signal OnTurnsAwarded(character: BattleCharacter, turns: int)
 @warning_ignore("UNUSED_SIGNAL")
-signal OnAvailableActionsChanged()
+signal OnAvailableActionsChanged
 
 func _ready() -> void:
     OnTakeDamage.connect(_on_take_damage)

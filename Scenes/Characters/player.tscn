@@ -74,7 +74,24 @@ shape = SubResource("BoxShape3D_4egpj")
 
 [node name="FreelookPivot" type="Node3D" parent="."]
 script = ExtResource("2_f8ihf")
+camera_mode = null
+max_sensitivity = null
+min_sensitivity = null
 camera_speed_curve = ExtResource("4_q26jy")
+angle_lerp_value_offset = null
+zoom_speed = null
+scroll_angle_speed = null
+spring_arm_clamp_degrees = null
+top_down_min_angle_degrees = null
+top_down_max_angle_degrees = null
+rotation_acceleration = null
+rotation_deceleration = null
+horizontal_speed_curve_acceleration_rate = null
+top_down_horizontal_speed_modifier = null
+change_fov_on_run = null
+normal_fov = null
+run_fov = null
+enabled = null
 
 [node name="SpringArm3D" type="SpringArm3D" parent="FreelookPivot"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.45, 0)

@@ -18,6 +18,20 @@ script = ExtResource("1_2afxu")
 [node name="TopDownPlayerPivot" parent="." instance=ExtResource("2_cwmnp")]
 camera_speed_curve = ExtResource("3_7fagh")
 angle_zoom_curve = SubResource("Curve_u1w6r")
+angle_lerp_value_offset = null
+zoom_speed = null
+scroll_angle_speed = null
+spring_arm_clamp_degrees = null
+top_down_min_angle_degrees = null
+top_down_max_angle_degrees = null
+rotation_acceleration = null
+rotation_deceleration = null
+horizontal_speed_curve_acceleration_rate = null
+top_down_horizontal_speed_modifier = null
+change_fov_on_run = null
+normal_fov = null
+run_fov = null
+enabled = null
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)

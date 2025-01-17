@@ -58,6 +58,16 @@ func get_button_glyph_img_embed(action: String, size: int = 48, horizontal_decor
         return "[color=red]NO GLYPH FOUND[/color]"
     return "[img=%s]%s[/img]" % [str(size), get_button_glyph(action, horizontal_decoration, vertical_decoration)]
 
+func get_button_glyph_img_embeds(action: String, size: int = 48, horizontal_decoration: bool = false, vertical_decoration: bool = false) -> String:
+    var glyph_paths := get_button_glyphs(action, horizontal_decoration, vertical_decoration)
+    if glyph_paths.is_empty():
+        return "[color=red]NO GLYPH FOUND[/color]"
+
+    var result := ""
+    for glyph_path in glyph_paths:
+        result += "[img=%s]%s[/img] " % [str(size), glyph_path]
+    return result.strip_edges()
+
 func get_button_glyph_img_embed_by_name(path: String, size: int = 48) -> String:
     return "[img=%s]%s[/img]" % [str(size), get_button_glyph_by_name(path)]
 
@@ -68,11 +78,13 @@ func get_button_glyph_by_name(path: String) -> String:
 
 ## Returns the path to the button glyph texture for the current input device based on the action name[br]
 ## [param action_name] Needs to be the name of an action in the InputMap
-## TODO: Add support for multiple glyphs for the same action (return array of Strings)
 func get_button_glyph(action_name: String, horizontal_decoration: bool = false, vertical_decoration: bool = false) -> String:
-    var events := InputMap.action_get_events(action_name)
-    var to_return := "NONE"
+    var all := get_button_glyphs(action_name, horizontal_decoration, vertical_decoration)
+    if all.is_empty():
+        return "NONE"
+    return all[0]
 
+func get_button_glyphs(action_name: String, horizontal_decoration: bool = false, vertical_decoration: bool = false) -> Array[String]:
     var action_cache_key := "%s|h=%s|v=%s" % [action_name, horizontal_decoration, vertical_decoration]
 
     if is_using_controller:
@@ -81,6 +93,10 @@ func get_button_glyph(action_name: String, horizontal_decoration: bool = false, 
     else:
         if action_cache_key in glyph_cache_keyboard_mouse:
             return glyph_cache_keyboard_mouse.get(action_cache_key)
+
+
+    var events := InputMap.action_get_events(action_name)
+    var to_return: Array[String] = []
 
     for event in events:
         # ==============================================================================
@@ -112,17 +128,18 @@ func get_button_glyph(action_name: String, horizontal_decoration: bool = false, 
                     elif horizontal_decoration:
                         dpad_direction = "horizontal"
                     
-                    to_return = PATH + controller_prefix + "dpad_" + dpad_direction.to_lower() + EXTENSION
+                    to_return.append(PATH + controller_prefix + "dpad_" + dpad_direction.to_lower() + EXTENSION)
                     glyph_cache_controller.get_or_add(action_cache_key, to_return)
+                    continue
 
                 match event.button_index:
                     8:
-                        to_return = PATH + "stick/stick_r_press" + EXTENSION
+                        to_return.append(PATH + "stick/stick_r_press" + EXTENSION)
                     7:
-                        to_return = PATH + "stick/stick_l_press" + EXTENSION
+                        to_return.append(PATH + "stick/stick_l_press" + EXTENSION)
                     _:
                         var button_name: String = "BUTTON_" + str(event.button_index)
-                        to_return = PATH + controller_prefix + button_name + EXTENSION
+                        to_return.append(PATH + controller_prefix + button_name + EXTENSION)
                 
                 glyph_cache_controller.get_or_add(action_cache_key, to_return)
 
@@ -169,7 +186,7 @@ func get_button_glyph(action_name: String, horizontal_decoration: bool = false, 
                         elif axis_value > 0:
                             joystick_path += "_down"
 
-                to_return = joystick_path + EXTENSION
+                to_return.append(joystick_path + EXTENSION)
                 glyph_cache_controller.get_or_add(action_cache_key, to_return)
 
         # ==============================================================================
@@ -185,18 +202,18 @@ func get_button_glyph(action_name: String, horizontal_decoration: bool = false, 
                 elif (key_name == "left" or key_name == "right") and horizontal_decoration:
                     key_name = ("arrows_all" if vertical_decoration else "arrows_horizontal")
             
-                to_return = PATH + keyboard_prefix + key_name + EXTENSION
+                to_return.append(PATH + keyboard_prefix + key_name + EXTENSION)
                 glyph_cache_keyboard_mouse.get_or_add(action_cache_key, to_return)
 
             elif event is InputEventMouseButton:
                 var mouse_split := event.as_text().split(" ")
                 if mouse_split.has("Wheel"):
-                    to_return = PATH + "keyboard_mouse/mouse_scroll_" + mouse_split[2].to_lower() + EXTENSION
+                    to_return.append(PATH + "keyboard_mouse/mouse_scroll_" + mouse_split[2].to_lower() + EXTENSION)
                 elif mouse_split.has("Thumb"):
                     # the sprite pack doesn't have mouse4/mouse5, so we use a normal mouse image
-                    to_return = PATH + "keyboard_mouse/mouse" + EXTENSION
+                    to_return.append(PATH + "keyboard_mouse/mouse" + EXTENSION)
                 else:
-                    to_return = PATH + "keyboard_mouse/mouse_" + mouse_split[0].to_lower() + EXTENSION
+                    to_return.append(PATH + "keyboard_mouse/mouse_" + mouse_split[0].to_lower() + EXTENSION)
                 
                 glyph_cache_keyboard_mouse.get_or_add(action_cache_key, to_return)
 

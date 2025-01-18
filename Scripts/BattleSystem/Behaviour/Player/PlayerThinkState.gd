@@ -5,8 +5,7 @@ extends State
 # @onready var exploration_player := get_tree().get_nodes_in_group("Player").front() as PlayerController
 
 @onready var battle_character := state_machine.get_parent() as BattleCharacter
-var radius_visual_scene := preload("res://Scenes/Characters/radius_visual.tscn") as PackedScene
-var radius_visual: CSGMesh3D = null
+@onready var radius_visual := get_node("/root/RadiusVisual") as CSGMesh3D
 
 # One level up is state machine, two levels up is the battle character. The inventory is on the same level
 @onready var inventory_manager := get_node("../../../Inventory") as InventoryManager
@@ -33,6 +32,15 @@ func _ready() -> void:
     player_think_ui.hide()
     battle_character.OnLeaveBattle.connect(_on_leave_battle)
 
+    BattleSignalBus.OnTurnStarted.connect(_on_turn_started)
+    BattleSignalBus.OnBattleEnded.connect(_cleanup_visuals)
+
+    _cleanup_visuals()
+
+
+func _cleanup_visuals() -> void:
+    radius_visual.visible = false
+
 func _choose_item_command(item_name: String) -> void:
     if not active:
         return
@@ -50,6 +58,16 @@ func _on_leave_battle() -> void:
     else:
         exit()
 
+func _on_turn_started(turn_character: BattleCharacter) -> void:
+    if turn_character != battle_character:
+        return # not our turn
+
+    if battle_character.character_controller:
+        _process_radius_visual()
+        battle_character.character_controller.update_home_position()
+    else:
+        print("No character controller found")
+
 func enter() -> void:
     if battle_character.current_hp <= 0:
         # Players are able to be revived once "dead"
@@ -59,11 +77,6 @@ func enter() -> void:
     player_think_ui.show()
     player_think_ui.set_text()
     print(battle_character.character_name + " is thinking about what to do")
-
-    if battle_character.character_controller:
-        BattleSignalBus.OnAvailableActionsChanged.connect(_process_radius_visual)
-    else:
-        print("No radius character controller found")
 
     # remember last selected character
     if battle_state.player_selected_character:
@@ -76,22 +89,13 @@ func exit() -> void:
     print(battle_character.character_name + " has stopped thinking")
     player_think_ui.hide()
 
+
 func _process_radius_visual() -> void:
-    
-    if not radius_visual:
-        radius_visual = radius_visual_scene.instantiate() as CSGMesh3D
-        add_child(radius_visual)
-
-    radius_visual.visible = false
-    radius_visual.scale = Vector3.ONE
-
-    if battle_state.available_actions not in [BattleEnums.EAvailableCombatActions.GROUND,
-    BattleEnums.EAvailableCombatActions.SELF]:
-        return
 
     var range_size := battle_character.character_controller.movement_left
     if range_size <= 0:
         # don't display a radius when we have no movement left
+        radius_visual.visible = false
         return
 
     print("Processing radius visual: " + battle_character.character_name)
@@ -134,7 +138,7 @@ func _state_physics_process(_delta: float) -> void:
         # print("[Think] No raycast position found")
         return
     if not ray_result.has("collider"):
-        print("[Think] No collider found")
+        # print("[Think] No collider found")
         return
 
     var collider := ray_result.collider as Node3D
@@ -151,7 +155,6 @@ func _state_physics_process(_delta: float) -> void:
         battle_state.player_selected_character = character
     else:
         battle_state.player_selected_character = null
-    
 
 func _state_process(_delta: float) -> void: pass
 
@@ -171,29 +174,31 @@ func _state_input(event: InputEvent) -> void:
     # ==============================================================================
     # PLAYER MOVEMENT
     # ==============================================================================
-    if battle_state.available_actions == BattleEnums.EAvailableCombatActions.GROUND:
+    if battle_state.available_actions in [BattleEnums.EAvailableCombatActions.GROUND,
+    BattleEnums.EAvailableCombatActions.SELF]:
         # we need a character selected to move
         if not battle_state.current_character:
             return
         
         if event.is_action_pressed("combat_move"):
             chosen_action = BattleEnums.EPlayerCombatAction.CA_MOVE
-            var result := Util.raycast_from_center_or_mouse(top_down_camera, [battle_state.top_down_player.get_rid()])
-            var position := Vector3.INF
-            if result.has("position"):
-                position = (result.position as Vector3)
-            if position != Vector3.INF:
-                battle_state.current_character.character_controller.set_move_target(position)
+            # var result := Util.raycast_from_center_or_mouse(top_down_camera, [battle_state.top_down_player.get_rid()])
+            # var position := Vector3.INF
+            # if result.has("position"):
+            #     position = (result.position as Vector3)
+            # if position != Vector3.INF:
+            #     battle_state.current_character.character_controller.set_move_target(position)
 
-                # Update the UI when moving
-                player_think_ui.set_text()
-                battle_state.current_character.character_controller.OnMovementFinished.connect(_on_movement_finished)
+            #     # Update the UI when moving
+            #     player_think_ui.set_text()
+            #     battle_state.current_character.character_controller.OnMovementFinished.connect(_on_movement_finished)
 
-                print("[Move] Got raycast position: " + str(position))
+            #     print("[Move] Got raycast position: " + str(position))
+            Transitioned.emit(self, "MoveState")
 
-        if event.is_action_pressed("ui_cancel"):
-            battle_character.character_controller.stop_moving()
-            _on_movement_finished()
+        # if event.is_action_pressed("ui_cancel"):
+        #     battle_character.character_controller.stop_moving()
+        #     _on_movement_finished()
 
     # ==============================================================================
     # SPELLS AND ATTACKS
@@ -222,7 +227,7 @@ func _state_input(event: InputEvent) -> void:
             chosen_action = BattleEnums.EPlayerCombatAction.CA_DRAW
             Transitioned.emit(self, "ChooseTargetState")
     
-    
+    # TODO: defend
     
 
 

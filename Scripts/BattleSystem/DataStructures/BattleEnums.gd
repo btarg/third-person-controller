@@ -1,6 +1,6 @@
 class_name BattleEnums
 
-enum CharacterType {
+enum ECharacterType {
     PLAYER,
     FRIENDLY,
     NEUTRAL, ## Neutral characters will become enemies if attacked
@@ -26,6 +26,7 @@ enum EAvailableCombatActions {
     ALLY, # Allows selecting an ally to target for spells or items
     ENEMY, # Allows selecting a target to attack
     GROUND, # Allows selecting a position to move to
+    MOVING, # Character is currently moving
 }
 
 enum EPlayerCombatAction {

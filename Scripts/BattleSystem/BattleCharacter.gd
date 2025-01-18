@@ -1,7 +1,7 @@
 extends Node
 class_name BattleCharacter
 
-@export var character_type : BattleEnums.CharacterType = BattleEnums.CharacterType.PLAYER
+@export var character_type : BattleEnums.ECharacterType = BattleEnums.ECharacterType.PLAYER
 @export var default_character_name: String = "Test Enemy"
 @onready var character_name := default_character_name
 @onready var character_internal_name := get_parent().get_name()
@@ -45,7 +45,7 @@ var turns_left := 0
 func _ready() -> void:
     print("%s internal name %s" % [character_name, character_internal_name])
 
-    BattleSignalBus.TurnStarted.connect(_on_battle_turn_started)
+    BattleSignalBus.OnTurnStarted.connect(_on_battle_turn_started)
     print(character_name + " CURRENT HP: " + str(current_hp))
 
     # TODO: set affinities in editor once typed dictionaries are supported in Godot 4.4
@@ -259,7 +259,7 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
             BattleSignalBus.OnDeath.emit(self)
             print("[DEATH] " + character_name + " has died!!")
             
-            if character_type != BattleEnums.CharacterType.PLAYER:
+            if character_type != BattleEnums.ECharacterType.PLAYER:
                 battle_state.leave_battle(self)
                 # destroy parent object
                 get_parent().queue_free()

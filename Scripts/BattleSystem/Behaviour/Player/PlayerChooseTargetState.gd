@@ -12,7 +12,7 @@ var last_selected_index := 0
 @onready var frelook_camera := battle_state.top_down_player.get_node("TopDownPlayerPivot/SpringArm3D/TopDownCamera") as Camera3D
 
 func _ready() -> void:
-    BattleSignalBus.BattleEnded.connect(_on_battle_ended)
+    BattleSignalBus.OnBattleEnded.connect(_on_battle_ended)
     battle_state.turn_order_ui.connect("item_selected", _select)
 
 func _on_battle_ended() -> void:
@@ -34,10 +34,10 @@ func _select(index: int) -> void:
 
 func select_character(character: BattleCharacter) -> void:
     var success := false
-    if _can_select_enemies and character.character_type == BattleEnums.CharacterType.ENEMY:
+    if _can_select_enemies and character.character_type == BattleEnums.ECharacterType.ENEMY:
         success = true # can select enemies
-    if _can_select_allies and (character.character_type == BattleEnums.CharacterType.PLAYER
-    or character.character_type == BattleEnums.CharacterType.FRIENDLY):
+    if _can_select_allies and (character.character_type == BattleEnums.ECharacterType.PLAYER
+    or character.character_type == BattleEnums.ECharacterType.FRIENDLY):
         success = true # can select any ally
     if not (_can_select_allies or _can_select_enemies) and character == battle_state.current_character:
         success = true # can only select self

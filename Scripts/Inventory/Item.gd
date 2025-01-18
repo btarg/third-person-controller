@@ -66,14 +66,14 @@ func can_use_on(user: BattleCharacter, target: BattleCharacter) -> bool:
    
     # Allow self-use if the item cannot be used on allies or enemies
     if not can_use_on_allies and not can_use_on_enemies:
-        return (user.character.type == BattleEnums.CharacterType.PLAYER
+        return (user.character.type == BattleEnums.ECharacterType.PLAYER
         and user == target)
     
     if (target.character_type in 
-    [BattleEnums.CharacterType.PLAYER,
-    BattleEnums.CharacterType.FRIENDLY]):
+    [BattleEnums.ECharacterType.PLAYER,
+    BattleEnums.ECharacterType.FRIENDLY]):
         return can_use_on_allies
-    elif target.character_type == BattleEnums.CharacterType.ENEMY:
+    elif target.character_type == BattleEnums.ECharacterType.ENEMY:
         return can_use_on_enemies
 
     return false

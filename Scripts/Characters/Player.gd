@@ -1,61 +1,38 @@
 extends BattleCharacterController
 class_name PlayerController
 
-var snap_vector : Vector3 = Vector3.DOWN
-var speed : float
-
 @onready var spring_arm_pivot := $FreelookPivot as SpringArmCameraPivot
 
 @export var exploration_control_enabled : bool:
-	get:
-		return exploration_control_enabled
-	set(value):
-		exploration_control_enabled = value
-		if animator != null and not exploration_control_enabled:
-			reset_to_idle()
-		if spring_arm_pivot != null:
-			spring_arm_pivot.enabled = exploration_control_enabled
-			
-func _ready() -> void:
-	spring_arm_pivot.enabled = exploration_control_enabled
-	super()
+    get:
+        return exploration_control_enabled
+    set(value):
+        exploration_control_enabled = value
+        print("[MOVE] Exploration control state changed! " + str(exploration_control_enabled))
+        if animator != null and not exploration_control_enabled:
+            reset_to_idle()
+        if spring_arm_pivot != null:
+            spring_arm_pivot.enabled = exploration_control_enabled
+        # Exploration control always gives us free movement
+        if exploration_control_enabled:
+            free_movement = true
 
-## Called from state
-func input_update(event: InputEvent) -> void:
-	spring_arm_pivot.pivot_input_update(event)
+            
+func _ready() -> void:
+    exploration_control_enabled = true
+    spring_arm_pivot.enabled = true
+    super()
 
 ## Called from state
 func player_process(delta: float) -> void:
+    # Update the spring arm pivot
+    if exploration_control_enabled and spring_arm_pivot:
+        spring_arm_pivot.camera_physics_process(delta)
+    super(delta)
 
-	if not exploration_control_enabled or spring_arm_pivot == null:
-		return
+## Called from state
+func input_update(event: InputEvent) -> void:
+    if exploration_control_enabled and spring_arm_pivot:
+        spring_arm_pivot.pivot_input_update(event)
 
-	spring_arm_pivot.camera_physics_process(delta)
 
-	var move_direction := Vector3.ZERO
-	move_direction.x = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
-	move_direction.z = Input.get_action_strength("move_backwards") - Input.get_action_strength("move_forwards")
-	move_direction = move_direction.rotated(Vector3.UP, spring_arm_pivot.rotation.y)
-	
-	velocity.y -= gravity * delta
-	
-	speed = run_speed if Input.is_action_pressed("run") else walk_speed
-	is_running = (speed == run_speed) and (abs(velocity.x) > 1 or abs(velocity.z) > 1)
-
-	velocity.x = move_direction.x * speed
-	velocity.z = move_direction.z * speed
-	
-	if move_direction:
-		character_mesh.rotation.y = lerp_angle(character_mesh.rotation.y, atan2(velocity.x, velocity.z), LERP_VALUE)
-	
-	var just_landed := is_on_floor() and snap_vector == Vector3.ZERO
-	var is_jumping := is_on_floor() and Input.is_action_just_pressed("jump")
-	if is_jumping:
-		velocity.y = jump_strength
-		snap_vector = Vector3.ZERO
-	elif just_landed:
-		snap_vector = Vector3.DOWN
-	apply_floor_snap()
-	move_and_slide()
-	
-	animate(delta)

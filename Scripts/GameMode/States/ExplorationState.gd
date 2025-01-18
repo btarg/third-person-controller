@@ -11,6 +11,7 @@ func enter() -> void:
 # Runs when the state is exited
 func exit() -> void:
     player.exploration_control_enabled = false
+    player.free_movement = false
 
 func _state_process(_delta) -> void:
     pass

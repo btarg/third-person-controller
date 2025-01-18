@@ -9,10 +9,14 @@ class_name BattleCharacterController
 
 @onready var nav_agent : NavigationAgent3D = get_node_or_null("NavigationAgent3D")
 @onready var battle_character := $BattleCharacter as BattleCharacter
+@onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
 
 @onready var character_mesh := $Mesh as Node3D
 # Used for lerping the rotation animation
 const LERP_VALUE : float = 0.15
+
+var snap_vector : Vector3 = Vector3.DOWN
+var speed : float
 
 # Animation
 @onready var animator : AnimationTree = get_node_or_null("AnimationTree")
@@ -21,6 +25,14 @@ const ANIMATION_BLEND : float = 7.0
 
 # Movement stat
 # @onready var base_movement := battle_character.stats.get_stat(CharacterStatEntry.ECharacterStat.Movement)
+
+@onready var home_position := global_position
+var free_movement : bool = false:
+    get:
+        return free_movement
+    set(value):
+        print("[MOVE] Free movement state changed! " + str(value))
+        free_movement = value
 
 # DEBUG
 var base_movement := 20.0
@@ -44,9 +56,12 @@ const TICKS_BETWEEN_SAMPLES := 5
 signal OnMovementFinished
 
 func _ready() -> void:
-    BattleSignalBus.TurnStarted.connect(reset_movement)
+    BattleSignalBus.OnTurnStarted.connect(reset_movement)
     reset_movement(battle_character)
 
+func update_home_position() -> void:
+    home_position = global_position
+    print("[MOVE] Updated home position for " + battle_character.character_name)
 
 func reset_movement(character: BattleCharacter) -> void:
     if character != battle_character:
@@ -78,7 +93,7 @@ func set_move_target(target_pos: Vector3) -> void:
     _should_move = true
 
 func is_moving() -> bool:
-    return _should_move && velocity.length() > 0
+    return (not is_zero_approx(velocity.length()))
 
 func stop_moving() -> void:
     if not is_moving():
@@ -96,8 +111,57 @@ func stop_moving() -> void:
 
     OnMovementFinished.emit()
 
+## Called from state
+func player_process(_delta: float) -> void:
+    if not free_movement or battle_character.character_type != BattleEnums.ECharacterType.PLAYER:
+        return
+
+    var current_camera := get_viewport().get_camera_3d()
+    if not current_camera:
+        return
+
+    # Calculate the vector from the reference point to the character's current position
+    var to_position = global_transform.origin - home_position
+    
+    # Limit the vector's length to the maximum distance
+    if to_position.length() >= movement_left:
+        # Restrict the position within the maximum distance
+        global_transform.origin = home_position + to_position.limit_length(movement_left)
+
+
+
+    var move_direction := Vector3.ZERO
+    move_direction.x = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
+    move_direction.z = Input.get_action_strength("move_backwards") - Input.get_action_strength("move_forwards")
+    
+    # Use camera's basis to determine movement direction
+    move_direction = current_camera.global_transform.basis * move_direction
+    move_direction.y = 0  # Keep movement on ground plane
+    move_direction = move_direction.normalized()
+    
+    speed = run_speed if Input.is_action_pressed("run") else walk_speed
+    is_running = (speed == run_speed) and (abs(velocity.x) > 1 or abs(velocity.z) > 1)
+
+    velocity.x = move_direction.x * speed
+    velocity.z = move_direction.z * speed
+    
+    if move_direction:
+        character_mesh.rotation.y = lerp_angle(character_mesh.rotation.y, atan2(velocity.x, velocity.z), LERP_VALUE)
+    
+# Always run this shit
+func _physics_process(delta: float) -> void:
+
+    # FIX: only apply gravity in air
+    if not is_on_floor():
+        velocity.y -= gravity * delta
+
+    apply_floor_snap()
+    move_and_slide()
+
+    animate(delta)
+
 func nav_update(delta: float) -> void:
-    velocity.y -= gravity * delta
+    
     if (not nav_agent) or (not _should_move):
         return
 
@@ -159,7 +223,7 @@ func animate(delta: float) -> void:
     if is_on_floor():
         animator.set("parameters/ground_air_transition/transition_request", "grounded")
         
-        if velocity.length() > 0:
+        if is_moving():
             if is_running:
                 animator.set("parameters/iwr_blend/blend_amount", lerp(animator.get("parameters/iwr_blend/blend_amount"), 1.0, delta * ANIMATION_BLEND))
             else:

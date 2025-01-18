@@ -22,6 +22,7 @@ Console="*res://addons/console/console.gd"
 AffinityLog="*res://Scripts/BattleSystem/Logs/AffinityLog.gd"
 ControllerHelper="*res://Scripts/Autoload/ControllerHelper.gd"
 BattleSignalBus="*res://Scripts/BattleSystem/BattleSignalBus.gd"
+RadiusVisual="*res://Scenes/Characters/radius_visual.tscn"
 
 [display]
 

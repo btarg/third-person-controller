@@ -28,8 +28,7 @@ var available_actions : BattleEnums.EAvailableCombatActions = BattleEnums.EAvail
         if value != _last_available_actions:
             # print("Available actions changed to " + Util.get_enum_name(BattleEnums.EAvailableCombatActions, value))
             BattleSignalBus.OnAvailableActionsChanged.emit()
-        
-        _last_available_actions = value
+            _last_available_actions = value
 
 ## The BattleCharacter which the player has targeted
 ## This is used for attacking enemies etc
@@ -44,19 +43,14 @@ var player_selected_character : BattleCharacter:
             available_actions = BattleEnums.EAvailableCombatActions.GROUND
             return
 
-        # if we are currently moving, we shouldn't be able to select a character to attack etc
-        if (character.character_controller.is_moving()
-        or current_character.character_controller.is_moving()):
-            available_actions = BattleEnums.EAvailableCombatActions.GROUND
-        else:
-            if character.character_type == BattleEnums.CharacterType.PLAYER:
-                if character == current_character:
-                    available_actions = BattleEnums.EAvailableCombatActions.SELF
-                else:
-                    available_actions = BattleEnums.EAvailableCombatActions.ALLY
+        if character.character_type == BattleEnums.ECharacterType.PLAYER:
+            if character == current_character:
+                available_actions = BattleEnums.EAvailableCombatActions.SELF
+            else:
+                available_actions = BattleEnums.EAvailableCombatActions.ALLY
 
-            elif character.character_type == BattleEnums.CharacterType.ENEMY:
-                available_actions = BattleEnums.EAvailableCombatActions.ENEMY
+        elif character.character_type == BattleEnums.ECharacterType.ENEMY:
+            available_actions = BattleEnums.EAvailableCombatActions.ENEMY
         
 
 
@@ -139,7 +133,7 @@ func add_to_battle(character: BattleCharacter) -> void:
             turn_order.append(character)
             
 
-    if character.character_type == BattleEnums.CharacterType.ENEMY:
+    if character.character_type == BattleEnums.ECharacterType.ENEMY:
         # Give the enemy a unique name if there are multiple enemies with the same name
         character_counts.get_or_add(character_name, 0)
         # We don't use the get_or_add return value because we want to increment the count
@@ -153,9 +147,9 @@ func add_to_battle(character: BattleCharacter) -> void:
     # set the name in the script so the character instance knows its proper name in battle
     character.character_name = character_name
 
-    if character.character_type == BattleEnums.CharacterType.PLAYER:
+    if character.character_type == BattleEnums.ECharacterType.PLAYER:
         player_units.append(character)
-    elif character.character_type == BattleEnums.CharacterType.ENEMY:
+    elif character.character_type == BattleEnums.ECharacterType.ENEMY:
         enemy_units.append(character)
 
     # add the sorted turn order to the UI
@@ -181,9 +175,9 @@ func leave_battle(character: BattleCharacter, do_result_check: bool = true) -> v
         return
 
 
-    if character.character_type == BattleEnums.CharacterType.ENEMY:
+    if character.character_type == BattleEnums.ECharacterType.ENEMY:
         enemy_units.erase(character)
-    elif character.character_type == BattleEnums.CharacterType.PLAYER:
+    elif character.character_type == BattleEnums.ECharacterType.PLAYER:
         player_units.erase(character)
 
     turn_order.erase(character)
@@ -248,12 +242,18 @@ func ready_next_turn() -> void:
         current_character_index = 0
 
     current_character = turn_order[current_character_index]
+
     # 0 turns left means the character is a new character
     if current_character.turns_left == 0:
         current_character.turns_left = 1
 
     top_down_player.focused_node = current_character.get_parent()
-    BattleSignalBus.TurnStarted.emit(current_character)
+    
+    # Select self at start of battle
+    if current_character.character_type == BattleEnums.ECharacterType.PLAYER:
+        player_selected_character = current_character
+
+    BattleSignalBus.OnTurnStarted.emit(current_character)
 
 func exit() -> void:
     for character in turn_order:
@@ -273,7 +273,7 @@ func exit() -> void:
     player_selected_character = null
     current_character = null
 
-    BattleSignalBus.BattleEnded.emit()
+    BattleSignalBus.OnBattleEnded.emit()
     print("Battle State left")
 
 func _state_process(_delta) -> void:
@@ -283,6 +283,8 @@ func _state_physics_process(delta: float) -> void:
     # Update navigation for active character
     if current_character:
         current_character.character_controller.nav_update(delta)
+        if current_character.character_type == BattleEnums.ECharacterType.PLAYER:
+            current_character.character_controller.player_process(delta)
     top_down_player.player_process(delta)
 
 func print_turn_order() -> void:

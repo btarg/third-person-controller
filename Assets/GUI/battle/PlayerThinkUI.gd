@@ -33,16 +33,18 @@ func set_text() -> void:
         label.text += ControllerHelper.get_button_glyph_img_embed("right_click", IMG_SIZE) + " Pan camera\n"
         label.text += ControllerHelper.get_button_glyph_img_embed_by_name("keyboard_mouse/mouse_scroll_vertical", IMG_SIZE) + " Zoom\n"
     
-    if battle_state.available_actions == BattleEnums.EAvailableCombatActions.SELF:
+    # We can move and defend when hovering ground or self
+    if battle_state.available_actions in [BattleEnums.EAvailableCombatActions.SELF,
+    BattleEnums.EAvailableCombatActions.GROUND]:
         label.text += ControllerHelper.get_button_glyph_img_embed("combat_defend", IMG_SIZE) + " Defend\n"
+        label.text += ControllerHelper.get_button_glyph_img_embed("combat_move", IMG_SIZE) + " Move\n"
+
     if battle_state.available_actions == BattleEnums.EAvailableCombatActions.ENEMY:
         label.text += ControllerHelper.get_button_glyph_img_embed("combat_attack", IMG_SIZE) + " Attack\n"
         label.text += ControllerHelper.get_button_glyph_img_embed("combat_draw", IMG_SIZE) + " Draw\n"
 
-    if battle_state.available_actions == BattleEnums.EAvailableCombatActions.GROUND:
-        label.text += ControllerHelper.get_button_glyph_img_embed("combat_move", IMG_SIZE) + " Move\n"
 
-    elif battle_state.available_actions == BattleEnums.EAvailableCombatActions.MOVING:
+    if battle_state.available_actions == BattleEnums.EAvailableCombatActions.MOVING:
 
         if ControllerHelper.is_using_controller:
             label.text += ControllerHelper.get_button_glyph_img_embed("move_forwards", IMG_SIZE, true, true) + " Move\n"

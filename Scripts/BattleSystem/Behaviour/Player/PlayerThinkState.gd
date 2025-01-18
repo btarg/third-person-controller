@@ -165,7 +165,8 @@ func _state_input(event: InputEvent) -> void:
     # ==============================================================================
     # PLAYER MOVEMENT
     # ==============================================================================
-    if battle_state.available_actions == BattleEnums.EAvailableCombatActions.GROUND:
+    if battle_state.available_actions in [BattleEnums.EAvailableCombatActions.GROUND,
+    BattleEnums.EAvailableCombatActions.SELF]:
         # we need a character selected to move
         if not battle_state.current_character:
             return
@@ -217,7 +218,7 @@ func _state_input(event: InputEvent) -> void:
             chosen_action = BattleEnums.EPlayerCombatAction.CA_DRAW
             Transitioned.emit(self, "ChooseTargetState")
     
-    
+    # TODO: defend
     
 
 

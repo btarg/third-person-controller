@@ -166,6 +166,26 @@ func get_button_glyphs(action_name: String, horizontal_decoration: bool = false,
                         joystick_path += "stick/stick_l"
                     else:
                         joystick_path += "stick/stick_r"
+
+                    # FIX: only apply decoration to the stick and not triggers
+                    if vertical_decoration and horizontal_decoration:
+                        pass # don't add any suffix 
+                    elif vertical_decoration:
+                        joystick_path += "_vertical"
+                    elif horizontal_decoration:
+                        joystick_path += "_horizontal"
+                    else:
+                        if split_info[2].begins_with("X"):
+                            if axis_value < 0:
+                                joystick_path += "_left"
+                            elif axis_value > 0:
+                                joystick_path += "_right"
+                        elif split_info[2].begins_with("Y"):  
+                            if axis_value < 0:
+                                joystick_path += "_up"
+                            elif axis_value > 0:
+                                joystick_path += "_down"
+
                 else:
                     # triggers have a controller-specific prefix
                     if split_info.has("Right"):
@@ -173,23 +193,7 @@ func get_button_glyphs(action_name: String, horizontal_decoration: bool = false,
                     else:
                         joystick_path += controller_prefix + "left_trigger"
 
-                if vertical_decoration and horizontal_decoration:
-                    pass # don't add any suffix 
-                elif vertical_decoration:
-                    joystick_path += "_vertical"
-                elif horizontal_decoration:
-                    joystick_path += "_horizontal"
-                else:
-                    if split_info[2].begins_with("X"):
-                        if axis_value < 0:
-                            joystick_path += "_left"
-                        elif axis_value > 0:
-                            joystick_path += "_right"
-                    elif split_info[2].begins_with("Y"):  
-                        if axis_value < 0:
-                            joystick_path += "_up"
-                        elif axis_value > 0:
-                            joystick_path += "_down"
+                
 
                 to_return.append(joystick_path + EXTENSION)
                 glyph_cache_controller.get_or_add(action_cache_key, to_return)

@@ -15,7 +15,6 @@ func _ready() -> void:
     set_text()
 
 func set_text(show_crosshair: bool = true) -> void:
-    print("Setting text")
     if not battle_state.active or not battle_state.current_character:
         return
     if battle_state.current_character.character_type != BattleEnums.ECharacterType.PLAYER:
@@ -44,7 +43,14 @@ func set_text(show_crosshair: bool = true) -> void:
         label.text += ControllerHelper.get_button_glyph_img_embed("combat_move", IMG_SIZE) + " Move\n"
 
     elif battle_state.available_actions == BattleEnums.EAvailableCombatActions.MOVING:
-        label.text += ControllerHelper.get_button_glyph_img_embed("move_forwards", IMG_SIZE, true, true) + " Move\n"
+
+        if ControllerHelper.is_using_controller:
+            label.text += ControllerHelper.get_button_glyph_img_embed("move_forwards", IMG_SIZE, true, true) + " Move\n"
+        else:
+            label.text += ControllerHelper.get_button_glyph_img_embed_by_name("keyboard_mouse/keyboard_arrows_all", IMG_SIZE) + " Move\n"
+
+        label.text += ControllerHelper.get_button_glyph_img_embed("run", IMG_SIZE) + " Sprint\n"
+
         if battle_state.current_character.character_controller.is_moving():
             label.text += ControllerHelper.get_button_glyph_img_embed("ui_cancel", IMG_SIZE) + " Cancel movement\n"
     

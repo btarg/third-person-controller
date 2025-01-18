@@ -26,7 +26,7 @@ var available_actions : BattleEnums.EAvailableCombatActions = BattleEnums.EAvail
     set(value):
         available_actions = value
         if value != _last_available_actions:
-            print("Available actions changed to " + Util.get_enum_name(BattleEnums.EAvailableCombatActions, value))
+            # print("Available actions changed to " + Util.get_enum_name(BattleEnums.EAvailableCombatActions, value))
             BattleSignalBus.OnAvailableActionsChanged.emit()
             _last_available_actions = value
 
@@ -43,19 +43,14 @@ var player_selected_character : BattleCharacter:
             available_actions = BattleEnums.EAvailableCombatActions.GROUND
             return
 
-        # if we are currently moving, we shouldn't be able to select a character to attack etc
-        if (character.character_controller.is_moving()
-        or current_character.character_controller.is_moving()):
-            available_actions = BattleEnums.EAvailableCombatActions.GROUND
-        else:
-            if character.character_type == BattleEnums.ECharacterType.PLAYER:
-                if character == current_character:
-                    available_actions = BattleEnums.EAvailableCombatActions.SELF
-                else:
-                    available_actions = BattleEnums.EAvailableCombatActions.ALLY
+        if character.character_type == BattleEnums.ECharacterType.PLAYER:
+            if character == current_character:
+                available_actions = BattleEnums.EAvailableCombatActions.SELF
+            else:
+                available_actions = BattleEnums.EAvailableCombatActions.ALLY
 
-            elif character.character_type == BattleEnums.ECharacterType.ENEMY:
-                available_actions = BattleEnums.EAvailableCombatActions.ENEMY
+        elif character.character_type == BattleEnums.ECharacterType.ENEMY:
+            available_actions = BattleEnums.EAvailableCombatActions.ENEMY
         
 
 
@@ -282,6 +277,8 @@ func _state_physics_process(delta: float) -> void:
     # Update navigation for active character
     if current_character:
         current_character.character_controller.nav_update(delta)
+        if current_character.character_type == BattleEnums.ECharacterType.PLAYER:
+            current_character.character_controller.player_process(delta)
     top_down_player.player_process(delta)
 
 func print_turn_order() -> void:

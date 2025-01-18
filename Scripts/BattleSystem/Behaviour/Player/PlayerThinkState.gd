@@ -126,10 +126,10 @@ func _state_physics_process(_delta: float) -> void:
     if ray_result.has("position"):
         position = (ray_result.position as Vector3)
     if position == Vector3.INF:
-        print("[Think] No raycast position found")
+        # print("[Think] No raycast position found")
         return
     if not ray_result.has("collider"):
-        print("[Think] No collider found")
+        # print("[Think] No collider found")
         return
 
     var collider := ray_result.collider as Node3D
@@ -139,13 +139,11 @@ func _state_physics_process(_delta: float) -> void:
     var children := collider.find_children("BattleCharacter")
     if children.is_empty():
         battle_state.available_actions = BattleEnums.EAvailableCombatActions.GROUND
-        print("[Think] Got ground")
         return
 
     var character := children.front() as BattleCharacter
     if character:
         battle_state.player_selected_character = character
-        print("[Think] Got character: " + character.character_name)    
     else:
         battle_state.player_selected_character = null
 

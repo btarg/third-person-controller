@@ -9,6 +9,7 @@ class_name BattleCharacterController
 
 @onready var nav_agent : NavigationAgent3D = get_node_or_null("NavigationAgent3D")
 @onready var battle_character := $BattleCharacter as BattleCharacter
+@onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
 
 @onready var character_mesh := $Mesh as Node3D
 # Used for lerping the rotation animation
@@ -26,7 +27,7 @@ const ANIMATION_BLEND : float = 7.0
 # @onready var base_movement := battle_character.stats.get_stat(CharacterStatEntry.ECharacterStat.Movement)
 
 @onready var home_position := global_position
-var free_movement : bool = true:
+var free_movement : bool = false:
     get:
         return free_movement
     set(value):
@@ -92,7 +93,7 @@ func set_move_target(target_pos: Vector3) -> void:
     _should_move = true
 
 func is_moving() -> bool:
-    return not is_zero_approx(velocity.length())
+    return (not is_zero_approx(velocity.length()))
 
 func stop_moving() -> void:
     if not is_moving():
@@ -128,7 +129,7 @@ func player_process(delta: float) -> void:
     move_direction.y = 0  # Keep movement on ground plane
     move_direction = move_direction.normalized()
     
-    velocity.y -= gravity * delta
+    # velocity.y -= gravity * delta
     
     speed = run_speed if Input.is_action_pressed("run") else walk_speed
     is_running = (speed == run_speed) and (abs(velocity.x) > 1 or abs(velocity.z) > 1)
@@ -139,20 +140,20 @@ func player_process(delta: float) -> void:
     if move_direction:
         character_mesh.rotation.y = lerp_angle(character_mesh.rotation.y, atan2(velocity.x, velocity.z), LERP_VALUE)
     
-    var just_landed := is_on_floor() and snap_vector == Vector3.ZERO
-    var is_jumping := is_on_floor() and Input.is_action_just_pressed("jump")
-    if is_jumping:
-        velocity.y = jump_strength
-        snap_vector = Vector3.ZERO
-    elif just_landed:
-        snap_vector = Vector3.DOWN
+# Always run this shit
+func _physics_process(delta: float) -> void:
+
+    # FIX: only apply gravity in air
+    if not is_on_floor():
+        velocity.y -= gravity * delta
+
     apply_floor_snap()
     move_and_slide()
-    
+
     animate(delta)
 
 func nav_update(delta: float) -> void:
-    velocity.y -= gravity * delta
+    
     if (not nav_agent) or (not _should_move):
         return
 
@@ -214,7 +215,7 @@ func animate(delta: float) -> void:
     if is_on_floor():
         animator.set("parameters/ground_air_transition/transition_request", "grounded")
         
-        if velocity.length() > 0:
+        if is_moving():
             if is_running:
                 animator.set("parameters/iwr_blend/blend_amount", lerp(animator.get("parameters/iwr_blend/blend_amount"), 1.0, delta * ANIMATION_BLEND))
             else:

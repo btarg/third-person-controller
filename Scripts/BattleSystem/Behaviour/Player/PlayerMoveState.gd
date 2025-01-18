@@ -32,6 +32,7 @@ func _stop_thinking() -> void:
 func exit() -> void:
     print("[MOVE] " + battle_character.character_name + " is leaving the move state!")
     # Disable stick/WASD movement for the battle character
+    battle_character.character_controller.stop_moving()
     battle_character.character_controller.free_movement = false
     battle_state.top_down_player.allow_moving_focus = true
 
@@ -42,9 +43,8 @@ func exit() -> void:
 
 func _state_process(_delta: float) -> void: pass
 
-func _state_physics_process(delta: float) -> void:
-    if battle_character.character_controller:
-        battle_character.character_controller.player_process(delta)
+func _state_physics_process(_delta: float) -> void:
+    pass
 
 func _state_input(_event: InputEvent) -> void: pass
 func _state_unhandled_input(_event: InputEvent) -> void:

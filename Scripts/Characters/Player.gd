@@ -19,7 +19,8 @@ class_name PlayerController
 
             
 func _ready() -> void:
-    spring_arm_pivot.enabled = exploration_control_enabled
+    exploration_control_enabled = true
+    spring_arm_pivot.enabled = true
     super()
 
 ## Called from state

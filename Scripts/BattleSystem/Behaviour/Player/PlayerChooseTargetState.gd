@@ -34,10 +34,10 @@ func _select(index: int) -> void:
 
 func select_character(character: BattleCharacter) -> void:
     var success := false
-    if _can_select_enemies and character.character_type == BattleEnums.CharacterType.ENEMY:
+    if _can_select_enemies and character.character_type == BattleEnums.ECharacterType.ENEMY:
         success = true # can select enemies
-    if _can_select_allies and (character.character_type == BattleEnums.CharacterType.PLAYER
-    or character.character_type == BattleEnums.CharacterType.FRIENDLY):
+    if _can_select_allies and (character.character_type == BattleEnums.ECharacterType.PLAYER
+    or character.character_type == BattleEnums.ECharacterType.FRIENDLY):
         success = true # can select any ally
     if not (_can_select_allies or _can_select_enemies) and character == battle_state.current_character:
         success = true # can only select self

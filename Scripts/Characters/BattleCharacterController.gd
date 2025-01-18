@@ -14,6 +14,9 @@ class_name BattleCharacterController
 # Used for lerping the rotation animation
 const LERP_VALUE : float = 0.15
 
+var snap_vector : Vector3 = Vector3.DOWN
+var speed : float
+
 # Animation
 @onready var animator : AnimationTree = get_node_or_null("AnimationTree")
 var is_running: bool = false
@@ -21,6 +24,14 @@ const ANIMATION_BLEND : float = 7.0
 
 # Movement stat
 # @onready var base_movement := battle_character.stats.get_stat(CharacterStatEntry.ECharacterStat.Movement)
+
+@onready var home_position := global_position
+var free_movement : bool = true:
+    get:
+        return free_movement
+    set(value):
+        print("[MOVE] Free movement state changed! " + str(value))
+        free_movement = value
 
 # DEBUG
 var base_movement := 20.0
@@ -47,6 +58,9 @@ func _ready() -> void:
     BattleSignalBus.TurnStarted.connect(reset_movement)
     reset_movement(battle_character)
 
+func update_home_position() -> void:
+    home_position = global_position
+    print("[MOVE] Updated home position for " + battle_character.character_name)
 
 func reset_movement(character: BattleCharacter) -> void:
     if character != battle_character:
@@ -78,7 +92,7 @@ func set_move_target(target_pos: Vector3) -> void:
     _should_move = true
 
 func is_moving() -> bool:
-    return _should_move && velocity.length() > 0
+    return not is_zero_approx(velocity.length())
 
 func stop_moving() -> void:
     if not is_moving():
@@ -95,6 +109,47 @@ func stop_moving() -> void:
     _buffer_head_idx = 0
 
     OnMovementFinished.emit()
+
+## Called from state
+func player_process(delta: float) -> void:
+    if not free_movement or battle_character.character_type != BattleEnums.ECharacterType.PLAYER:
+        return
+
+    var current_camera := get_viewport().get_camera_3d()
+    if not current_camera:
+        return
+
+    var move_direction := Vector3.ZERO
+    move_direction.x = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
+    move_direction.z = Input.get_action_strength("move_backwards") - Input.get_action_strength("move_forwards")
+    
+    # Use camera's basis to determine movement direction
+    move_direction = current_camera.global_transform.basis * move_direction
+    move_direction.y = 0  # Keep movement on ground plane
+    move_direction = move_direction.normalized()
+    
+    velocity.y -= gravity * delta
+    
+    speed = run_speed if Input.is_action_pressed("run") else walk_speed
+    is_running = (speed == run_speed) and (abs(velocity.x) > 1 or abs(velocity.z) > 1)
+
+    velocity.x = move_direction.x * speed
+    velocity.z = move_direction.z * speed
+    
+    if move_direction:
+        character_mesh.rotation.y = lerp_angle(character_mesh.rotation.y, atan2(velocity.x, velocity.z), LERP_VALUE)
+    
+    var just_landed := is_on_floor() and snap_vector == Vector3.ZERO
+    var is_jumping := is_on_floor() and Input.is_action_just_pressed("jump")
+    if is_jumping:
+        velocity.y = jump_strength
+        snap_vector = Vector3.ZERO
+    elif just_landed:
+        snap_vector = Vector3.DOWN
+    apply_floor_snap()
+    move_and_slide()
+    
+    animate(delta)
 
 func nav_update(delta: float) -> void:
     velocity.y -= gravity * delta

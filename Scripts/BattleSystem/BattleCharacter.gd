@@ -1,7 +1,7 @@
 extends Node
 class_name BattleCharacter
 
-@export var character_type : BattleEnums.CharacterType = BattleEnums.CharacterType.PLAYER
+@export var character_type : BattleEnums.ECharacterType = BattleEnums.ECharacterType.PLAYER
 @export var default_character_name: String = "Test Enemy"
 @onready var character_name := default_character_name
 @onready var character_internal_name := get_parent().get_name()
@@ -259,7 +259,7 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
             BattleSignalBus.OnDeath.emit(self)
             print("[DEATH] " + character_name + " has died!!")
             
-            if character_type != BattleEnums.CharacterType.PLAYER:
+            if character_type != BattleEnums.ECharacterType.PLAYER:
                 battle_state.leave_battle(self)
                 # destroy parent object
                 get_parent().queue_free()

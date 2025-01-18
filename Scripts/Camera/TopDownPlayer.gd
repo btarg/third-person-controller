@@ -12,6 +12,8 @@ var deceleration: float = 0.2
 var y_focus_acceleration: float = 0.01
 var xz_focus_acceleration: float = 0.05
 
+var allow_moving_focus: bool = true
+
 var focused_node: Node3D = player:
     get:
         return focused_node
@@ -29,7 +31,7 @@ var enabled: bool:
         enabled = value
         spring_arm_pivot.enabled = enabled
 
-func player_process(_delta) -> void:
+func player_process(delta) -> void:
     if not enabled:
         return
 
@@ -40,12 +42,13 @@ func player_process(_delta) -> void:
     # print("[Top Down Camera] Move direction: ", move_direction)
 
     # if we have moved set moved_from_focus
-    if move_direction.length() > 0.0:
+    if move_direction.length() > 0.0 and allow_moving_focus:
         moved_from_focus = true
 
     # moved_from_focus = true if we should track the focused node
     if not moved_from_focus:
         if focused_node and focused_node.is_inside_tree():
+            # print("Staying focused on node: ", focused_node)
             # ignore Y axis since we calculate that later and regardless of focused node
             var target_position := focused_node.global_transform.origin
             var current_position := global_transform.origin
@@ -53,7 +56,7 @@ func player_process(_delta) -> void:
             # Lerp position to focused node
             global_transform.origin.x = lerp(current_position.x, target_position.x, xz_focus_acceleration)
             global_transform.origin.z = lerp(current_position.z, target_position.z, xz_focus_acceleration)
-    else:
+    elif allow_moving_focus:
         # Get the camera's forward direction
         var camera_forward: Vector3 = camera.global_transform.basis.z.normalized()
         var camera_right: Vector3 = camera.global_transform.basis.x.normalized()
@@ -79,7 +82,7 @@ func player_process(_delta) -> void:
         printerr("No focused node set!")
 
     move_and_slide()
-    spring_arm_pivot.camera_physics_process(_delta)
+    spring_arm_pivot.camera_physics_process(delta)
 
 
 ## Called from state

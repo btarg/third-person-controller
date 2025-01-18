@@ -26,10 +26,9 @@ var available_actions : BattleEnums.EAvailableCombatActions = BattleEnums.EAvail
     set(value):
         available_actions = value
         if value != _last_available_actions:
-            # print("Available actions changed to " + Util.get_enum_name(BattleEnums.EAvailableCombatActions, value))
+            print("Available actions changed to " + Util.get_enum_name(BattleEnums.EAvailableCombatActions, value))
             BattleSignalBus.OnAvailableActionsChanged.emit()
-        
-        _last_available_actions = value
+            _last_available_actions = value
 
 ## The BattleCharacter which the player has targeted
 ## This is used for attacking enemies etc
@@ -49,13 +48,13 @@ var player_selected_character : BattleCharacter:
         or current_character.character_controller.is_moving()):
             available_actions = BattleEnums.EAvailableCombatActions.GROUND
         else:
-            if character.character_type == BattleEnums.CharacterType.PLAYER:
+            if character.character_type == BattleEnums.ECharacterType.PLAYER:
                 if character == current_character:
                     available_actions = BattleEnums.EAvailableCombatActions.SELF
                 else:
                     available_actions = BattleEnums.EAvailableCombatActions.ALLY
 
-            elif character.character_type == BattleEnums.CharacterType.ENEMY:
+            elif character.character_type == BattleEnums.ECharacterType.ENEMY:
                 available_actions = BattleEnums.EAvailableCombatActions.ENEMY
         
 
@@ -139,7 +138,7 @@ func add_to_battle(character: BattleCharacter) -> void:
             turn_order.append(character)
             
 
-    if character.character_type == BattleEnums.CharacterType.ENEMY:
+    if character.character_type == BattleEnums.ECharacterType.ENEMY:
         # Give the enemy a unique name if there are multiple enemies with the same name
         character_counts.get_or_add(character_name, 0)
         # We don't use the get_or_add return value because we want to increment the count
@@ -153,9 +152,9 @@ func add_to_battle(character: BattleCharacter) -> void:
     # set the name in the script so the character instance knows its proper name in battle
     character.character_name = character_name
 
-    if character.character_type == BattleEnums.CharacterType.PLAYER:
+    if character.character_type == BattleEnums.ECharacterType.PLAYER:
         player_units.append(character)
-    elif character.character_type == BattleEnums.CharacterType.ENEMY:
+    elif character.character_type == BattleEnums.ECharacterType.ENEMY:
         enemy_units.append(character)
 
     # add the sorted turn order to the UI
@@ -181,9 +180,9 @@ func leave_battle(character: BattleCharacter, do_result_check: bool = true) -> v
         return
 
 
-    if character.character_type == BattleEnums.CharacterType.ENEMY:
+    if character.character_type == BattleEnums.ECharacterType.ENEMY:
         enemy_units.erase(character)
-    elif character.character_type == BattleEnums.CharacterType.PLAYER:
+    elif character.character_type == BattleEnums.ECharacterType.PLAYER:
         player_units.erase(character)
 
     turn_order.erase(character)

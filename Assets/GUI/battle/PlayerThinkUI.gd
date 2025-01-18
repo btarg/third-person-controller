@@ -11,6 +11,7 @@ func _ready() -> void:
     crosshair.visible = false
     ControllerHelper.OnInputDeviceChanged.connect(set_text)
     BattleSignalBus.OnAvailableActionsChanged.connect(set_text)
+    label.bbcode_enabled = true
     
     set_text()
 
@@ -20,7 +21,6 @@ func set_text() -> void:
     if battle_state.current_character.character_type != BattleEnums.ECharacterType.PLAYER:
         return
 
-    label.bbcode_enabled = true
     label.text = ""
 
     if ControllerHelper.is_using_controller:

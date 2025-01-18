@@ -56,7 +56,7 @@ const TICKS_BETWEEN_SAMPLES := 5
 signal OnMovementFinished
 
 func _ready() -> void:
-    BattleSignalBus.TurnStarted.connect(reset_movement)
+    BattleSignalBus.OnTurnStarted.connect(reset_movement)
     reset_movement(battle_character)
 
 func update_home_position() -> void:
@@ -112,13 +112,23 @@ func stop_moving() -> void:
     OnMovementFinished.emit()
 
 ## Called from state
-func player_process(delta: float) -> void:
+func player_process(_delta: float) -> void:
     if not free_movement or battle_character.character_type != BattleEnums.ECharacterType.PLAYER:
         return
 
     var current_camera := get_viewport().get_camera_3d()
     if not current_camera:
         return
+
+    # Calculate the vector from the reference point to the character's current position
+    var to_position = global_transform.origin - home_position
+    
+    # Limit the vector's length to the maximum distance
+    if to_position.length() >= movement_left:
+        # Restrict the position within the maximum distance
+        global_transform.origin = home_position + to_position.limit_length(movement_left)
+
+
 
     var move_direction := Vector3.ZERO
     move_direction.x = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
@@ -128,8 +138,6 @@ func player_process(delta: float) -> void:
     move_direction = current_camera.global_transform.basis * move_direction
     move_direction.y = 0  # Keep movement on ground plane
     move_direction = move_direction.normalized()
-    
-    # velocity.y -= gravity * delta
     
     speed = run_speed if Input.is_action_pressed("run") else walk_speed
     is_running = (speed == run_speed) and (abs(velocity.x) > 1 or abs(velocity.z) > 1)

@@ -32,6 +32,13 @@ func _ready() -> void:
     player_think_ui.hide()
     battle_character.OnLeaveBattle.connect(_on_leave_battle)
 
+    BattleSignalBus.OnTurnStarted.connect(_on_turn_started)
+    BattleSignalBus.OnBattleEnded.connect(_cleanup_visuals)
+
+    _cleanup_visuals()
+
+
+func _cleanup_visuals() -> void:
     radius_visual.visible = false
 
 func _choose_item_command(item_name: String) -> void:
@@ -51,6 +58,16 @@ func _on_leave_battle() -> void:
     else:
         exit()
 
+func _on_turn_started(turn_character: BattleCharacter) -> void:
+    if turn_character != battle_character:
+        return # not our turn
+
+    if battle_character.character_controller:
+        _process_radius_visual()
+        battle_character.character_controller.update_home_position()
+    else:
+        print("No character controller found")
+
 func enter() -> void:
     if battle_character.current_hp <= 0:
         # Players are able to be revived once "dead"
@@ -60,12 +77,6 @@ func enter() -> void:
     player_think_ui.show()
     player_think_ui.set_text()
     print(battle_character.character_name + " is thinking about what to do")
-
-    if battle_character.character_controller:
-        _process_radius_visual()
-        battle_character.character_controller.update_home_position()
-    else:
-        print("No character controller found")
 
     # remember last selected character
     if battle_state.player_selected_character:
@@ -81,12 +92,10 @@ func exit() -> void:
 
 func _process_radius_visual() -> void:
 
-    radius_visual.visible = false
-    radius_visual.scale = Vector3.ONE
-
     var range_size := battle_character.character_controller.movement_left
     if range_size <= 0:
         # don't display a radius when we have no movement left
+        radius_visual.visible = false
         return
 
     print("Processing radius visual: " + battle_character.character_name)

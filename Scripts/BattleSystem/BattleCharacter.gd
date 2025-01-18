@@ -45,7 +45,7 @@ var turns_left := 0
 func _ready() -> void:
     print("%s internal name %s" % [character_name, character_internal_name])
 
-    BattleSignalBus.TurnStarted.connect(_on_battle_turn_started)
+    BattleSignalBus.OnTurnStarted.connect(_on_battle_turn_started)
     print(character_name + " CURRENT HP: " + str(current_hp))
 
     # TODO: set affinities in editor once typed dictionaries are supported in Godot 4.4

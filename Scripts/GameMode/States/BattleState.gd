@@ -253,7 +253,7 @@ func ready_next_turn() -> void:
     if current_character.character_type == BattleEnums.ECharacterType.PLAYER:
         player_selected_character = current_character
 
-    BattleSignalBus.TurnStarted.emit(current_character)
+    BattleSignalBus.OnTurnStarted.emit(current_character)
 
 func exit() -> void:
     for character in turn_order:
@@ -273,7 +273,7 @@ func exit() -> void:
     player_selected_character = null
     current_character = null
 
-    BattleSignalBus.BattleEnded.emit()
+    BattleSignalBus.OnBattleEnded.emit()
     print("Battle State left")
 
 func _state_process(_delta) -> void:

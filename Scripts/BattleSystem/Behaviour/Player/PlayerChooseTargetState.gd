@@ -12,7 +12,7 @@ var last_selected_index := 0
 @onready var frelook_camera := battle_state.top_down_player.get_node("TopDownPlayerPivot/SpringArm3D/TopDownCamera") as Camera3D
 
 func _ready() -> void:
-    BattleSignalBus.BattleEnded.connect(_on_battle_ended)
+    BattleSignalBus.OnBattleEnded.connect(_on_battle_ended)
     battle_state.turn_order_ui.connect("item_selected", _select)
 
 func _on_battle_ended() -> void:

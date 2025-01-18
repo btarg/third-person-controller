@@ -15,7 +15,7 @@ func _on_leave_battle() -> void:
 func enter() -> void:
     battle_state.available_actions = BattleEnums.EAvailableCombatActions.MOVING
     think_state.player_think_ui.show()
-    think_state.player_think_ui.set_text(false)
+    think_state.player_think_ui.set_text()
 
     print("[MOVE] " + battle_character.character_name + " is in the move state!")
     # Enable stick/WASD movement for the battle character

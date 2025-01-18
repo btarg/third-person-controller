@@ -242,11 +242,17 @@ func ready_next_turn() -> void:
         current_character_index = 0
 
     current_character = turn_order[current_character_index]
+
     # 0 turns left means the character is a new character
     if current_character.turns_left == 0:
         current_character.turns_left = 1
 
     top_down_player.focused_node = current_character.get_parent()
+    
+    # Select self at start of battle
+    if current_character.character_type == BattleEnums.ECharacterType.PLAYER:
+        player_selected_character = current_character
+
     BattleSignalBus.TurnStarted.emit(current_character)
 
 func exit() -> void:

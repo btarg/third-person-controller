@@ -274,6 +274,9 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
             else:
                 # Players are able to be revived once "dead"
                 behaviour_state_machine.set_state("DeadState")
+
+    # this is an autoload singleton
+    DamageNumberDisplay.display_damage_number(damage, result, self.get_parent(), battle_state.top_down_player.camera)
     return result
 
 func _calculate_crit_damage(attacker: BattleCharacter, damage: int) -> int:

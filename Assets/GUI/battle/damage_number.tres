@@ -1,0 +1,11 @@
+[gd_resource type="LabelSettings" load_steps=2 format=3 uid="uid://ctrfko2ofchdi"]
+
+[sub_resource type="FontVariation" id="FontVariation_qn542"]
+variation_transform = Transform2D(1, 0.375, 0, 1, 0, 0)
+
+[resource]
+font = SubResource("FontVariation_qn542")
+font_size = 80
+shadow_size = 0
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(6, 6)

@@ -10,11 +10,15 @@ static func _quadratic_bezier(p0: Vector3, p1: Vector3, p2: Vector3, t: float) -
     var r := q0.lerp(q1, t)
     return r
 
+static func get_viewport_center(cam: Camera3D) -> Vector2:
+    var viewport := cam.get_viewport()
+    return Vector2(viewport.get_visible_rect().size.x / 2, viewport.get_visible_rect().size.y / 2)
+
 ## Raycasts from the center of the screen on controller, or from the mouse position. Returns an intersect_ray dictionary
 static func raycast_from_center_or_mouse(cam: Camera3D, exclude: Array[RID] = []) -> Dictionary:
     # center the raycast origin position if using controller
     var viewport := cam.get_viewport()
-    var viewport_center := Vector2(viewport.get_visible_rect().size.x / 2, viewport.get_visible_rect().size.y / 2)
+    var viewport_center := get_viewport_center(cam)
     var raycast_start_pos := (viewport.get_mouse_position() if not ControllerHelper.is_using_controller
     else viewport_center)
 

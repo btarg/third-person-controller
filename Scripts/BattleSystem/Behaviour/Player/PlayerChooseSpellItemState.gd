@@ -49,10 +49,6 @@ func _choose_spell(spell: SpellItem) -> void:
     else:
         print("[SPELL/ITEM] Cannot use " + think_state.chosen_spell_or_item.item_name + " on " + battle_state.player_selected_character.character_name)
 
-func _end_targeting() -> void:
-    if active:
-        Transitioned.emit(self, "IdleState")
-        battle_state.ready_next_turn()
 func _back_to_think() -> void:
     if active:
         Transitioned.emit(self, "ThinkState")

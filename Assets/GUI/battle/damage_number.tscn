@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://6x2h4sv8jy5n"]
+
+[ext_resource type="Script" path="res://Scripts/GUI/damage_number.gd" id="1_alrig"]
+
+[node name="DamageNumber" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_alrig")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 0

@@ -21,7 +21,6 @@ signal inventory_updated(resource: BaseInventoryItem, count: int, is_new_item: b
 @onready var almighty_spell: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_almighty_spell.tres")
 
 func _ready() -> void:
-    Console.add_command("print_inventory", _print_inventory_command, 1)
     Console.add_command("set_junction", _set_junction_command, 3)
     Console.add_command("get_junction", _get_junctioned_stat, 2)
 
@@ -94,13 +93,14 @@ func _on_item_used(item_id: String, status: BaseInventoryItem.UseStatus) -> void
 func _generate_stat_modifier(spell_item: SpellItem, stat: CharacterStatEntry.ECharacterStat, value: float) -> StatModifier:
     var modifier: StatModifier = StatModifier.new()
     modifier.turn_duration = -1
+    modifier.apply_out_of_combat = true
     modifier.can_stack = true
     modifier.modifier_id = "junction_" + spell_item.item_id
     modifier.name = spell_item.item_name + " (Junction)"
     modifier.description = "Junction effect for " + spell_item.item_name
     
     modifier.stat = stat
-    modifier.is_multiplier = false
+    modifier.is_multiplier = false # Junctioned stats are additive
     modifier.stat_value = Util.round_to_dec(value, JUNCTION_DECIMAL_PLACES)
 
     return modifier
@@ -218,11 +218,6 @@ func get_item(item_id: String) -> BaseInventoryItem:
     if item_id as String in items:
         return items[item_id]["resource"] as BaseInventoryItem
     return null
-
-func _print_inventory_command(character_name: String) -> void:
-    if character_name != battle_character.character_internal_name:
-        return
-    print_inventory()
 
 func print_inventory() -> void:
     if not items.is_empty():

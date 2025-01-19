@@ -37,15 +37,19 @@ signal OnCharacterTurnStarted
 var character_active := false
 var initiative: int = 0
 
-# How many turns this character should be "down" for (when crit - ONE MORE system)
+## How many turns this character should be "down" for (when crit - ONE MORE system)
 var down_turns := 0
-# How many turns this character has left before moving to the next character in the turn order
+## How many turns this character has left before moving to the next character in the turn order
 var turns_left := 0
+
+## Used for effects like Silence
+var can_use_spells := true
 
 func _ready() -> void:
     print("%s internal name %s" % [character_name, character_internal_name])
 
     BattleSignalBus.OnTurnStarted.connect(_on_battle_turn_started)
+
     print(character_name + " CURRENT HP: " + str(current_hp))
 
     # TODO: set affinities in editor once typed dictionaries are supported in Godot 4.4
@@ -54,30 +58,32 @@ func _ready() -> void:
     elif character_internal_name == "Player":
         affinities = CharacterAffinities.affinities_test_player
 
-    Console.add_command("print_modifiers", _print_modifiers, 1)
-    Console.add_command("get_stat", _get_stat_command, 2)
-
-func _get_stat_command(character: String, stat_int_string: String) -> void:
-    
-    if character != character_internal_name:
-        return
-
+func print_stat(stat_int_string: String) -> void:
     var stat := int(stat_int_string) as CharacterStatEntry.ECharacterStat
     var stat_value := stats.get_stat(stat)
     Console.print_line("Stat %s: %s" % [Util.get_enum_name(CharacterStatEntry.ECharacterStat, stat), str(stat_value)])
 
-func _print_modifiers(character_to_print: String) -> void:
-    if character_to_print == character_internal_name:
-        if stats.stat_modifiers.size() == 0:
-            Console.print_line("No modifiers active")
-        else:
-            for modifier in stats.stat_modifiers:
-                var enum_name := Util.get_enum_name(CharacterStatEntry.ECharacterStat, modifier.stat)
-                Console.print_line(modifier.name + " - " + enum_name + ": " + str(modifier.stat_value))
+func print_modifiers() -> void:
+    if stats.stat_modifiers.size() == 0:
+        Console.print_line("No modifiers active")
+    else:
+        for modifier in stats.stat_modifiers:
+            var enum_name := Util.get_enum_name(CharacterStatEntry.ECharacterStat, modifier.stat)
+            var stat_value_string := "x" if modifier.is_multiplier else "+"
+            stat_value_string += str(modifier.stat_value)
+            Console.print_line(modifier.name + " - " + enum_name + ": " + stat_value_string, true)
+
+func on_join_battle() -> void:
+    # We can reset the silence effect here since all combat buffs/debuffs are reset anyway
+    can_use_spells = true
+    OnJoinBattle.emit()
 
 func on_leave_battle() -> void:
     character_name = default_character_name
     behaviour_state_machine.set_state("IdleState")
+
+    stats.reset_modifiers()
+    
     OnLeaveBattle.emit()
 
 func _on_battle_turn_started(character: BattleCharacter) -> void:
@@ -92,6 +98,8 @@ func start_turn() -> void:
     print("========")
     character_active = true
     OnCharacterTurnStarted.emit()
+
+    stats.active_modifiers_start_turn()
 
     if down_turns > 0:
         behaviour_state_machine.set_state("DownedState")

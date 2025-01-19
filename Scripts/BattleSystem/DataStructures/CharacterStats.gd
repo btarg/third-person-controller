@@ -1,11 +1,12 @@
 extends Node
 class_name CharacterStats
 
-
 @export var stats: Array[CharacterStatEntry] = []
 @export var stat_modifiers: Array[StatModifier] = []
 
 signal OnStatChanged(stat: CharacterStatEntry.ECharacterStat, new_value: float)
+
+@onready var this_character := self.get_parent() as BattleCharacter
 
 func add_stat_entry(entry: CharacterStatEntry) -> void:
     stats.append(entry)
@@ -31,8 +32,11 @@ func add_modifier(modifier: StatModifier) -> void:
         modifier_string += " (Additive)"
 
     print(modifier_string)
-    stat_modifiers.append(modifier)
+
+    # Modifiers now know which character they are applied to
+    modifier.character = this_character
     modifier.turns_left = modifier.turn_duration
+    stat_modifiers.append(modifier)
 
 ## Remove by the modifier ID (e.g. test_strength_modifier)
 func remove_modifier_by_id(id: String) -> void:
@@ -47,8 +51,11 @@ func remove_modifier_by_unqiue_id(unique: String) -> void:
             stat_modifiers.remove_at(i)
             break
 
-
 func remove_modifier(modifier: StatModifier) -> void:
+    if modifier is ActiveStatModifier:
+        var active_modifier := modifier as ActiveStatModifier
+        active_modifier.on_modifier_removed()
+
     stat_modifiers.erase(modifier)
 
 func update_modifier_by_unique_id(unique: String, new_value: float) -> void:
@@ -67,8 +74,25 @@ func update_modifiers() -> void:
         elif modifier.turns_left != -1: # -1 means infinite duration
             print("[Modifier] REMOVING MODIFIER: " + modifier.name)
             stat_modifiers.remove_at(i)
+
+            if modifier is ActiveStatModifier:
+                var active_modifier := modifier as ActiveStatModifier
+                active_modifier.on_modifier_removed()
+
         else:
             print("[Modifier] MODIFIER " + modifier.name + " HAS INFINITE DURATION")
+
+func active_modifiers_start_turn() -> void:
+    for modifier: StatModifier in stat_modifiers:
+        if modifier is ActiveStatModifier:
+            var active_modifier := modifier as ActiveStatModifier
+            active_modifier.on_turn_start()
+
+## Remove all modifiers that are not supposed to be applied out of combat
+func reset_modifiers() -> void:
+    for modifier: StatModifier in stat_modifiers:
+        if not modifier.apply_out_of_combat:
+            stat_modifiers.erase(modifier)
 
 func get_stat(stat: CharacterStatEntry.ECharacterStat, with_modifiers: bool = true) -> float:
     # return stat with multipliers applied and stack multipliers if they have the stack flag

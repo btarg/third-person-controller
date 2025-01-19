@@ -4,7 +4,7 @@ class_name BattleState
 
 var turn_order: Array[BattleCharacter] = []
 
-# get player from group
+# get exploration player
 @onready var player := get_tree().get_nodes_in_group("Player").front() as PlayerController
 # top down player is used for the camera in battle
 @onready var top_down_player := get_tree().get_nodes_in_group("TopDownPlayer").front() as TopDownPlayerController
@@ -69,7 +69,64 @@ func _ready() -> void:
     Console.add_command("remove", _command_remove_selected)
 
     Console.add_command("set_dmg_element", _command_set_dmg_element, 1)
+
+    Console.add_command("print_modifiers", _print_modifiers_command, 1)
+    Console.add_command("print_stat", _print_stat_command, 1)
+    Console.add_command("print_inventory", _print_inventory_command, 1)
+
+    Console.add_command("add_modifier", _add_modifier_command, 2)
+
+    current_character = player.battle_character
+    player_selected_character = current_character
+
+func _print_inventory_command(character_name: String) -> void:
+    Console.print_line("Inventory for %s\n====" % [character_name], true)
+    for character in player_units:
+        if character.character_internal_name.to_lower() == character_name.to_lower():
+            character.inventory.print_inventory()
+            Console.print_line("====", true)
+            return
+    Console.print_line("No character found with name %s" % [character_name])
     
+func _add_modifier_command(char_name: String, modifier_name: String) -> void:
+    var modifier_path := "res://Scripts/Data/StatModifiers/%s.tres" % modifier_name
+    var resource = load(modifier_path)
+    if not resource:
+        Console.print_line("Modifier not found at path:")
+        Console.print_line(modifier_path)
+        return
+
+    var target_char: BattleCharacter = null
+    for c in turn_order:
+        if c.character_internal_name.to_lower() == char_name.to_lower():
+            target_char = c
+            break
+    if not target_char:
+        Console.print_line("Character not found: %s" % char_name)
+        return
+
+    target_char.stats.add_modifier(resource as StatModifier)
+    Console.print_line("Added %s to %s" % [modifier_name, target_char.character_name])
+
+func _print_stat_command(stat_int_string: String) -> void:
+    if player_selected_character:
+        player_selected_character.print_stat(stat_int_string)
+
+func _print_modifiers_command(char_name: String = "") -> void:
+    if char_name.is_empty():
+        if player_selected_character:
+            Console.print_line("Modifiers for %s" % [player_selected_character.character_name], true)
+            player_selected_character.print_modifiers()
+        else:
+            Console.print_line("No current character", true)
+    else:
+        for c in turn_order:
+            if c.character_internal_name.to_lower() == char_name.to_lower():
+                Console.print_line("Modifiers for %s" % [c.character_name], true)
+                c.print_modifiers()
+                return
+        Console.print_line("No character found with name %s" % [char_name], true)
+
 func force_exit_battle() -> void:
     Transitioned.emit(self, "ExplorationState")
 
@@ -107,7 +164,6 @@ var is_in_battle : bool = false:
 
 func add_to_battle(character: BattleCharacter) -> void:
     if not active:
-        print("Inactive")
         return
 
     var character_name := character.character_name
@@ -158,7 +214,7 @@ func add_to_battle(character: BattleCharacter) -> void:
 
     print(character_name + " entered the battle with initiative " + str(character.initiative))
 
-    character.OnJoinBattle.emit()
+    character.on_join_battle()
 
 func _add_to_turn_order_ui(character: BattleCharacter) -> void:
     turn_order_ui.add_item(character.character_name + " - " + str(character.initiative), null, true)

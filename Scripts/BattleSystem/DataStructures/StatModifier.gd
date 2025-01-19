@@ -18,7 +18,12 @@ var turns_left: int = turn_duration
 ## (This only applies to non-stackable modifiers)
 @export var stack_override: bool = false
 
+## This modifier does not reset on combat end
+@export var apply_out_of_combat: bool = false
+
 var modifier_active: bool = true
+## The character this modifier is applied to
+var character: BattleCharacter = null
 
 # A unique ID for each instance
 var unique_id: String = ""

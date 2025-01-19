@@ -30,23 +30,23 @@
 - Movement
     - [x] In-battle player movement state
     - [x] Movement in metres as a stat (speed)
-    - [x] Pathfinding for players
     - [ ] Pathfinding for enemies
-    - [ ] Stuck detection
+    - [x] Pathfinding stuck detection
 - Spells and items
     - [x] Spells, attacks etc. can have a radius for targets (range)
         - [ ] Draw the radius visually around the player
 - UI/UX
     - [ ] Victory screen / game over screen
     - [ ] Pause menu with options to save, load, quit, etc.
-    - [ ] health bars for each player character
-    - [ ] UI for choosing which enemies to attack
+    - [ ] Health bars for each player character
+    - [x] UI for choosing which enemies to attack
     - [ ] UI for choosing spells
     - [ ] UI for choosing what to draw
         - [ ] UI for choosing whether to stock or cast a draw
     - [ ] UI for choosing junctioned items
     - [ ] UI for inventory: able to use items out of combat (e.g. healing potions/spells)
-    - [ ] Damage numbers and other hit feedback
+    - [x] Damage numbers
+        - [ ] Further hit feedback
     - [x] Target line UI
 - Visuals
     - [ ] Animated characters

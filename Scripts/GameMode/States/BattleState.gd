@@ -85,7 +85,7 @@ func _ready() -> void:
 
 func _print_inventory_command(character_name: String) -> void:
     Console.print_line("Inventory for %s\n====" % [character_name], true)
-    for character in player_units:
+    for character: BattleCharacter in get_tree().get_nodes_in_group("BattleCharacter"):
         if character.character_internal_name.to_lower() == character_name.to_lower():
             character.inventory.print_inventory()
             Console.print_line("====", true)
@@ -124,7 +124,7 @@ func _print_modifiers_command(char_name: String = "") -> void:
         else:
             Console.print_line("No current character", true)
     else:
-        for c in turn_order:
+        for c: BattleCharacter in get_tree().get_nodes_in_group("BattleCharacter"):
             if c.character_internal_name.to_lower() == char_name.to_lower():
                 Console.print_line("Modifiers for %s" % [c.character_name], true)
                 c.print_modifiers()

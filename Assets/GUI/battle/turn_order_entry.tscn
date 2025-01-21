@@ -5,11 +5,13 @@
 
 [node name="TurnOrderEntry" type="VBoxContainer"]
 focus_mode = 2
+mouse_filter = 0
 mouse_default_cursor_shape = 2
 script = ExtResource("1_gv8dp")
 
 [node name="TextureRect" type="TextureRect" parent="."]
 layout_mode = 2
+mouse_filter = 2
 texture = ExtResource("1_amy6w")
 
 [node name="Label" type="Label" parent="."]

@@ -13,6 +13,7 @@ radius = 0.2
 height = 1.2
 
 [node name="TopDownPlayer" type="CharacterBody3D" groups=["TopDownPlayer"]]
+collision_layer = 0
 script = ExtResource("1_2afxu")
 
 [node name="TopDownPlayerPivot" parent="." instance=ExtResource("2_cwmnp")]
@@ -36,4 +37,3 @@ enabled = null
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
 shape = SubResource("CapsuleShape3D_b8oc0")
-disabled = true

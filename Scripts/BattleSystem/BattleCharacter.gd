@@ -10,7 +10,7 @@ class_name BattleCharacter
 @export var affinities: Dictionary = {}
 @export var basic_attack_element: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS
 
-@export var debug_always_crit: bool = true
+@export var debug_always_crit: bool = false
 
 # TODO: replace this draw list for every character
 @export var draw_list: Array[SpellItem] = [

@@ -16,7 +16,13 @@ func _on_leave_battle() -> void:
 func enter() -> void:
     print(battle_character.character_name + " has %s HP" % battle_character.current_hp)
     print(battle_character.character_name + " is thinking about what to do")
-    await wait(0.75)
+
+    if battle_character.can_use_spells:
+        print(battle_character.character_name + " can use spells")
+    else:
+        print(battle_character.character_name + " cannot use spells")
+
+    await wait(1)
 
     _stop_thinking()
     battle_character.battle_state.ready_next_turn()

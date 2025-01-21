@@ -17,7 +17,9 @@ enum EAffinityElement {
     DARK,
     HEAL,
     MANA,
-    ALMIGHTY
+    ALMIGHTY,
+    BUFF,
+    DEBUFF
 }
 # TODO: Add more object types, e.g. doors or buttons that can be used in combat
 enum EAvailableCombatActions {

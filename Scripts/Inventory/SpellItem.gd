@@ -1,6 +1,10 @@
 class_name SpellItem extends BaseInventoryItem
 
+@export_group("Spell")
 @export var spell_affinity := BattleEnums.EAffinityElement.FIRE
+## The set modifier only applies if the affinity is a buff or debuff
+@export var modifier: StatModifier
+
 
 @export_group("Dice Roll Settings")
 @export_range(4, 100) var die_sides: int = 20
@@ -26,7 +30,7 @@ class_name SpellItem extends BaseInventoryItem
 @export var junction_table = {
     CharacterStatEntry.ECharacterStat.MaxHP: 2.0,
     CharacterStatEntry.ECharacterStat.Strength: 1.005,
-}
+} 
 
 func get_icon_path() -> String:
     var icon_path := "res://Assets/Icons/elements/"
@@ -80,6 +84,16 @@ func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
             print("[SPELL] %s restored %s MP to %s" % [item_name, spell_power, target.character_name])
             # TODO: Mana restoration
             spell_use_status = UseStatus.SPELL_SUCCESS
+
+        BattleEnums.EAffinityElement.BUFF,\
+        BattleEnums.EAffinityElement.DEBUFF:
+            
+            if modifier and spell_use_status in [UseStatus.SPELL_SUCCESS, UseStatus.SPELL_CRIT_SUCCESS]:
+                print("[MODIFIER] %s applied %s to %s" % [item_name, spell_power, target.character_name])
+                target.stats.add_modifier(modifier)
+            else:
+                print("[MODIFIER] %s failed to apply %s to %s" % [item_name, spell_power, target.character_name])
+
 
         # other spell affinities deal damage
         _:

@@ -69,6 +69,6 @@ func _state_input(event: InputEvent) -> void:
     elif (event.is_action_pressed("combat_spellitem")
     or event.is_action_pressed("combat_attack")):
         # TODO: use UI for choosing spells
-        _choose_spell(think_state.heal_spell)
+        _choose_spell(think_state.silence_spell)
 
 func _state_unhandled_input(_event: InputEvent) -> void: pass

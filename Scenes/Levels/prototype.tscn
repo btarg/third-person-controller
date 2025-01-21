@@ -112,13 +112,13 @@ shadow_enabled = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.489686, 0, 9.35357)
 
 [node name="Player" parent="." instance=ExtResource("2_1g73n")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.0888, 1.19209e-07, 5.2839)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.833585, 1.19209e-07, 5.2839)
 
 [node name="TestAlly" parent="." instance=ExtResource("7_kmrsy")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.46547, 0, -0.0160208)
 
 [node name="TestEnemy" parent="." instance=ExtResource("7_i4kkb")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.14488, 2.38419e-07, 0.858169)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.48184, 2.38419e-07, 3.20272)
 
 [node name="CSGBox3D" type="CSGBox3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.8996, 0, 12.5181)

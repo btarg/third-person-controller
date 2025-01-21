@@ -97,3 +97,4 @@ script = ExtResource("10_l7i33")
 [node name="CharacterStats" type="Node" parent="."]
 script = ExtResource("9_pe6mx")
 stats = Array[ExtResource("10_8eke6")]([SubResource("Resource_5m16x"), SubResource("Resource_4w5ru"), SubResource("Resource_xokjm"), SubResource("Resource_d7f32"), SubResource("Resource_b0cr8"), SubResource("Resource_g1ejn"), SubResource("Resource_q0f4k"), SubResource("Resource_3wxh5"), SubResource("Resource_r04hq"), SubResource("Resource_tab8j")])
+stat_modifiers = null

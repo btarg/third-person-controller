@@ -46,7 +46,8 @@
     - [ ] UI for choosing junctioned items
     - [ ] UI for inventory: able to use items out of combat (e.g. healing potions/spells)
     - [x] Damage numbers
-        - [ ] Further hit feedback
+        - [ ] Change colours for healing
+        - [ ] Further hit feedback - BLOCK, DRAIN etc
     - [x] Target line UI
 - Visuals
     - [ ] Animated characters

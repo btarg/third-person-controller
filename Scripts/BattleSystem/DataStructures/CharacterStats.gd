@@ -24,9 +24,11 @@ func add_or_update_modifier(modifier: StatModifier) -> void:
     add_modifier(modifier)
 
 func add_modifier(modifier: StatModifier) -> void:
+    
     var modifier_string := "[Modifier] ADDING MODIFIER: " + modifier.name + " WITH VALUE: " + str(modifier.stat_value)
-
-    if modifier.is_multiplier:
+    if modifier.stat == CharacterStatEntry.ECharacterStat.NONE:
+        modifier_string += " (No stat)"
+    elif modifier.is_multiplier:
         modifier_string += " (Multiplier)"
     else:
         modifier_string += " (Additive)"
@@ -37,6 +39,10 @@ func add_modifier(modifier: StatModifier) -> void:
     modifier.character = this_character
     modifier.turns_left = modifier.turn_duration
     stat_modifiers.append(modifier)
+
+    if modifier is ActiveStatModifier:
+        var active_modifier := modifier as ActiveStatModifier
+        active_modifier.on_modifier_applied()
 
 ## Remove by the modifier ID (e.g. test_strength_modifier)
 func remove_modifier_by_id(id: String) -> void:

@@ -30,7 +30,6 @@ class_name BattleCharacter
 # The third person player controller extends from the BattleCharacterController to make this possible
 @onready var character_controller := get_parent() as BattleCharacterController
 
-signal OnJoinBattle
 signal OnLeaveBattle
 signal OnCharacterTurnStarted
 
@@ -76,7 +75,7 @@ func print_modifiers() -> void:
 func on_join_battle() -> void:
     # We can reset the silence effect here since all combat buffs/debuffs are reset anyway
     can_use_spells = true
-    OnJoinBattle.emit()
+    BattleSignalBus.OnCharacterJoinedBattle.emit(self)
 
 func on_leave_battle() -> void:
     character_name = default_character_name

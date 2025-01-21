@@ -152,7 +152,7 @@ func _state_physics_process(_delta: float) -> void:
 
     var character := children.front() as BattleCharacter
     if character:
-        battle_state.player_selected_character = character
+        battle_state.select_character(character, false)
     else:
         battle_state.player_selected_character = null
 
@@ -162,10 +162,10 @@ func _on_movement_finished() -> void:
     # Disconnect ourselves to prevent multiple connections
     battle_state.current_character.character_controller.OnMovementFinished.disconnect(_on_movement_finished)
 
-    battle_state.player_selected_character = battle_state.current_character
+    battle_state.select_character(battle_state.current_character)
     player_think_ui.set_text()
 
-func _state_input(event: InputEvent) -> void:
+func _state_unhandled_input(event: InputEvent) -> void:
 
     if ((not battle_state.player_selected_character)
     or battle_state.available_actions == BattleEnums.EAvailableCombatActions.NONE):
@@ -209,7 +209,7 @@ func _state_input(event: InputEvent) -> void:
         # Select self if no other character is selected before handling a button press
         if (battle_state.player_selected_character == null
         and battle_character):
-            battle_state.player_selected_character = battle_character
+            battle_state.select_character(battle_character)
         # Don't allow selecting self if moving
         if (battle_character.character_controller.is_moving()
         or battle_state.player_selected_character.character_controller.is_moving()):
@@ -231,4 +231,4 @@ func _state_input(event: InputEvent) -> void:
     
 
 
-func _state_unhandled_input(_event: InputEvent) -> void: pass
+func _state_input(_event: InputEvent) -> void: pass

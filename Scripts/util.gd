@@ -3,6 +3,11 @@ class_name Util
 static func print_rainbow(text: String) -> void:
     print_rich("[rainbow freq=1.0 sat=0.8 val=0.8]%s[/rainbow]" % text)
 
+static func get_relative_path_from_root(file_path: String) -> String:
+    return ProjectSettings.globalize_path("res://".path_join(file_path)
+    if OS.has_feature("editor")
+    else OS.get_executable_path().get_base_dir().path_join(file_path))
+
 ## Calculates a quadratic bezier curve
 static func _quadratic_bezier(p0: Vector3, p1: Vector3, p2: Vector3, t: float) -> Vector3:
     var q0 := p0.lerp(p1, t)

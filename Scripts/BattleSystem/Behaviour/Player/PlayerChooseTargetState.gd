@@ -13,7 +13,6 @@ var last_selected_index := 0
 
 func _ready() -> void:
     BattleSignalBus.OnBattleEnded.connect(_on_battle_ended)
-    battle_state.turn_order_ui.connect("item_selected", _select)
 
 func _on_battle_ended() -> void:
     # return to the default idle state
@@ -21,15 +20,6 @@ func _on_battle_ended() -> void:
         Transitioned.emit(self, "IdleState")
     else:
         exit()
-
-
-func _select(index: int) -> void:
-    if not active:
-        return
-    var selected_character: BattleCharacter = battle_state.turn_order[index]
-    print("Selecting index: " + str(index))
-    print("Selecting: " + selected_character.character_name)
-    select_character(selected_character)
 
 
 func select_character(character: BattleCharacter) -> void:
@@ -45,7 +35,7 @@ func select_character(character: BattleCharacter) -> void:
     cleanup_line_renderers()
 
     if success:
-        battle_state.player_selected_character = character
+        battle_state.select_character(character)
 
         match think_state.chosen_action:
             BattleEnums.EPlayerCombatAction.CA_ATTACK:
@@ -64,10 +54,8 @@ func select_character(character: BattleCharacter) -> void:
         # Set the focused node to the selected character
         battle_state.top_down_player.focused_node = character.get_parent()
 
-        last_selected_index = battle_state.turn_order.find(character)
         var selected_self := character == battle_state.current_character
         if not selected_self:
-
 
             line_target_character = character
             line_current_character = battle_state.current_character
@@ -88,24 +76,13 @@ func enter() -> void:
     _can_select_enemies = selection.can_select_enemies
     _can_select_allies = selection.can_select_allies
 
-    # print("Player is choosing a target")
-    # battle_state.turn_order_ui.show()
-    # battle_state.turn_order_ui.grab_focus()
-
-    if not battle_state.player_selected_character:
-        _select(last_selected_index)
-    else:
-        last_selected_index = battle_state.turn_order.find(battle_state.player_selected_character)
-        select_character(battle_state.player_selected_character)
-
-    # battle_state.turn_order_ui.select(last_selected_index)
+    select_character(battle_state.player_selected_character)
     
     battle_state.selected_target_label.show()
 
 
 func exit() -> void:
     print("Exiting target selection")
-    battle_state.turn_order_ui.hide()
     battle_state.selected_target_label.hide()
     super.exit()
 

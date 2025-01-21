@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://bo1r6ikg415qk"]
+[gd_scene load_steps=4 format=3 uid="uid://bo1r6ikg415qk"]
 
 [ext_resource type="Script" path="res://Assets/GUI/battle/target_select_button_hint_label.gd" id="1_a2jv0"]
+[ext_resource type="Script" path="res://Scripts/GUI/TurnOrderContainer.gd" id="2_s0886"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_y02v7"]
 font_size = 36
@@ -16,35 +17,41 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
 
-[node name="ItemList" type="ItemList" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_top = -227.0
-offset_right = 229.0
-grow_vertical = 0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -248.0
+offset_right = 264.0
+offset_bottom = 128.0
+grow_horizontal = 2
+script = ExtResource("2_s0886")
 
 [node name="SelectedEnemyLabel" type="Label" parent="."]
-layout_mode = 0
-offset_left = 232.0
-offset_top = 589.0
-offset_right = 1144.0
-offset_bottom = 639.0
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -136.0
+offset_top = 160.0
+offset_right = 144.0
+offset_bottom = 210.0
+grow_horizontal = 2
 mouse_filter = 1
-text = "Hello world"
+text = "Placeholder"
 label_settings = SubResource("LabelSettings_y02v7")
+horizontal_alignment = 1
 
 [node name="ButtonHintLabel" type="RichTextLabel" parent="SelectedEnemyLabel"]
 layout_mode = 1
-anchors_preset = -1
-anchor_right = 0.022
-offset_left = -232.0
-offset_top = -589.0
-offset_right = 68.936
-offset_bottom = -470.0
-mouse_filter = 1
+offset_left = -440.0
+offset_top = -160.0
+offset_right = -56.0
+offset_bottom = 224.0
+mouse_filter = 2
 bbcode_enabled = true
 text = "A: Attack
-B: Cancel"
+B: Cancel
+C:"
 script = ExtResource("1_a2jv0")

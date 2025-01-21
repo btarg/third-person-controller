@@ -37,7 +37,7 @@ func exit() -> void:
     battle_state.top_down_player.allow_moving_focus = true
 
     battle_state.available_actions = BattleEnums.EAvailableCombatActions.GROUND
-    battle_state.player_selected_character = battle_state.current_character
+    battle_state.select_character(battle_state.current_character, true)
     think_state.player_think_ui.set_text()
 
 

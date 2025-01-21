@@ -20,6 +20,8 @@ var current_character_index: int = 0
 var current_character: BattleCharacter
 var _last_available_actions := BattleEnums.EAvailableCombatActions.NONE
 
+var turns_played := -1
+
 var available_actions : BattleEnums.EAvailableCombatActions = BattleEnums.EAvailableCombatActions.SELF:
     get:
         return available_actions
@@ -52,13 +54,15 @@ var player_selected_character : BattleCharacter:
         elif character.character_type == BattleEnums.ECharacterType.ENEMY:
             available_actions = BattleEnums.EAvailableCombatActions.ENEMY
         
+        # print("Selected character: " + character.character_name)
 
-
-@onready var turn_order_ui := get_node_or_null("ChooseTargetUI/ItemList") as ItemList
+@onready var turn_order_ui := get_node_or_null("ChooseTargetUI") as TurnOrderContainer
 @onready var selected_target_label := get_node_or_null("ChooseTargetUI/SelectedEnemyLabel") as Label
 
 func _ready() -> void:
-    turn_order_ui.hide()
+    if not player:
+        return
+
     selected_target_label.hide()
 
     Console.add_command("exit_battle", force_exit_battle)
@@ -173,7 +177,6 @@ func add_to_battle(character: BattleCharacter) -> void:
         return
 
     var initiative := character.roll_initiative()
-    turn_order_ui.clear()
     if turn_order.size() == 0:
         # First character entering the battle, just append
         turn_order.append(character)
@@ -208,22 +211,9 @@ func add_to_battle(character: BattleCharacter) -> void:
     elif character.character_type == BattleEnums.ECharacterType.ENEMY:
         enemy_units.append(character)
 
-    # add the sorted turn order to the UI
-    for c: BattleCharacter in turn_order:
-        _add_to_turn_order_ui(c)
-
     print(character_name + " entered the battle with initiative " + str(character.initiative))
 
     character.on_join_battle()
-
-func _add_to_turn_order_ui(character: BattleCharacter) -> void:
-    turn_order_ui.add_item(character.character_name + " - " + str(character.initiative), null, true)
-
-func _remove_from_turn_order_ui(character: BattleCharacter) -> void:
-    for i in range(turn_order_ui.get_item_count()):
-        if turn_order_ui.get_item_text(i) == character.character_name + " - " + str(character.initiative):
-            turn_order_ui.remove_item(i)
-            break
             
 
 func leave_battle(character: BattleCharacter, do_result_check: bool = true) -> void:
@@ -237,7 +227,6 @@ func leave_battle(character: BattleCharacter, do_result_check: bool = true) -> v
         player_units.erase(character)
 
     turn_order.erase(character)
-    _remove_from_turn_order_ui(character)
 
     character_counts.erase(character.character_name)
 
@@ -256,6 +245,9 @@ func leave_battle(character: BattleCharacter, do_result_check: bool = true) -> v
             Transitioned.emit(self, "BattleVictoryState")
 
 func enter() -> void:
+    # ready_next_turn() will increment this to 1
+    turns_played = -1
+
     for child in get_tree().get_nodes_in_group("BattleCharacter"):
         if child is BattleCharacter:
             add_to_battle(child as BattleCharacter)
@@ -273,6 +265,7 @@ func enter() -> void:
     # Start the first character's turn
     current_character_index = -1
     ready_next_turn()
+    BattleSignalBus.OnBattleStarted.emit()
 
 func ready_next_turn() -> void:
     if not active:
@@ -298,18 +291,42 @@ func ready_next_turn() -> void:
         current_character_index = 0
 
     current_character = turn_order[current_character_index]
+    _focus_character(current_character)
 
     # 0 turns left means the character is a new character
     if current_character.turns_left == 0:
         current_character.turns_left = 1
 
-    top_down_player.focused_node = current_character.get_parent()
-    
     # Select self at start of battle
     if current_character.character_type == BattleEnums.ECharacterType.PLAYER:
-        player_selected_character = current_character
+        select_character(current_character)
 
     BattleSignalBus.OnTurnStarted.emit(current_character)
+    turns_played += 1
+
+func select_character(character: BattleCharacter, focus_camera: bool = true) -> void:
+    if not active or not current_character:
+        return
+    if current_character.behaviour_state_machine.current_state.name not in ["IdleState", "ThinkState"]:
+        return
+    var last_selected := player_selected_character
+    player_selected_character = character
+
+    # If we're selecting the same character, don't fire the signal
+    if character == last_selected:
+        return
+
+    if focus_camera:
+        _focus_character(player_selected_character)
+
+    BattleSignalBus.OnCharacterSelected.emit(character)
+
+func _focus_character(focus_character: BattleCharacter) -> void:
+    if not focus_character:
+        return
+    top_down_player.focused_node = focus_character.get_parent()
+    if turns_played < 0:
+        top_down_player.teleport_to_focused_node()
 
 func exit() -> void:
     for character in turn_order:
@@ -317,8 +334,6 @@ func exit() -> void:
         leave_battle(character, false)
     turn_order.clear()
     current_character_index = 0
-
-    turn_order_ui.clear()
 
     player_units.clear()
     enemy_units.clear()

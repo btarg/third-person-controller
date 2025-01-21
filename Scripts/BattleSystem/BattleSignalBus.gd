@@ -2,7 +2,14 @@ extends Node
 
 # Battle system
 @warning_ignore("UNUSED_SIGNAL")
+signal OnCharacterJoinedBattle(character: BattleCharacter)
+
+@warning_ignore("UNUSED_SIGNAL")
 signal OnTurnStarted(character: BattleCharacter)
+@warning_ignore("UNUSED_SIGNAL")
+signal OnCharacterSelected(character: BattleCharacter)
+@warning_ignore("UNUSED_SIGNAL")
+signal OnBattleStarted
 @warning_ignore("UNUSED_SIGNAL")
 signal OnBattleEnded
 

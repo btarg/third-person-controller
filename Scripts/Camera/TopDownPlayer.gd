@@ -31,7 +31,14 @@ var enabled: bool:
         enabled = value
         spring_arm_pivot.enabled = enabled
 
-func player_process(delta) -> void:
+func teleport_to_focused_node() -> void:
+    print("Teleporting to focused node " + focused_node.name)
+    if focused_node:
+        set_global_position(focused_node.global_position)
+    else:
+        printerr("No focused node set!")
+
+func player_process(delta: float) -> void:
     if not enabled:
         return
 

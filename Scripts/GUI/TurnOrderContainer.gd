@@ -16,8 +16,10 @@ var _last_selected_entry: ClickableControl
 
 func _ready() -> void:
     BattleSignalBus.OnCharacterJoinedBattle.connect(add_entry)
+    BattleSignalBus.OnRevive.connect(add_entry)
     BattleSignalBus.OnCharacterSelected.connect(_on_character_selected)
     BattleSignalBus.OnBattleEnded.connect(clear_entries)
+    BattleSignalBus.OnDeath.connect(remove_entry)
 
 func focus_last_selected() -> void:
     if entries.size() <= 0 or not _last_selected_entry:

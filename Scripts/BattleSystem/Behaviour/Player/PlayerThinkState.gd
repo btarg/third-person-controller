@@ -76,6 +76,10 @@ func enter() -> void:
 
     player_think_ui.show()
     player_think_ui.set_text()
+
+    battle_state.turn_order_ui.show()
+    battle_state.turn_order_ui.focus_last_selected()
+
     print(battle_character.character_name + " is thinking about what to do")
 
     # remember last selected character
@@ -88,6 +92,7 @@ func enter() -> void:
 func exit() -> void:
     print(battle_character.character_name + " has stopped thinking")
     player_think_ui.hide()
+    battle_state.turn_order_ui.hide()
 
 
 func _process_radius_visual() -> void:

@@ -20,11 +20,14 @@ func enter() -> void:
 
     spell_ui.show()
 
+    print("Actions: " + Util.get_enum_name(BattleEnums.EAvailableCombatActions, battle_state.available_actions))
+
     # Only render line for enemies and allies
     if (battle_state.available_actions in 
     [BattleEnums.EAvailableCombatActions.NONE,
-    BattleEnums.EAvailableCombatActions.SELF,
-    BattleEnums.EAvailableCombatActions.GROUND]):
+    BattleEnums.EAvailableCombatActions.SELF]
+    or battle_state.player_selected_character == null
+    or battle_state.selected_self()):
         should_render_line = false
 
     else:

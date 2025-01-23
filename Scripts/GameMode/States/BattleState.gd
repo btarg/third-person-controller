@@ -54,9 +54,9 @@ var player_selected_character : BattleCharacter:
         elif character.character_type == BattleEnums.ECharacterType.ENEMY:
             available_actions = BattleEnums.EAvailableCombatActions.ENEMY
         
-        # print("Selected character: " + character.character_name)
+        print("Selected character: " + character.character_name)
 
-@onready var turn_order_ui := get_node_or_null("ChooseTargetUI") as TurnOrderContainer
+@onready var turn_order_ui := get_node_or_null("ChooseTargetUI/TurnOrderContainer") as TurnOrderContainer
 @onready var selected_target_label := get_node_or_null("ChooseTargetUI/SelectedEnemyLabel") as Label
 
 func _ready() -> void:
@@ -82,6 +82,8 @@ func _ready() -> void:
 
     current_character = player.battle_character
     player_selected_character = current_character
+
+    turn_order_ui.hide()
 
 func _print_inventory_command(character_name: String) -> void:
     Console.print_line("Inventory for %s\n====" % [character_name], true)
@@ -271,7 +273,7 @@ func ready_next_turn() -> void:
     if not active:
         return
 
-    player_selected_character = null
+    # player_selected_character = null
 
     if turn_order.size() < 2:
         # end battle
@@ -298,26 +300,27 @@ func ready_next_turn() -> void:
         current_character.turns_left = 1
 
     # Select self at start of battle
-    if current_character.character_type == BattleEnums.ECharacterType.PLAYER:
+    if (current_character.character_type == BattleEnums.ECharacterType.PLAYER
+    and not player_selected_character):
         select_character(current_character)
 
     BattleSignalBus.OnTurnStarted.emit(current_character)
     turns_played += 1
 
+    turn_order_ui.show()
+
 func select_character(character: BattleCharacter, focus_camera: bool = true) -> void:
     if not active or not current_character:
-        return
-    if current_character.behaviour_state_machine.current_state.name not in ["IdleState", "ThinkState"]:
         return
     var last_selected := player_selected_character
     player_selected_character = character
 
+    if focus_camera:
+        _focus_character(player_selected_character)
+
     # If we're selecting the same character, don't fire the signal
     if character == last_selected:
         return
-
-    if focus_camera:
-        _focus_character(player_selected_character)
 
     BattleSignalBus.OnCharacterSelected.emit(character)
 
@@ -385,6 +388,9 @@ func spawn_enemy() -> void:
     enemy_instance.global_position = player.global_position + Vector3(0, 0, 5)
     var enemy_battle_character := enemy_instance.get_node("BattleCharacter") as BattleCharacter
     add_to_battle(enemy_battle_character)
+
+func selected_self() -> bool:
+    return player_selected_character == current_character
 
 func _state_input(event: InputEvent) -> void:
     top_down_player.input_update_from_battle_state(event)

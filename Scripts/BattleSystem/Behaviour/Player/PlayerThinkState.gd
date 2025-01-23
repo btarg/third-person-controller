@@ -26,6 +26,8 @@ var chosen_action: BattleEnums.EPlayerCombatAction = BattleEnums.EPlayerCombatAc
 @onready var silence_spell := preload("res://Scripts/Inventory/Resources/Spells/silence_spell.tres") as BaseInventoryItem
 @onready var chosen_spell_or_item: BaseInventoryItem = silence_spell
 
+var _last_raycast_selected_character: BattleCharacter
+
 func _ready() -> void:
     Console.add_command("choose_item", _choose_item_command, 1)
 
@@ -131,11 +133,11 @@ func _state_physics_process(_delta: float) -> void:
 
     if battle_state.available_actions == BattleEnums.EAvailableCombatActions.NONE:
         return
-    
+
     var ray_result := Util.raycast_from_center_or_mouse(top_down_camera, [battle_state.top_down_player.get_rid()])
     if not ray_result:
         return
-    
+
     var position := Vector3.INF
     if ray_result.has("position"):
         position = (ray_result.position as Vector3)
@@ -156,10 +158,15 @@ func _state_physics_process(_delta: float) -> void:
         return
 
     var character := children.front() as BattleCharacter
-    if character:
-        battle_state.select_character(character, false)
-    else:
+
+    if not character:
         battle_state.player_selected_character = null
+        return
+    
+    if character != _last_raycast_selected_character:
+        battle_state.select_character(character, false)
+        
+        _last_raycast_selected_character = character
 
 func _state_process(_delta: float) -> void: pass
 

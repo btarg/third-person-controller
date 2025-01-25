@@ -8,7 +8,7 @@
 
 # TODO
 - Priority:
-    - [ ] Make camera collide with the world but not players/enemies
+    - [x] Make camera collide with the world but not players/enemies
     - [x] Fix movement bug 
     - [ ] Get basic UI visuals in place for player and enemy health bars
     - [ ] UI for dynamic combat choice system

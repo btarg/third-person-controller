@@ -6,7 +6,7 @@ enum ECharacterStat { ## Character Stat
     MaxSP, ## Integer
     Strength, ## Multiplier for physical damage when not resisted, absorbed, or immune (float 0-1)
     Defense, ## Used to reduce incoming damage of resisted affinities (float 0-1)
-    Evasion, ## Integer DC for the attacker to hit this character
+    ArmourClass, ## Integer DC for the attacker to hit this character
     Vitality, ## Integer bonus for initiative rolls
     AttackCritMultiplier, ## Multiplier for damage on crit (float 0-1)
     DrawBonus, ## Integer number of d4 rolls to add as a bonus to amount of spells drawn

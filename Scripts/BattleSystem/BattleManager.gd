@@ -14,9 +14,9 @@ static func process_basic_attack(attacker: BattleCharacter, target: BattleCharac
 
 
     print("%s attacks %s with %s!" % [attacker.character_name, target.character_name, Util.get_enum_name(BattleEnums.EAffinityElement, attacker.basic_attack_element)])
-    var evasion : float = target.stats.get_stat(CharacterStatEntry.ECharacterStat.Evasion)
-    print("[ATTACK] Evasion DC: " + str(evasion))
-    var attack_roll := DiceRoller.roll_dc(20, ceil(evasion), 1)
+    var AC : float = target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass)
+    print("[ATTACK] Armour class: " + str(AC))
+    var attack_roll := DiceRoller.roll_dc(20, ceil(AC), 1)
     print("[ATTACK] Attack Roll: " + str(attack_roll))
     var damage := DiceRoller.roll_flat(damage_roll_sides, num_damage_rolls, 0)
     print("[ATTACK] Damage Roll: " + str(damage))

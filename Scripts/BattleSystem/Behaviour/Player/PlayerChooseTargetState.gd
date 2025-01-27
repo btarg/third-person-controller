@@ -66,7 +66,7 @@ func select_character(character: BattleCharacter) -> void:
         should_render_line = false
 
         print("Cannot select " + character.character_name)
-        battle_state.player_selected_character = null
+        battle_state.select_character(null, false)
         battle_state.selected_target_label.text = "Select a target"
         last_selected_index = 0
 
@@ -153,4 +153,4 @@ func _state_unhandled_input(event: InputEvent) -> void:
             if character:
                 select_character(character)
             else:
-                battle_state.player_selected_character = null
+                battle_state.select_character(null, false)

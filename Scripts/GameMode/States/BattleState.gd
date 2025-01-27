@@ -83,7 +83,7 @@ func _ready() -> void:
     current_character = player.battle_character
     player_selected_character = current_character
 
-    turn_order_ui.hide()
+    # turn_order_ui.is_ui_active = false
 
 func _print_inventory_command(character_name: String) -> void:
     Console.print_line("Inventory for %s\n====" % [character_name], true)
@@ -307,7 +307,7 @@ func ready_next_turn() -> void:
     BattleSignalBus.OnTurnStarted.emit(current_character)
     turns_played += 1
 
-    turn_order_ui.show()
+    # turn_order_ui.is_ui_active = true
 
 func select_character(character: BattleCharacter, focus_camera: bool = true) -> void:
     if not active or not current_character:

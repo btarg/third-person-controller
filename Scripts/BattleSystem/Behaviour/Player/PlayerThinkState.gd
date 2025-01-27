@@ -79,8 +79,11 @@ func enter() -> void:
     player_think_ui.show()
     player_think_ui.set_text()
 
-    battle_state.turn_order_ui.show()
-    battle_state.turn_order_ui.focus_last_selected()
+    if battle_state.turn_order_ui.is_ui_active:
+        battle_state.turn_order_ui.is_ui_active = false
+
+    # battle_state.turn_order_ui.show()
+    # battle_state.turn_order_ui.focus_last_selected()
 
     print(battle_character.character_name + " is thinking about what to do")
 
@@ -131,7 +134,8 @@ func _process_radius_visual() -> void:
 
 func _state_physics_process(_delta: float) -> void:
 
-    if battle_state.available_actions == BattleEnums.EAvailableCombatActions.NONE:
+    if (battle_state.available_actions == BattleEnums.EAvailableCombatActions.NONE
+    or battle_state.turn_order_ui.is_ui_active):
         return
 
     var ray_result := Util.raycast_from_center_or_mouse(top_down_camera, [battle_state.top_down_player.get_rid()])
@@ -155,12 +159,13 @@ func _state_physics_process(_delta: float) -> void:
     var children := collider.find_children("BattleCharacter")
     if children.is_empty():
         battle_state.available_actions = BattleEnums.EAvailableCombatActions.GROUND
+        _last_raycast_selected_character = null
         return
 
     var character := children.front() as BattleCharacter
 
     if not character:
-        battle_state.player_selected_character = null
+        battle_state.select_character(null, false)
         return
     
     if character != _last_raycast_selected_character:

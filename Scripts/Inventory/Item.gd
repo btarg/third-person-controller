@@ -43,7 +43,7 @@ func _init(_item_name: String = "", _max_stack: int = 999) -> void:
     self.max_stack = _max_stack
 
 func get_icon_path() -> String:
-    var icon_path := "res://Assets/Icons/item_"
+    var icon_path := "res://Assets/GUI/Icons/Items/item_"
     icon_path += Util.get_enum_name(BaseInventoryItem.ItemType, item_type).to_lower()
     return icon_path + ".png"
 

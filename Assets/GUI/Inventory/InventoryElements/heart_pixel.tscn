@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://nycvn56qtnn5"]
+
+[ext_resource type="StyleBox" uid="uid://bg1k1ex33uahm" path="res://Assets/Themes/heart/pixel_red.tres" id="1_27tv0"]
+[ext_resource type="Script" path="res://Scripts/heart_pixel.gd" id="2_skqvr"]
+
+[node name="heart_pixel" type="Panel" groups=["HeartSegment"]]
+offset_right = 16.0
+offset_bottom = 16.0
+theme_override_styles/panel = ExtResource("1_27tv0")
+script = ExtResource("2_skqvr")

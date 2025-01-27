@@ -1,0 +1,126 @@
+[gd_scene load_steps=12 format=3 uid="uid://da3mueut4kujj"]
+
+[ext_resource type="Script" path="res://Assets/GUI/Inventory/InventoryElements/inventory_item_button_paint.gd" id="1_5oq8g"]
+[ext_resource type="Material" uid="uid://dehsw0w224ohy" path="res://Assets/GUI/Inventory/InventoryElements/paint/paint_shader.tres" id="1_fd8nq"]
+[ext_resource type="Texture2D" uid="uid://cx2jdlx2rnduf" path="res://Assets/GUI/Inventory/InventoryElements/paint.png" id="1_xo5lv"]
+[ext_resource type="FontFile" uid="uid://g7802j74catg" path="res://Assets/Fonts/Arsenal/Arsenal-BoldItalic.ttf" id="2_hy4mq"]
+[ext_resource type="Texture2D" uid="uid://dnetbcnu43gth" path="res://Assets/GUI/Icons/Items/elements/heal_element.png" id="3_s1jkr"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6cl4g"]
+bg_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 1024
+corner_radius_top_right = 1024
+corner_radius_bottom_right = 1024
+corner_radius_bottom_left = 1024
+
+[sub_resource type="FontVariation" id="FontVariation_uqxs6"]
+base_font = ExtResource("2_hy4mq")
+variation_embolden = 0.1
+variation_transform = Transform2D(1, 0.085, 0, 1, 0, 0)
+spacing_top = -10
+
+[sub_resource type="LabelSettings" id="LabelSettings_x5aap"]
+font = SubResource("FontVariation_uqxs6")
+font_size = 77
+
+[sub_resource type="FontVariation" id="FontVariation_km7ov"]
+base_font = ExtResource("2_hy4mq")
+
+[sub_resource type="LabelSettings" id="LabelSettings_l1tgf"]
+font = SubResource("FontVariation_km7ov")
+font_size = 77
+
+[sub_resource type="LabelSettings" id="LabelSettings_mjkk5"]
+font = ExtResource("2_hy4mq")
+font_size = 96
+font_color = Color(0, 0, 0, 1)
+
+[node name="InventoryButton" type="Control"]
+clip_contents = true
+custom_minimum_size = Vector2(384, 52)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -768.0
+offset_bottom = -596.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 1
+script = ExtResource("1_5oq8g")
+
+[node name="Paint" type="Sprite2D" parent="."]
+material = ExtResource("1_fd8nq")
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("1_xo5lv")
+centered = false
+
+[node name="CountBG" type="Panel" parent="Paint"]
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -360.0
+offset_top = -45.0
+offset_right = -76.0032
+offset_bottom = 38.9997
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_6cl4g")
+
+[node name="Label" type="Label" parent="Paint/CountBG"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -63.0
+offset_top = -50.0
+offset_right = 64.0
+offset_bottom = 47.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "069"
+label_settings = SubResource("LabelSettings_x5aap")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Label2" type="Label" parent="Paint/CountBG"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 20.0
+offset_top = -59.0
+offset_right = 56.0
+offset_bottom = 38.0
+grow_vertical = 2
+text = "x"
+label_settings = SubResource("LabelSettings_l1tgf")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ItemIcon" type="Sprite2D" parent="Paint"]
+texture_filter = 1
+texture_repeat = 1
+position = Vector2(170, 85)
+scale = Vector2(8, 8)
+texture = ExtResource("3_s1jkr")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Paint"]
+offset_left = 240.0
+offset_top = 23.0
+offset_right = 907.0
+offset_bottom = 144.0
+horizontal_scroll_mode = 3
+vertical_scroll_mode = 0
+
+[node name="Label" type="Label" parent="Paint/ScrollContainer"]
+custom_minimum_size = Vector2(630, 0)
+layout_mode = 2
+text = "Really long item name aaaaaaaaaaaa"
+label_settings = SubResource("LabelSettings_mjkk5")
+vertical_alignment = 1

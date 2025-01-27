@@ -1,0 +1,150 @@
+[gd_scene load_steps=5 format=3 uid="uid://d0mpnw21ahmc2"]
+
+[ext_resource type="Script" path="res://Scripts/heart_container.gd" id="1_nh4ph"]
+[ext_resource type="StyleBox" uid="uid://bg1k1ex33uahm" path="res://Assets/Themes/heart/pixel_red.tres" id="2_yp3ie"]
+[ext_resource type="PackedScene" uid="uid://cm4jd3mpblde0" path="res://Assets/UIElements/heart_no_grid.tscn" id="3_klkv1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ixdj2"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HeartContainerGrid" type="VBoxContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 64.0
+offset_top = 64.0
+offset_right = 400.0
+offset_bottom = 400.0
+alignment = 1
+script = ExtResource("1_nh4ph")
+
+[node name="1" type="HBoxContainer" parent="HeartContainerGrid"]
+layout_mode = 2
+alignment = 1
+
+[node name="1" type="Panel" parent="HeartContainerGrid/1" groups=["HeartSegment"]]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_yp3ie")
+
+[node name="Space" type="Panel" parent="HeartContainerGrid/1"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_ixdj2")
+
+[node name="2" type="Panel" parent="HeartContainerGrid/1" groups=["HeartSegment"]]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_yp3ie")
+
+[node name="2" type="HBoxContainer" parent="HeartContainerGrid"]
+layout_mode = 2
+alignment = 1
+
+[node name="3" type="Panel" parent="HeartContainerGrid/2" groups=["HeartSegment"]]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_yp3ie")
+
+[node name="4" type="Panel" parent="HeartContainerGrid/2" groups=["HeartSegment"]]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_yp3ie")
+
+[node name="5" type="Panel" parent="HeartContainerGrid/2" groups=["HeartSegment"]]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_yp3ie")
+
+[node name="6" type="Panel" parent="HeartContainerGrid/2" groups=["HeartSegment"]]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_yp3ie")
+
+[node name="7" type="Panel" parent="HeartContainerGrid/2" groups=["HeartSegment"]]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_yp3ie")
+
+[node name="3" type="HBoxContainer" parent="HeartContainerGrid"]
+layout_mode = 2
+alignment = 1
+
+[node name="8" type="Panel" parent="HeartContainerGrid/3" groups=["HeartSegment"]]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_yp3ie")
+
+[node name="9" type="Panel" parent="HeartContainerGrid/3" groups=["HeartSegment"]]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_yp3ie")
+
+[node name="10" type="Panel" parent="HeartContainerGrid/3" groups=["HeartSegment"]]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_yp3ie")
+
+[node name="11" type="Panel" parent="HeartContainerGrid/3" groups=["HeartSegment"]]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_yp3ie")
+
+[node name="12" type="Panel" parent="HeartContainerGrid/3" groups=["HeartSegment"]]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_yp3ie")
+
+[node name="4" type="HBoxContainer" parent="HeartContainerGrid"]
+layout_mode = 2
+alignment = 1
+
+[node name="13" type="Panel" parent="HeartContainerGrid/4" groups=["HeartSegment"]]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_yp3ie")
+
+[node name="14" type="Panel" parent="HeartContainerGrid/4" groups=["HeartSegment"]]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_yp3ie")
+
+[node name="15" type="Panel" parent="HeartContainerGrid/4" groups=["HeartSegment"]]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_yp3ie")
+
+[node name="5" type="HBoxContainer" parent="HeartContainerGrid"]
+layout_mode = 2
+alignment = 1
+
+[node name="16" type="Panel" parent="HeartContainerGrid/5" groups=["HeartSegment"]]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_yp3ie")
+
+[node name="HeartNoGrid" parent="." instance=ExtResource("3_klkv1")]
+layout_mode = 1
+position_offset = Vector2(-130, -64)
+
+[node name="HeartBackground" type="Polygon2D" parent="."]
+position = Vector2(0, -3.8147e-06)
+scale = Vector2(0.635, 0.635)
+color = Color(0, 0, 0, 1)
+offset = Vector2(-216.568, -150.191)
+antialiased = true
+polygon = PackedVector2Array(128.379, 36.8051, 216.568, 150.191, 110.872, 141.383, 52.7889, 162.789, -10.2032, 137.592, -73.1953, 124.994, -123.589, 87.1988, -98.3922, 24.2066, -85.7938, -38.7855, -10.2032, -63.9823, 52.7889, -38.7855, 103.183, -26.1871)
+
+[node name="Shadow" type="Polygon2D" parent="HeartBackground"]
+show_behind_parent = true
+position = Vector2(-4.72441, 3.14961)
+color = Color(1, 0.117647, 0.117647, 1)
+offset = Vector2(-216.568, -150.191)
+antialiased = true
+polygon = PackedVector2Array(128.379, 36.8051, 216.568, 150.191, 110.872, 141.383, 52.7889, 162.789, -10.2032, 137.592, -73.1953, 124.994, -123.589, 87.1988, -98.3922, 24.2066, -85.7938, -38.7855, -10.2032, -63.9823, 52.7889, -38.7855, 103.183, -26.1871)

@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://dehsw0w224ohy"]
+
+[ext_resource type="Shader" path="res://Assets/Shaders/paintbrush_wipe.gdshader" id="1_braow"]
+
+[resource]
+shader = ExtResource("1_braow")
+shader_parameter/progress = null
+shader_parameter/horizontal = true
+shader_parameter/color_overlay = false
+shader_parameter/target_color = Color(1, 0, 0, 1)
+shader_parameter/desired_alpha = 1.0
+shader_parameter/gradient_enabled = false
+shader_parameter/flip_wipe_direction = false

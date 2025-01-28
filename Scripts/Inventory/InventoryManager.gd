@@ -24,7 +24,7 @@ func _ready() -> void:
     Console.add_command("set_junction", _set_junction_command, 3)
     Console.add_command("get_junction", _get_junctioned_stat, 2)
 
-
+    # TODO: these won't work here, they need to be moved out to avoid re-registering
     Console.add_command("add_item_path", _add_item_command, 3)
     Console.add_command("remove_item_id", _remove_item_command, 3)
     

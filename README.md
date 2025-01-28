@@ -8,11 +8,12 @@
 
 # TODO
 - Priority:
+    - [ ] UI reacts to actual results of combat (`SR_ABSORB` should not be counted as a `SPELL_SUCCESS`)
     - [x] Make camera collide with the world but not players/enemies
     - [x] Fix movement bug 
     - [ ] Get basic UI visuals in place for player and enemy health bars
     - [ ] UI for dynamic combat choice system
-    - [ ] Basic visual feedback such as damage numbers and attack animations
+    - [x] Basic visual feedback such as damage numbers and attack animations
     - [ ] Implement basic form of enemy AI
     - [ ] Implement overworld to combat transitions
     - [ ] Implement junction UI
@@ -40,7 +41,7 @@
     - [ ] Pause menu with options to save, load, quit, etc.
     - [ ] Health bars for each player character
     - [x] UI for choosing which enemies to attack
-    - [ ] UI for choosing spells
+    - [x] UI for choosing spells
     - [ ] UI for choosing what to draw
         - [ ] UI for choosing whether to stock or cast a draw
     - [ ] UI for choosing junctioned items

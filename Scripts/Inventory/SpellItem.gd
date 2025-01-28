@@ -33,7 +33,7 @@ class_name SpellItem extends BaseInventoryItem
 } 
 
 func get_icon_path() -> String:
-    var icon_path := "res://Assets/Icons/elements/"
+    var icon_path := "res://Assets/GUI/Icons/Items/elements/"
     icon_path += Util.get_enum_name(BattleEnums.EAffinityElement, spell_affinity).to_lower()
     return icon_path + "_element.png"
 

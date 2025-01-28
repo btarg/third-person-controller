@@ -44,24 +44,32 @@ func _setup_labels(display_amount: int) -> void:
         BattleEnums.ESkillResult.SR_SUCCESS:
             match skill_element:
                 BattleEnums.EAffinityElement.HEAL:
-                    color = Color.AQUAMARINE
+                    color = Color.SPRING_GREEN
                 _:
                     color = Color.WHITE
         BattleEnums.ESkillResult.SR_CRITICAL:
-            color = Color.YELLOW
+            match skill_element:
+                BattleEnums.EAffinityElement.HEAL:
+                    color = Color.GREEN
+                _:
+                    color = Color.YELLOW
         BattleEnums.ESkillResult.SR_RESISTED:
             color = Color.GRAY
         BattleEnums.ESkillResult.SR_FAIL,\
         BattleEnums.ESkillResult.SR_IMMUNE:
-            # add a label for "miss"
-            display_string = "MISS".split("")
-            color = Color.GRAY
+            if skill_element != BattleEnums.EAffinityElement.HEAL:
+                # add a label for "miss", but not for healing spells
+                display_string = "MISS".split("")
+                color = Color.GRAY
+            else:
+                color = Color.AQUAMARINE
         BattleEnums.ESkillResult.SR_REFLECTED:
             # add a label for "reflect"
             display_string = "REFLECT".split("")
             color = Color.GRAY
         _:
-            # don't display anything
+            # ABSORB doesn't need a number, because we show the amount healed
+            # TODO: add a separate indicator for resisted, absorbed or blocked damage
             queue_free()
             return
 
@@ -75,6 +83,7 @@ func _setup_labels(display_amount: int) -> void:
 
         # create a new "target" node for the tween
         var target := Control.new()
+        target.mouse_filter = Control.MOUSE_FILTER_IGNORE
         target.custom_minimum_size = new_label.size
         container.add_child(target)
         labels.get_or_add(new_label, target)
@@ -82,6 +91,7 @@ func _setup_labels(display_amount: int) -> void:
     for label in labels:
         var target = labels.get(label)
         label.set_position(Vector2(target.position.x, target.position.y + 200))
+        label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
 func _animate_labels() -> void:
@@ -120,6 +130,7 @@ func _ready() -> void:
 
 static func create_damage_number(damage: int, element: BattleEnums.EAffinityElement, result: BattleEnums.ESkillResult, focus_node: Node3D, cam: Camera3D) -> DamageNumber:
     var damage_number := DamageNumber.new()
+    damage_number.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
     damage_number.track_node = focus_node
     damage_number.track_camera = cam

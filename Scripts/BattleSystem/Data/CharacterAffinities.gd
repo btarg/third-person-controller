@@ -7,7 +7,6 @@ static var affinities_test_enemy: Dictionary = {
     BattleEnums.EAffinityElement.FIRE: BattleEnums.EAffinityType.ABSORB,
     BattleEnums.EAffinityElement.ICE: BattleEnums.EAffinityType.WEAK,
     BattleEnums.EAffinityElement.ELEC: BattleEnums.EAffinityType.RESIST,
-    BattleEnums.EAffinityElement.WIND: BattleEnums.EAffinityType.WEAK,
 }
 # Player is ICE type
 static var affinities_test_player: Dictionary = {

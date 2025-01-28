@@ -53,8 +53,6 @@ var player_selected_character : BattleCharacter:
 
         elif character.character_type == BattleEnums.ECharacterType.ENEMY:
             available_actions = BattleEnums.EAvailableCombatActions.ENEMY
-        
-        print("Selected character: " + character.character_name)
 
 @onready var turn_order_ui := get_node_or_null("ChooseTargetUI/TurnOrderContainer") as TurnOrderContainer
 @onready var selected_target_label := get_node_or_null("ChooseTargetUI/SelectedEnemyLabel") as Label

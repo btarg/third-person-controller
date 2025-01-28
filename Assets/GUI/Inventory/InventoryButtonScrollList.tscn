@@ -116,7 +116,8 @@ offset_left = -8.96454e-05
 offset_top = 160.606
 offset_right = 952.0
 offset_bottom = 325.606
-text = "Difficulty class: 5"
+text = "Difficulty class: 5
+Lorem ipsum dolor"
 label_settings = SubResource("LabelSettings_s57a0")
 
 [node name="ButtonScrollMenu" type="Control" parent="."]

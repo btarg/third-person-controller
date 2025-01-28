@@ -7,15 +7,14 @@ class_name SpellItem extends BaseInventoryItem
 
 
 @export_group("Dice Roll Settings")
-@export_range(4, 100) var die_sides: int = 20
-@export_range(1, 10) var num_rolls: int = 1
-@export_range(1, 100) var difficulty_class: int = 10
-@export var crit_behaviour: DiceRoller.CritBehaviour = DiceRoller.CritBehaviour.CRIT_ON_ANY_NAT
+## The dice roll used to determine the item's power when used on a target. (This is not the attack roll!)
+@export var use_roll: DiceRoll = DiceRoll.create(8, 1)
 @export_group("Spell power settings")
 ## The base effectiveness of the spell.
 ## For healing spells, this means how much HP is healed on a regular success without modifiers.
 ## For damage spells, this means how much damage is dealt on a regular success without modifiers.
-@export var spell_power: int = 10
+@export var base_spell_power: int = 1
+var spell_power := base_spell_power
 ## The radius around the caster which targets need to be in to be affected by the spell.
 @export var spell_radius := 0
 @export var power_multiplier_success: float = 1.0
@@ -49,9 +48,9 @@ func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
 
     # don't calculate rolls if almighty
     if spell_affinity != BattleEnums.EAffinityElement.ALMIGHTY:
-        var result := DiceRoller.roll_dc(die_sides, difficulty_class, num_rolls, crit_behaviour)
-        print("[SPELL] Roll result for %s: %s" % [item_name, result])
-        dice_status = result.status as DiceRoller.DiceStatus        
+        var result := use_roll.roll_dc()
+        print("[SPELL] Roll result for %s (DC %s): %s" % [item_name, use_roll.difficulty_class, result])
+        dice_status = result.status as DiceRoller.DiceStatus
 
         print("[SPELL] %s used %s on %s" % [user.character_name, item_name, target.character_name])
 
@@ -77,12 +76,12 @@ func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
 
     match spell_affinity:
         BattleEnums.EAffinityElement.HEAL:
-            target.heal(spell_power)
-            spell_use_status = UseStatus.SPELL_SUCCESS
+            # spell use status is already set to success or fail
+            var heal_amount := use_roll.roll_flat()
+            target.heal(heal_amount, false, spell_use_status)
         BattleEnums.EAffinityElement.MANA:
             print("[SPELL] %s restored %s MP to %s" % [item_name, spell_power, target.character_name])
             # TODO: Mana restoration
-            spell_use_status = UseStatus.SPELL_SUCCESS
 
         BattleEnums.EAffinityElement.BUFF,\
         BattleEnums.EAffinityElement.DEBUFF:
@@ -93,13 +92,16 @@ func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
             else:
                 print("[MODIFIER] %s failed to apply %s to %s" % [item_name, spell_power, target.character_name])
 
-
         # other spell affinities deal damage
+        # take_damage() doesn't take a spell result, because we use it for basic attacks too
         _:
-            print("[SPELL] %s 's %s did %s damage to %s" % [user.character_name, item_name, spell_power, target.character_name])
-            var result := target.take_damage(user, spell_power, spell_affinity, dice_status)
-            spell_use_status = UseStatus.SPELL_SUCCESS
-            print("[SPELL] %s Result: %s" % [item_name, Util.get_enum_name(BattleEnums.ESkillResult, result)])
+            # TODO: attacks do damage based on an animation, not instantly
+            # TODO: calculate damage more randomly
+            target.take_damage(user, use_roll, spell_affinity, dice_status)
 
     item_used.emit(item_id, spell_use_status)
+
+    # FIX: don't keep stacking crits!
+    spell_power = base_spell_power
+
     return spell_use_status

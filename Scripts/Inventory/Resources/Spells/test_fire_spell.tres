@@ -5,11 +5,7 @@
 [resource]
 script = ExtResource("1_wvht2")
 spell_affinity = 1
-die_sides = 20
-num_rolls = 1
-difficulty_class = 10
-crit_behaviour = 0
-spell_power = 10
+base_spell_power = 1
 spell_radius = 0
 power_multiplier_success = 1.0
 power_multiplier_crit_success = 2.0

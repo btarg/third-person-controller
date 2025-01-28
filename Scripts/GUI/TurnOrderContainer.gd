@@ -91,7 +91,7 @@ func add_entry(entry_character: BattleCharacter) -> void:
         print("Max size reached")
         return
 
-    entry_character.OnLeaveBattle.connect(remove_entry)
+    entry_character.OnLeaveBattle.connect(remove_entry.bind(entry_character))
     var entry_instance := turn_order_entry.instantiate() as ClickableControl
     
     entries.append(entry_instance)

@@ -115,7 +115,7 @@ func roll_initiative() -> int:
     initiative = DiceRoller.roll_flat(20, 1) + vitality
     return initiative
 
-func heal(amount: int, from_absorb: bool = false) -> void:
+func heal(amount: int, from_absorb: bool = false, spell_status: BaseInventoryItem.UseStatus = BaseInventoryItem.UseStatus.SPELL_FAIL) -> void:
     var heal_string := "[HEAL] %s healed %s HP" % [character_name, str(amount)]
     if from_absorb:
         heal_string += " from ABSORB"
@@ -126,8 +126,17 @@ func heal(amount: int, from_absorb: bool = false) -> void:
         # We expect HP to be an int
         current_hp = ceili(max_hp)
 
+    var skill_result := BattleEnums.ESkillResult.SR_FAIL
+    match spell_status:
+        BaseInventoryItem.UseStatus.SPELL_SUCCESS:
+            skill_result = BattleEnums.ESkillResult.SR_SUCCESS
+        BaseInventoryItem.UseStatus.SPELL_CRIT_SUCCESS:
+            skill_result = BattleEnums.ESkillResult.SR_CRITICAL
+        BaseInventoryItem.UseStatus.SPELL_CRIT_FAIL:
+            skill_result = BattleEnums.ESkillResult.SR_FAIL
+
     var heal_number := DamageNumber.create_damage_number(
-        amount, BattleEnums.EAffinityElement.HEAL, BattleEnums.ESkillResult.SR_SUCCESS,
+        amount, BattleEnums.EAffinityElement.HEAL, skill_result,
         self.get_parent(),
         battle_state.top_down_player.camera)
     add_child(heal_number)
@@ -150,7 +159,11 @@ func award_turns(turns: int) -> void:
     print("[ONE MORE] " + character_name + " has been awarded " + str(turns) + " turns")
     BattleSignalBus.OnTurnsAwarded.emit(self, turns)
 
-func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoller.DiceStatus = DiceRoller.DiceStatus.ROLL_SUCCESS, reflected: bool = false) -> BattleEnums.ESkillResult:
+func take_damage(attacker: BattleCharacter, damage_roll: DiceRoll, damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoller.DiceStatus = DiceRoller.DiceStatus.ROLL_SUCCESS, reflected: bool = false) -> BattleEnums.ESkillResult:
+    # We've already decided whether we crit or not in the attack roll d20,
+    # so we roll flat for the attacks themselves
+    var damage := damage_roll.roll_flat()
+    
     if damage <= 0:
         print(character_name + " took no damage")
         return BattleEnums.ESkillResult.SR_FAIL
@@ -171,9 +184,12 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
 
     if debug_always_crit:
         affinity_type = BattleEnums.EAffinityType.WEAK
-    elif (not (affinity_type == BattleEnums.EAffinityType.IMMUNE
-    or affinity_type == BattleEnums.EAffinityType.ABSORB
-    or affinity_type == BattleEnums.EAffinityType.REFLECT)
+    
+    elif (affinity_type not in [
+    BattleEnums.EAffinityType.IMMUNE,
+    BattleEnums.EAffinityType.ABSORB,
+    BattleEnums.EAffinityType.REFLECT]
+
     and damage_type != BattleEnums.EAffinityElement.ALMIGHTY):
         # dice crits only apply to UNKNOWN, (generic) and RESIST affinities
         match dice_status:
@@ -213,7 +229,7 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
             else:
                 print(character_name + " reflected " + enum_string)
                 # Reflect damage back at attacker (true flag to prevent infinite loops)
-                attacker.take_damage(self, damage, damage_type, dice_status, true)
+                attacker.take_damage(self, damage_roll, damage_type, dice_status, true)
                 result = BattleEnums.ESkillResult.SR_REFLECTED
                 # Set damage to 0 so we don't apply it to the character who reflected
                 damage = 0
@@ -242,7 +258,7 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
         and damage_type != BattleEnums.EAffinityElement.ALMIGHTY):
             print(character_name + " absorbed " + enum_string)
             # Absorb damage and heal
-            heal(damage)
+            heal(damage, true)
             result = BattleEnums.ESkillResult.SR_ABSORBED
             damage = 0
 
@@ -266,7 +282,6 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
     if damage > 0:
         current_hp -= damage
         BattleSignalBus.OnTakeDamage.emit(self, damage)
-        print(character_name + " took " + str(damage) + " damage")
         if current_hp <= 0:
             current_hp = 0
             BattleSignalBus.OnDeath.emit(self)
@@ -282,6 +297,9 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
 
     var damage_number := DamageNumber.create_damage_number(damage, damage_type, result, self.get_parent(), battle_state.top_down_player.camera)
     add_child(damage_number)
+    
+    print("[DAMAGE] %s did %s damage to %s (%s)" % [attacker.character_name, damage, character_name, Util.get_enum_name(BattleEnums.ESkillResult, result)])
+    
     return result
 
 func _calculate_crit_damage(attacker: BattleCharacter, damage: int) -> int:
@@ -291,10 +309,10 @@ func _calculate_crit_damage(attacker: BattleCharacter, damage: int) -> int:
     print("[CRIT] Calculated damage: " + str(calculated_damage))
     return calculated_damage
     
-func _calculate_resist_damage(damage: int) -> int:
+func _calculate_resist_damage(initial_damage: int) -> int:
     # use defense stat to reduce damage
     var defense := stats.get_stat(CharacterStatEntry.ECharacterStat.Defense)
-    var calculated_damage := ceili(damage * (1.0 - defense))
-    print("[RESIST] Defense: " + str(defense))
-    print("[RESIST] Calculated damage: " + str(calculated_damage))
+    var calculated_damage := ceili(initial_damage * (1.0 - defense))
+    print("[RESIST] Defense: " + str(defense) + " (" + str(defense * 100) + "%)")
+    print("[RESIST] Calculated damage: %s (original: %s)" % [str(calculated_damage), initial_damage])
     return calculated_damage

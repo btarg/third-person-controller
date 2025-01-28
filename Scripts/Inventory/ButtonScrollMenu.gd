@@ -25,6 +25,9 @@ var button_spacing: int = -1
 @onready var scrollbar_visual := $ClipControl/ColorRect/scroll as ColorRect
 @onready var SCROLLBAR_BOTTOM := scrollbar_visual.position.y
 
+# Used for spells that don't have a proper icon
+@onready var placeholder_texture := preload("res://Assets/GUI/Icons/Items/item_misc.png") as Texture
+
 @onready var scroll_timer := Timer.new()
 @onready var hold_timer := Timer.new()
 
@@ -119,7 +122,7 @@ func _add_button(item: BaseInventoryItem, item_count: int) -> void:
     new_button.set_item_name(item.item_name)
 
     var tex := load(item.get_icon_path()) as Texture
-    new_button.set_item_icon(tex if tex else load("res://Assets/GUI/Icons/Items/item_misc.png") as Texture)
+    new_button.set_item_icon(tex if tex else placeholder_texture)
 
     item_button_map[item.item_id] = new_button
 
@@ -175,7 +178,7 @@ func update_labels() -> void:
                 continue
             description_label.text = item.item_description
             if item is SpellItem:
-                dc_label.text = "Difficulty class: %s" % str((item as SpellItem).difficulty_class)
+                dc_label.text = "Roll: %s" % str((item as SpellItem).use_roll.to_string())
             else:
                 dc_label.text = ""
 

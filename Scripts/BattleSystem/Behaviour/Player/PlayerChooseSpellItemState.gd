@@ -12,11 +12,6 @@ func _ready() -> void:
     spell_ui.hide()
 
 func enter() -> void:
-
-    spell_scroll_menu.item_inventory = battle_state.current_character.inventory
-    print("[SPELL/ITEM] " + str(battle_state.current_character.inventory.items.size()) + " items in inventory")
-    spell_ui.show()
-
     battle_state.top_down_player.allow_moving_focus = false
 
     # Only render line for enemies and allies
@@ -31,6 +26,14 @@ func enter() -> void:
         line_current_character = battle_state.current_character
         line_target_character = battle_state.player_selected_character
         should_render_line = true
+
+
+    spell_scroll_menu.item_inventory = battle_state.current_character.inventory.filter(func(item: BaseInventoryItem):
+        return item.can_use_on(battle_state.current_character, battle_state.player_selected_character)
+    )
+    spell_scroll_menu.update_labels()
+    spell_ui.show()
+    print("[SPELL/ITEM] " + str(battle_state.current_character.inventory.items.size()) + " items in inventory")
 
     battle_state.top_down_player.focused_node = battle_state.player_selected_character.get_parent()
 

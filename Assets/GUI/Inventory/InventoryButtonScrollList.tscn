@@ -99,6 +99,7 @@ scale = Vector2(0.3, 0.3)
 texture = ExtResource("4_uqhvh")
 
 [node name="InfoDescription" type="Label" parent="InfoBox"]
+unique_name_in_owner = true
 layout_mode = 0
 offset_left = 706.0
 offset_top = 424.0

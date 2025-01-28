@@ -28,13 +28,22 @@ func _ready() -> void:
     Console.add_command("add_item_path", _add_item_command, 3)
     Console.add_command("remove_item_id", _remove_item_command, 3)
     
-    inventory_updated.connect(_on_inventory_updated)
+    # inventory_updated.connect(_on_inventory_updated)
     set_item_junctioned_stat(fire_spell.item_id, CharacterStatEntry.ECharacterStat.Strength)
     add_item(heal_spell, 99)
     add_item(fire_spell, 99)
     add_item(almighty_spell, 99)
 
     print_inventory()
+
+func filter(predicate: Callable) -> Inventory:
+    var filtered_inventory := Inventory.new()
+    for item_id in items.keys():
+        var item_resource: BaseInventoryItem = items[item_id]["resource"]
+        var count := int(items[item_id]["count"])
+        if predicate.call(item_resource):
+            filtered_inventory.add_item(item_resource, count)
+    return filtered_inventory
 
 func _add_item_command(character_name: String, item_path: String, count_string: String) -> void:
     if character_name != battle_character.character_internal_name:

@@ -32,6 +32,9 @@ var button_spacing: int = -1
 @onready var test_item_inventory := Inventory.new()
 @onready var test_spell_inventory := Inventory.new()
 
+@onready var description_label := %InfoDescription as Label
+@onready var dc_label := description_label.get_node("InfoDC") as Label
+
 var item_inventory: Inventory:
     get:
         return item_inventory
@@ -157,6 +160,22 @@ func update_index(new_index: int = -1, wraparound: bool = true, add: bool = true
         buttons[i].release_focus()
     
     buttons[index].grab_focus()
+    update_labels()
+
+func update_labels() -> void:
+    if not item_inventory:
+        return
+
+    for item_id in item_button_map.keys():
+        if item_button_map[item_id] == buttons[index]:
+            var item := item_inventory.get_item(item_id)
+            if not item:
+                continue
+            description_label.text = item.item_description
+            if item is SpellItem:
+                dc_label.text = "Difficulty class: %s" % str((item as SpellItem).difficulty_class)
+            else:
+                dc_label.text = ""
 
 func _input(event: InputEvent) -> void:
     if (not visible
@@ -234,8 +253,11 @@ func _physics_process(delta: float) -> void:
         _current_mouse_input_cooldown = 0
 
 func _handleButtonFocus(focused_button: Control) -> void:
-    if _current_mouse_input_cooldown == 0:
-        index = buttons.find(focused_button)
+    if _current_mouse_input_cooldown > 0:
+        return
+
+    index = buttons.find(focused_button)
+    update_labels()
 
 func _handleButtonPressed(pressed_button: InventoryItemButtonPaint) -> void:
     for item_id in item_button_map.keys():

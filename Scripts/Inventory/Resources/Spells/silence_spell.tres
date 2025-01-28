@@ -22,12 +22,9 @@ spell_affinity = 11
 modifier = SubResource("Resource_jp5gd")
 spell_power_rolls = null
 spell_radius = null
-junction_table = {
-0: 2.0,
-2: 1.005
-}
+junction_table = null
 item_type = 0
-item_id = "spell_silence"
+item_id = null
 item_name = "Silence"
 item_description = "Prevents enemies from casting spells for 3 turns."
 max_stack = null

@@ -12,6 +12,10 @@ class_name SpellItem extends BaseInventoryItem
 ## Override the spell's attack roll. Set to null to use a d20 vs the target's AC.
 @export var use_roll: DiceRoll
 
+func get_spell_use_roll(target: BattleCharacter) -> DiceRoll:
+    return DiceRoll.create(20, 1, ceil(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass)))\
+    if use_roll == null else use_roll
+
 ## The radius around the caster which targets need to be in to be affected by the spell.
 @export var spell_radius := 0
 
@@ -29,6 +33,28 @@ func _init() -> void:
         print("[SPELL] No power rolls set for %s" % [item_name])
         # Append default roll to prevent errors
         spell_power_rolls.append(DiceRoll.create(8, 1))
+
+func get_item_description() -> String:
+    var description_string := ""
+
+    if spell_affinity == BattleEnums.EAffinityElement.HEAL:
+        description_string += "Restores %s HP " % [DiceRoller.get_dice_array_as_string(spell_power_rolls)]
+    elif spell_affinity == BattleEnums.EAffinityElement.MANA:
+        description_string += "Restores %s MP " % [DiceRoller.get_dice_array_as_string(spell_power_rolls)]
+    elif spell_affinity in [BattleEnums.EAffinityElement.BUFF,
+    BattleEnums.EAffinityElement.DEBUFF]:
+        description_string += "Applies " + modifier.name
+    else:
+        description_string += "Deals %s %s damage " % [DiceRoller.get_dice_array_as_string(spell_power_rolls), Util.get_enum_name(BattleEnums.EAffinityElement, spell_affinity)]
+
+    if can_use_on_enemies and can_use_on_allies:
+        description_string += "to any target."
+    elif can_use_on_enemies:
+        description_string += "to an enemy."
+    elif can_use_on_allies:
+        description_string += "to an ally."
+
+    return description_string
 
 func get_icon_path() -> String:
     var icon_path := "res://Assets/GUI/Icons/Items/elements/"
@@ -49,15 +75,11 @@ func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
 
     # Almighty damage never misses, but other attacks roll to hit
     if spell_affinity != BattleEnums.EAffinityElement.ALMIGHTY:
+        
+        var spell_use_roll_result := get_spell_use_roll(target).roll_dc()
 
-        # Roll against the AC of the target, unless a DC override is specified
-        var spell_use_roll := DiceRoller.roll_dc(20,
-        ceil(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass)), 1) \
-        if use_roll == null else use_roll.roll_dc()
-    
-
-        print("[SPELL] Roll result for %s: %s" % [item_name, spell_use_roll])
-        dice_status = spell_use_roll.status as DiceRoller.DiceStatus
+        print("[SPELL] Roll result for %s: %s" % [item_name, spell_use_roll_result])
+        dice_status = spell_use_roll_result.status as DiceRoller.DiceStatus
 
         match dice_status:
             DiceRoller.DiceStatus.ROLL_SUCCESS:

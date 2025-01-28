@@ -48,6 +48,10 @@ func _init(_item_name: String = "", _max_stack: int = 999) -> void:
     self.item_name = _item_name
     self.max_stack = _max_stack
 
+## This is to be overloaded by child classes
+func get_item_description() -> String:
+    return item_description
+
 func get_icon_path() -> String:
     var icon_path := "res://Assets/GUI/Icons/Items/item_"
     icon_path += Util.get_enum_name(BaseInventoryItem.ItemType, item_type).to_lower()
@@ -55,7 +59,7 @@ func get_icon_path() -> String:
 
 func get_rich_name(icon_size: int = 64) -> String:
     var icon_path = get_icon_path()
-    return "[hint=%s][img=%s]%s[/img]%s[/hint]" % [item_description, icon_size, icon_path, item_name]
+    return "[hint=%s][img=%s]%s[/img]%s[/hint]" % [get_item_description(), icon_size, icon_path, item_name]
 
 func get_use_sound() -> AudioStream:
     match item_type:

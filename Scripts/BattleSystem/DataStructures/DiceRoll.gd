@@ -26,7 +26,7 @@ func _to_string() -> String:
             roll_string += " + %s" % str(bonus)
     # DC 1 is a flat roll, as it's the lowest possible roll
     if difficulty_class > 1:
-        roll_string += " vs Difficulty Class: %s" % str(difficulty_class)
+        roll_string += " vs DC %s" % str(difficulty_class)
     return roll_string
 
 func roll_dc() -> Dictionary:

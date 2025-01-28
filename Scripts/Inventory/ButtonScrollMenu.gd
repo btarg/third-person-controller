@@ -38,6 +38,8 @@ var button_spacing: int = -1
 @onready var description_label := %InfoDescription as Label
 @onready var dc_label := description_label.get_node("InfoDC") as Label
 
+@onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
+
 var item_inventory: Inventory:
     get:
         return item_inventory
@@ -178,9 +180,10 @@ func update_labels() -> void:
                 description_label.text = "Your inventory is empty.\nObtain spells from enemies by using DRAW."
                 dc_label.text = ""
                 continue
-            description_label.text = item.item_description
+            description_label.text = item.get_item_description()
             if item is SpellItem:
-                dc_label.text = "Roll: %s" % DiceRoller.get_dice_array_as_string(((item as SpellItem).spell_power_rolls))
+                var spell_use_roll := (item as SpellItem).get_spell_use_roll(battle_state.player_selected_character)
+                dc_label.text = "Roll: %s" % spell_use_roll.to_string()
             else:
                 dc_label.text = ""
 

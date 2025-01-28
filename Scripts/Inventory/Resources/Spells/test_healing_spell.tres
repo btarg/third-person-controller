@@ -20,15 +20,12 @@ bonus = 0
 [resource]
 script = ExtResource("1_ea2fr")
 spell_affinity = 7
-spell_power_rolls = Array[Object]([SubResource("Resource_c0nmr")])
+spell_power_rolls = Array[ExtResource("2_ql46u")]([SubResource("Resource_c0nmr")])
 use_roll = SubResource("Resource_aaud3")
 spell_radius = null
-junction_table = {
-0: 2.0,
-2: 1.005
-}
+junction_table = null
 item_type = 0
-; item_id = "heal_spell"
+item_id = null
 item_name = "Cure"
 item_description = "Restores a small amount of HP."
 max_stack = null

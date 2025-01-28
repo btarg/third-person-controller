@@ -156,8 +156,8 @@ func get_button_glyphs(action_name: String, horizontal_decoration: bool = false,
                 var split_info := event.as_text().split("(")[1].split(" ")
                 var axis_value := split_info[split_info.size() - 1].to_float()
                 
-                print("Split info: " + str(split_info))
-                print("Axis direction: " + str(axis_value))
+                # print("Split info: " + str(split_info))
+                # print("Axis direction: " + str(axis_value))
 
                 if split_info[1] == "Stick":
                     # sticks don't have a controller-specific prefix, since they look the same

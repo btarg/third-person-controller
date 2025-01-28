@@ -53,7 +53,6 @@ func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
         print("[SPELL] Roll result for %s: %s" % [item_name, result])
         dice_status = result.status as DiceRoller.DiceStatus        
 
-        # TODO: spell use in battle
         print("[SPELL] %s used %s on %s" % [user.character_name, item_name, target.character_name])
 
         match dice_status:
@@ -98,8 +97,9 @@ func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
         # other spell affinities deal damage
         _:
             print("[SPELL] %s 's %s did %s damage to %s" % [user.character_name, item_name, spell_power, target.character_name])
-            target.take_damage(user, spell_power, spell_affinity, dice_status)
+            var result := target.take_damage(user, spell_power, spell_affinity, dice_status)
             spell_use_status = UseStatus.SPELL_SUCCESS
+            print("[SPELL] %s Result: %s" % [item_name, Util.get_enum_name(BattleEnums.ESkillResult, result)])
 
     item_used.emit(item_id, spell_use_status)
     return spell_use_status

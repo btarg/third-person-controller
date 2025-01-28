@@ -121,7 +121,7 @@ func add_item(item: BaseInventoryItem, count: int = 1) -> void:
         # Add the item to the inventory
         items[item.item_id] = {"resource": item, "count": count}
         is_new_item = true
-        item.item_used.connect(_on_item_used)
+        # item.item_used.connect(_on_item_used)
     
     var total := items[item.item_id]["count"] as int
     inventory_updated.emit(item, total, is_new_item)
@@ -173,11 +173,9 @@ func remove_item(item: Variant, count: int) -> void:
     
     # Determine if the item is a BaseInventoryItem or a String
     if item is BaseInventoryItem:
-        print("Item is BaseInventoryItem")
         item_id = item.item_id
         item_resource = item
     elif item is String:
-        print("Item is String")
         item_id = item
         item_resource = get_item(item_id)
     else:
@@ -189,18 +187,15 @@ func remove_item(item: Variant, count: int) -> void:
         return
 
     var current_count := items[item_id]["count"] as int
-    print("Current count: " + str(current_count))
     var new_count := current_count - count
-    print("New count: " + str(new_count))
     if new_count <= 0:
         print("Removing item from inventory")
         # disconnect signal for use
-        item_resource.disconnect("item_used", _on_item_used)
+        # item_resource.disconnect("item_used", _on_item_used)
         # erase item from map
         items.erase(item_id)
         new_count = 0
     else:
-        print("Updating item count")
         items[item_id]["count"] = new_count
 
     _update_junction_modifiers(item_resource, new_count)

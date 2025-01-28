@@ -1,33 +1,36 @@
 extends Control
+class_name DamageNumber
 
 # Key: Label, Value: Control
 var labels := {}
 var label_settings := preload("res://Assets/GUI/battle/damage_number.tres") as LabelSettings
 
-@onready var container := $HBoxContainer as HBoxContainer
+var container : HBoxContainer
 @export var display_seconds := 2.0
 
 var is_animating := false
 
-var _track_node: Node3D = null
-var _track_camera: Camera3D = null
+var track_node: Node3D = null
+var track_camera: Camera3D = null
+var display_damage := 0
+var skill_result := BattleEnums.ESkillResult.SR_SUCCESS
 
 func _process(_delta: float) -> void:
-    if not _track_node or not _track_camera:
+    if not track_node or not track_camera:
         return
 
-    var _track_position := _track_node.global_position
-    for child in _track_node.get_children():
+    var _track_position := track_node.global_position
+    for child in track_node.get_children():
         if child is CollisionShape3D:
             _track_position = child.global_transform.origin
             if child.shape is BoxShape3D:
                 _track_position.y += (((child as CollisionShape3D).shape) as BoxShape3D).size.y / 2
             break
 
-    if _track_camera.is_position_behind(_track_position):
+    if track_camera.is_position_behind(_track_position):
         return
     
-    var centered_pos := _track_camera.unproject_position(_track_position)
+    var centered_pos := track_camera.unproject_position(_track_position)
     centered_pos.y -= container.size.y / 2
     set_position(centered_pos)
 
@@ -50,16 +53,6 @@ func _setup_labels(display_amount: int) -> void:
         var target = labels.get(label)
         label.set_position(Vector2(target.position.x, target.position.y + 200))
 
-func _reset_labels() -> void:
-    for label in labels:
-        var target := labels.get(label) as Control
-        target.queue_free()
-        label.queue_free()
-    labels.clear()
-
-    _track_node = null
-    _track_camera = null
-
 func _animate_labels() -> void:
     var i := 1
     is_animating = true
@@ -69,11 +62,11 @@ func _animate_labels() -> void:
         # slightly above target position
         var target_position_with_offset := Vector2(target.position.x, target.position.y - 50)
 
-        var tween := get_tree().create_tween()
+        var tween : Tween = label.create_tween()
         tween.tween_property(label, "position", target_position_with_offset, 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
         await tween.finished
         
-        tween = get_tree().create_tween()
+        tween = label.create_tween()
         var tween_time := (0.1 * i)
         tween.tween_property(label, "position", target.position, tween_time).set_trans(Tween.TRANS_SPRING)
         await tween.finished
@@ -81,14 +74,26 @@ func _animate_labels() -> void:
     is_animating = false
 
     await get_tree().create_timer(display_seconds).timeout
-    _reset_labels()
+    queue_free()
 
-func display_damage_number(damage: int, _result: BattleEnums.ESkillResult, focus_node: Node3D, cam: Camera3D) -> void:
-    if is_animating:
-        return
+# Use a consructor-like pattern
+
+func _ready() -> void:
+    if track_node and track_camera:
+
+        container = HBoxContainer.new()
+        add_child(container)
+
+        _setup_labels(display_damage)
+        _animate_labels()
+
+static func create_damage_number(damage: int, result: BattleEnums.ESkillResult, focus_node: Node3D, cam: Camera3D) -> DamageNumber:
+    var damage_number := DamageNumber.new()
+
+    damage_number.track_node = focus_node
+    damage_number.track_camera = cam
+    damage_number.display_damage = damage
+    damage_number.skill_result = result
     
-    _track_node = focus_node
-    _track_camera = cam
 
-    _setup_labels(damage)
-    _animate_labels()
+    return damage_number

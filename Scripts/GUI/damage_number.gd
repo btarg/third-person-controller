@@ -13,6 +13,8 @@ var is_animating := false
 var track_node: Node3D = null
 var track_camera: Camera3D = null
 var display_damage := 0
+
+var skill_element := BattleEnums.EAffinityElement.PHYS
 var skill_result := BattleEnums.ESkillResult.SR_SUCCESS
 
 func _process(_delta: float) -> void:
@@ -35,12 +37,39 @@ func _process(_delta: float) -> void:
     set_position(centered_pos)
 
 func _setup_labels(display_amount: int) -> void:
+    var display_string := str(display_amount).split("")
+    
+    var color := Color.WHITE
+    match skill_result:
+        BattleEnums.ESkillResult.SR_SUCCESS:
+            match skill_element:
+                BattleEnums.EAffinityElement.HEAL:
+                    color = Color.AQUAMARINE
+                _:
+                    color = Color.WHITE
+        BattleEnums.ESkillResult.SR_CRITICAL:
+            color = Color.YELLOW
+        BattleEnums.ESkillResult.SR_RESISTED:
+            color = Color.GRAY
+        BattleEnums.ESkillResult.SR_FAIL:
+            # add a label for "miss"
+            display_string = "MISS".split("")
+            color = Color.GRAY
+        BattleEnums.ESkillResult.SR_REFLECTED:
+            # add a label for "reflect"
+            display_string = "REFLECT".split("")
+            color = Color.GRAY
+        _:
+            # don't display anything
+            queue_free()
+            return
 
-    for c in str(display_amount).split(""):
+    for c in display_string:
         var new_label := Label.new()
         new_label.text = c
         new_label.label_settings = label_settings.duplicate()
         new_label.visible = false
+        new_label.modulate = color
         add_child(new_label)
 
         # create a new "target" node for the tween
@@ -52,6 +81,7 @@ func _setup_labels(display_amount: int) -> void:
     for label in labels:
         var target = labels.get(label)
         label.set_position(Vector2(target.position.x, target.position.y + 200))
+
 
 func _animate_labels() -> void:
     var i := 1
@@ -87,12 +117,13 @@ func _ready() -> void:
         _setup_labels(display_damage)
         _animate_labels()
 
-static func create_damage_number(damage: int, result: BattleEnums.ESkillResult, focus_node: Node3D, cam: Camera3D) -> DamageNumber:
+static func create_damage_number(damage: int, element: BattleEnums.EAffinityElement, result: BattleEnums.ESkillResult, focus_node: Node3D, cam: Camera3D) -> DamageNumber:
     var damage_number := DamageNumber.new()
 
     damage_number.track_node = focus_node
     damage_number.track_camera = cam
     damage_number.display_damage = damage
+    damage_number.skill_element = element
     damage_number.skill_result = result
     
 

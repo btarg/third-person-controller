@@ -125,6 +125,12 @@ func heal(amount: int, from_absorb: bool = false) -> void:
     if current_hp > max_hp:
         # We expect HP to be an int
         current_hp = ceili(max_hp)
+
+    var heal_number := DamageNumber.create_damage_number(
+        amount, BattleEnums.EAffinityElement.HEAL, BattleEnums.ESkillResult.SR_SUCCESS,
+        self.get_parent(),
+        battle_state.top_down_player.camera)
+    add_child(heal_number)
     
     # always emit heal signal for animations
     BattleSignalBus.OnHeal.emit(self, amount)
@@ -274,7 +280,7 @@ func take_damage(attacker: BattleCharacter, damage: int, damage_type: BattleEnum
                 # Players are able to be revived once "dead"
                 behaviour_state_machine.set_state("DeadState")
 
-    var damage_number := DamageNumber.create_damage_number(damage, result, self.get_parent(), battle_state.top_down_player.camera)
+    var damage_number := DamageNumber.create_damage_number(damage, damage_type, result, self.get_parent(), battle_state.top_down_player.camera)
     add_child(damage_number)
     return result
 

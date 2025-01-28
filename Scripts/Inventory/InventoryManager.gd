@@ -19,6 +19,7 @@ signal inventory_updated(resource: BaseInventoryItem, count: int, is_new_item: b
 @onready var fire_spell: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_fire_spell.tres")
 @onready var heal_spell: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_healing_spell.tres")
 @onready var almighty_spell: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_almighty_spell.tres")
+@onready var ice_spell: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_ice_spell.tres")
 
 func _ready() -> void:
     Console.add_command("set_junction", _set_junction_command, 3)
@@ -32,6 +33,7 @@ func _ready() -> void:
     set_item_junctioned_stat(fire_spell.item_id, CharacterStatEntry.ECharacterStat.Strength)
     add_item(heal_spell, 99)
     add_item(fire_spell, 99)
+    add_item(ice_spell, 99)
     add_item(almighty_spell, 99)
 
     print_inventory()

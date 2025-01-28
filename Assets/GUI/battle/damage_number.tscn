@@ -6,6 +6,3 @@
 layout_mode = 3
 anchors_preset = 0
 script = ExtResource("1_alrig")
-
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
-layout_mode = 0

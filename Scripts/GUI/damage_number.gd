@@ -53,6 +53,7 @@ func _setup_labels(display_amount: int) -> void:
                     color = Color.GREEN
                 _:
                     color = Color.YELLOW
+            display_string.append("!")
         BattleEnums.ESkillResult.SR_RESISTED:
             color = Color.GRAY
         BattleEnums.ESkillResult.SR_FAIL,\

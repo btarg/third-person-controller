@@ -175,10 +175,12 @@ func update_labels() -> void:
         if item_button_map[item_id] == buttons[index]:
             var item := item_inventory.get_item(item_id)
             if not item:
+                description_label.text = "Your inventory is empty.\nObtain spells from enemies by using DRAW."
+                dc_label.text = ""
                 continue
             description_label.text = item.item_description
             if item is SpellItem:
-                dc_label.text = "Roll: %s" % str((item as SpellItem).use_roll.to_string())
+                dc_label.text = "Roll: %s" % DiceRoller.get_dice_array_as_string(((item as SpellItem).spell_power_rolls))
             else:
                 dc_label.text = ""
 

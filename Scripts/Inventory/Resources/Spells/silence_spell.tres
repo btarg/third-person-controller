@@ -20,12 +20,8 @@ apply_out_of_combat = false
 script = ExtResource("1_dwovg")
 spell_affinity = 11
 modifier = SubResource("Resource_jp5gd")
-base_spell_power = 1
-spell_radius = 0
-power_multiplier_success = 1.0
-power_multiplier_crit_success = 2.0
-power_multiplier_fail = 0.5
-power_multiplier_crit_fail = 0.0
+spell_power_rolls = null
+spell_radius = null
 junction_table = {
 0: 2.0,
 2: 1.005
@@ -34,6 +30,6 @@ item_type = 0
 item_id = "spell_silence"
 item_name = "Silence"
 item_description = "Prevents enemies from casting spells for 3 turns."
-max_stack = 999
-can_use_on_enemies = true
+max_stack = null
+can_use_on_enemies = null
 can_use_on_allies = false

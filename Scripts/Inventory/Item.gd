@@ -23,7 +23,13 @@ enum UseStatus {
 
 ## item_type should be SPELL for a SpellItem
 @export var item_type: ItemType = ItemType.WEAPON
-@export var item_id: String = ""
+
+@export var item_id : String = "default_item_id":
+    get:
+        return resource_path.get_file().trim_suffix('.tres')
+    set(value):
+        item_id = value
+
 @export var item_name: String = "???"
 @export var item_description: String = "Test Description"
 @export var max_stack: int = 999

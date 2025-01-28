@@ -1,25 +1,12 @@
-[gd_resource type="Resource" script_class="SpellItem" load_steps=4 format=3 uid="uid://dtee6temgrdtn"]
+[gd_resource type="Resource" script_class="SpellItem" load_steps=2 format=3 uid="uid://dtee6temgrdtn"]
 
 [ext_resource type="Script" path="res://Scripts/Inventory/SpellItem.gd" id="1_0rvvm"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/DiceRoll.gd" id="2_adg0b"]
-
-[sub_resource type="Resource" id="Resource_h002i"]
-script = ExtResource("2_adg0b")
-die_sides = 20
-num_rolls = 1
-difficulty_class = 100
-bonus = 0
 
 [resource]
 script = ExtResource("1_0rvvm")
 spell_affinity = 3
-use_roll = SubResource("Resource_h002i")
-base_spell_power = 1
-spell_radius = 0
-power_multiplier_success = 1.0
-power_multiplier_crit_success = 2.0
-power_multiplier_fail = 0.5
-power_multiplier_crit_fail = 0.0
+spell_power_rolls = null
+spell_radius = null
 junction_table = {
 0: 2.0,
 2: 1.005
@@ -28,6 +15,6 @@ item_type = 0
 item_id = "elec_spell"
 item_name = "Thundara"
 item_description = "Deals moderate ELEC dmg to one enemy."
-max_stack = 999
-can_use_on_enemies = true
+max_stack = null
+can_use_on_enemies = null
 can_use_on_allies = false

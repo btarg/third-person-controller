@@ -149,7 +149,10 @@ func _update_junction_modifiers(spell_item: SpellItem, total_item_count: int) ->
     if not spell_item:
         print("[Junction] Spell item is null")
         return
-   
+    if not spell_item.junction_table:
+        print("[Junction] Spell has no junction table")
+        return
+
     if spell_item.junction_table.is_empty():
         print("[Junction] Spell has no junction table")
         return

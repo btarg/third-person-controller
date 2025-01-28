@@ -4,13 +4,9 @@
 
 [resource]
 script = ExtResource("1_wvht2")
-spell_affinity = 1
-base_spell_power = 1
-spell_radius = 0
-power_multiplier_success = 1.0
-power_multiplier_crit_success = 2.0
-power_multiplier_fail = 0.5
-power_multiplier_crit_fail = 0.0
+spell_affinity = null
+spell_power_rolls = null
+spell_radius = null
 junction_table = {
 0: 2.0,
 2: 1.005
@@ -19,6 +15,6 @@ item_type = 0
 item_id = "fire_spell"
 item_name = "Fira"
 item_description = "Deals moderate FIRE dmg to one enemy."
-max_stack = 999
-can_use_on_enemies = true
+max_stack = null
+can_use_on_enemies = null
 can_use_on_allies = false

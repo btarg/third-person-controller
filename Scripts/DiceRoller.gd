@@ -8,6 +8,26 @@ enum DiceStatus {
     ROLL_CRIT_SUCCESS,
 }
 
+static func get_dice_array_as_string(array: Array[DiceRoll]) -> String:
+    var result := ""
+    for i in range(array.size()):
+        result += array[i].to_string()
+        if i < array.size() - 1:
+            result += " + "
+    return result
+
+static func roll_all_dc(dice: Array[DiceRoll]) -> Array[Dictionary]:
+    var results: Array[Dictionary] = []
+    for die in dice:
+        results.append(die.roll_dc())
+    return results
+
+static func roll_all_flat(dice: Array[DiceRoll]) -> int:
+    var result := 0
+    for die in dice:
+        result += die.roll_flat()
+    return result
+
 ## Returns the sum of all dice rolls plus a bonus as int
 static func roll_flat(die_sides: int, num_rolls: int = 1, bonus: int = 0) -> int:
     var total_roll := bonus
@@ -18,12 +38,11 @@ static func roll_flat(die_sides: int, num_rolls: int = 1, bonus: int = 0) -> int
 
 ## Returns a dictionary with the following keys:
 ## - `total_roll`: The total sum of all dice rolls
-## - `crits`: The number of crits rolled
+## - `dc`: The Difficulty Class used for the roll
 ## - `status`: The result of the roll as DiceRoller.DiceStatus
 ## See [url]https://2e.aonprd.com/Rules.aspx?ID=2286[/url] for more info on dice
 static func roll_dc(die_sides: int, difficulty_class: int, num_rolls: int = 1, bonus: int = 0) -> Dictionary:
     var total_roll := bonus
-    var crits := 0
     var natural_roll := -1  # Track the result of the first die roll (assume only one die is used for determining nat 1/20)
 
     # Roll all dice and add together
@@ -34,8 +53,6 @@ static func roll_dc(die_sides: int, difficulty_class: int, num_rolls: int = 1, b
         # if only one die is rolled
         if i == 0 and num_rolls == 1:
             natural_roll = die
-        if die == die_sides:
-            crits += 1
         print("[ROLL] Roll no." + str(i + 1) + ": " + str(die))
 
     print("[ROLL] Roll total: " + str(total_roll) + " Bonus: " + str(bonus))
@@ -65,4 +82,4 @@ static func roll_dc(die_sides: int, difficulty_class: int, num_rolls: int = 1, b
             status = min(status + 1, int(DiceStatus.ROLL_CRIT_SUCCESS)) as DiceStatus
             print("[ROLL] Natural 20! adjustment went from " + Util.get_enum_name(DiceStatus, last_status) + " to " + Util.get_enum_name(DiceStatus, status))
 
-    return { "total_roll": total_roll, "crits": crits, "status": status }
+    return { "total_roll": total_roll, "dc": difficulty_class, "status": status }

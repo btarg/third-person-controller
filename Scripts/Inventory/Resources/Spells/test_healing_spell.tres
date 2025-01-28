@@ -1,24 +1,36 @@
-[gd_resource type="Resource" script_class="SpellItem" load_steps=2 format=3 uid="uid://bmdlkpnpqbx4g"]
+[gd_resource type="Resource" script_class="SpellItem" load_steps=5 format=3 uid="uid://bmdlkpnpqbx4g"]
 
 [ext_resource type="Script" path="res://Scripts/Inventory/SpellItem.gd" id="1_ea2fr"]
+[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/DiceRoll.gd" id="2_ql46u"]
+
+[sub_resource type="Resource" id="Resource_c0nmr"]
+script = ExtResource("2_ql46u")
+die_sides = 8
+num_rolls = 1
+difficulty_class = 0
+bonus = 0
+
+[sub_resource type="Resource" id="Resource_aaud3"]
+script = ExtResource("2_ql46u")
+die_sides = 100
+num_rolls = 1
+difficulty_class = 5
+bonus = 0
 
 [resource]
 script = ExtResource("1_ea2fr")
 spell_affinity = 7
-base_spell_power = 1
-spell_radius = 0
-power_multiplier_success = 1.0
-power_multiplier_crit_success = 2.0
-power_multiplier_fail = 0.5
-power_multiplier_crit_fail = 0.0
+spell_power_rolls = Array[Object]([SubResource("Resource_c0nmr")])
+use_roll = SubResource("Resource_aaud3")
+spell_radius = null
 junction_table = {
 0: 2.0,
 2: 1.005
 }
 item_type = 0
-item_id = "heal_spell"
+; item_id = "heal_spell"
 item_name = "Cure"
 item_description = "Restores a small amount of HP."
-max_stack = 999
+max_stack = null
 can_use_on_enemies = false
-can_use_on_allies = true
+can_use_on_allies = null

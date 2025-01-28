@@ -146,7 +146,7 @@ func heal(amount: int, from_absorb: bool = false, spell_status: BaseInventoryIte
 
 func _on_downed() -> void:
     # TODO: play an animation for being downed
-    down_turns = DiceRoller.roll_flat(4, 1)
+    down_turns = randi() % 3 + 1
     print("[DOWN] " + character_name + " is downed for " + str(down_turns) + " turns")
 
 func _on_down_recovery() -> void:
@@ -159,11 +159,12 @@ func award_turns(turns: int) -> void:
     print("[ONE MORE] " + character_name + " has been awarded " + str(turns) + " turns")
     BattleSignalBus.OnTurnsAwarded.emit(self, turns)
 
-func take_damage(attacker: BattleCharacter, damage_roll: DiceRoll, damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoller.DiceStatus = DiceRoller.DiceStatus.ROLL_SUCCESS, reflected: bool = false) -> BattleEnums.ESkillResult:
+func take_damage(attacker: BattleCharacter, damage_rolls: Array[DiceRoll], damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoller.DiceStatus = DiceRoller.DiceStatus.ROLL_SUCCESS, reflected: bool = false) -> BattleEnums.ESkillResult:
     # We've already decided whether we crit or not in the attack roll d20,
     # so we roll flat for the attacks themselves
-    var damage := damage_roll.roll_flat()
-    
+    return take_damage_flat(attacker, DiceRoller.roll_all_flat(damage_rolls), damage_type, dice_status, reflected)
+
+func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoller.DiceStatus = DiceRoller.DiceStatus.ROLL_SUCCESS, reflected: bool = false) -> BattleEnums.ESkillResult:
     if damage <= 0:
         print(character_name + " took no damage")
         return BattleEnums.ESkillResult.SR_FAIL
@@ -223,13 +224,13 @@ func take_damage(attacker: BattleCharacter, damage_roll: DiceRoll, damage_type: 
             # Prevent infinite reflection loops by just resisting an already reflected attack
             # TODO: attack mirrors and magic mirrors should have a counter for how many reflections they can do before breaking
             if reflected:
-                print(character_name + " resisted reflected " + enum_string)
+                print("[REFLECT] " + character_name + " resisted reflected " + enum_string)
                 damage = _calculate_resist_damage(damage)
                 result = BattleEnums.ESkillResult.SR_RESISTED
             else:
                 print(character_name + " reflected " + enum_string)
                 # Reflect damage back at attacker (true flag to prevent infinite loops)
-                attacker.take_damage(self, damage_roll, damage_type, dice_status, true)
+                attacker.take_damage_flat(self, damage, damage_type, dice_status, true)
                 result = BattleEnums.ESkillResult.SR_REFLECTED
                 # Set damage to 0 so we don't apply it to the character who reflected
                 damage = 0

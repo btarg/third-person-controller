@@ -8,7 +8,7 @@
 
 # TODO
 - Priority:
-    - [ ] UI reacts to actual results of combat (`SR_ABSORB` should not be counted as a `SPELL_SUCCESS`)
+    - [x] UI reacts to actual results of combat (`SR_ABSORB` should not be counted as a `SPELL_SUCCESS`)
     - [x] Make camera collide with the world but not players/enemies
     - [x] Fix movement bug 
     - [ ] Get basic UI visuals in place for player and enemy health bars
@@ -47,8 +47,8 @@
     - [ ] UI for choosing junctioned items
     - [ ] UI for inventory: able to use items out of combat (e.g. healing potions/spells)
     - [x] Damage numbers
-        - [ ] Change colours for healing
-        - [ ] Further hit feedback - BLOCK, DRAIN etc
+        - [x] Change colours for healing
+        - [x] Further hit feedback - BLOCK, DRAIN etc
     - [x] Target line UI
 - Visuals
     - [ ] Animated characters

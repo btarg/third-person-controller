@@ -51,7 +51,8 @@ func _setup_labels(display_amount: int) -> void:
             color = Color.YELLOW
         BattleEnums.ESkillResult.SR_RESISTED:
             color = Color.GRAY
-        BattleEnums.ESkillResult.SR_FAIL:
+        BattleEnums.ESkillResult.SR_FAIL,\
+        BattleEnums.ESkillResult.SR_IMMUNE:
             # add a label for "miss"
             display_string = "MISS".split("")
             color = Color.GRAY

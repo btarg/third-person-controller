@@ -9,12 +9,14 @@ size = Vector2(1, 1)
 render_priority = 0
 shader = ExtResource("1_jme2q")
 shader_parameter/ring_radius = 0.5
-shader_parameter/thickness_scalar = 0.1
-shader_parameter/oscillation_scalar = 0.025
+shader_parameter/thickness = 0.985
 shader_parameter/speed = 1.0
-shader_parameter/main_color = Color(1, 1, 1, 1)
+shader_parameter/glow_intensity = 0.05
+shader_parameter/glow_start = 0.5
+shader_parameter/outer_color = Color(1, 1, 1, 1)
 shader_parameter/lerp_color = Color(1, 1, 1, 1)
-shader_parameter/oscillate_size = false
+shader_parameter/inner_color = Color(1, 1, 1, 0)
+shader_parameter/oscillate_colour = false
 
 [node name="RadiusVisual" type="CSGMesh3D"]
 mesh = SubResource("PlaneMesh_r8ghm")

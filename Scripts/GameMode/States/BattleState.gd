@@ -274,6 +274,7 @@ func ready_next_turn() -> void:
         return
 
     # player_selected_character = null
+    available_actions = BattleEnums.EAvailableCombatActions.SELF
 
     if turn_order.size() < 2:
         # end battle
@@ -287,6 +288,7 @@ func ready_next_turn() -> void:
         else:
             current_character.turns_left = 0 # cap at 0 minimum
             current_character_index += 1
+            current_character.behaviour_state_machine.set_state("IdleState")
 
     # Prevent overflow
     if current_character_index >= turn_order.size():
@@ -392,5 +394,5 @@ func spawn_enemy() -> void:
 func selected_self() -> bool:
     return player_selected_character == current_character
 
-func _state_input(event: InputEvent) -> void:
+func _state_unhandled_input(event: InputEvent) -> void:
     top_down_player.input_update_from_battle_state(event)

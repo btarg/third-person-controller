@@ -1,4 +1,5 @@
 extends Control
+class_name ButtonScrollMenu
 
 var buttons: Array[Control] = []
 var _buttons_count: Array[float] = []
@@ -28,10 +29,10 @@ var button_spacing: int = -1
 @onready var hold_timer := Timer.new()
 
 ### INVENTORY SECTION ###
-@onready var test_item_inventory := InventoryManager.new()
-@onready var test_spell_inventory := InventoryManager.new()
+@onready var test_item_inventory := Inventory.new()
+@onready var test_spell_inventory := Inventory.new()
 
-var item_inventory: InventoryManager:
+var item_inventory: Inventory:
     get:
         return item_inventory
     set(new_inventory):
@@ -65,11 +66,11 @@ var test_spell := preload("res://Scripts/Inventory/Resources/Spells/test_healing
 
 func _ready() -> void:
 
-    test_spell_inventory.add_item(test_spell, 15)
-    test_item_inventory.add_item(test_item, 10)
-    test_item_inventory.add_item(test_item2, 10)
+    # test_spell_inventory.add_item(test_spell, 15)
+    # test_item_inventory.add_item(test_item, 10)
+    # test_item_inventory.add_item(test_item2, 10)
 
-    item_inventory = test_item_inventory
+    # item_inventory = test_item_inventory
 
     item_button_pressed.connect(_test_button_pressed)
 
@@ -131,6 +132,9 @@ func _remove_item_button(item: BaseInventoryItem) -> void:
         item_button_map.erase(item.item_id)
 
 func update_index(new_index: int = -1, wraparound: bool = true, add: bool = true) -> void:
+    if index < 0 or buttons.is_empty():
+        return
+    
     _current_mouse_input_cooldown = mouse_input_cooldown
 
     if add:
@@ -151,20 +155,16 @@ func update_index(new_index: int = -1, wraparound: bool = true, add: bool = true
     # Update focus
     for i in range(buttons.size()):
         buttons[i].release_focus()
+    
     buttons[index].grab_focus()
 
 func _input(event: InputEvent) -> void:
-    if event.is_echo():
+    if (not visible
+    or event is InputEventMouseMotion):
         return
 
     if button_spacing == -1:
         return
-    if Input.is_action_just_pressed("ui_cancel"):
-        
-        if item_inventory == test_item_inventory:
-            item_inventory = test_spell_inventory
-        else:
-            item_inventory = test_item_inventory
 
     if Input.is_action_just_pressed("ui_up"):
         update_index(-1)

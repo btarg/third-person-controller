@@ -4,9 +4,9 @@
 [ext_resource type="Script" path="res://Scripts/GameMode/States/BattleState.gd" id="2_soqi2"]
 [ext_resource type="Script" path="res://Scripts/GameMode/States/ExplorationState.gd" id="3_ek5qm"]
 [ext_resource type="Script" path="res://Scripts/GameMode/States/InBattle/BattleLostState.gd" id="4_0ymg5"]
+[ext_resource type="PackedScene" uid="uid://dcks6gn4ttkk5" path="res://Assets/GUI/Inventory/InventoryButtonScrollList.tscn" id="4_430l1"]
 [ext_resource type="Script" path="res://Scripts/GameMode/States/InBattle/BattleVictoryState.gd" id="5_aqrr1"]
 [ext_resource type="PackedScene" uid="uid://bo1r6ikg415qk" path="res://Assets/GUI/battle/choose_target_ui.tscn" id="6_jxoru"]
-[ext_resource type="PackedScene" uid="uid://csfxejlurjwkc" path="res://Assets/GUI/battle/player_choose_spellitem_ui.tscn" id="6_q8oc2"]
 [ext_resource type="PackedScene" uid="uid://cm485fldbqcp1" path="res://Assets/GUI/battle/player_draw_ui.tscn" id="7_67hvs"]
 [ext_resource type="PackedScene" uid="uid://k5nbstqmbqve" path="res://Assets/GUI/battle/player_think_ui.tscn" id="7_i4i4r"]
 
@@ -20,11 +20,11 @@ script = ExtResource("3_ek5qm")
 [node name="BattleState" type="Node" parent="."]
 script = ExtResource("2_soqi2")
 
+[node name="PlayerChooseSpellitemUI" parent="BattleState" instance=ExtResource("4_430l1")]
+
 [node name="ChooseTargetUI" parent="BattleState" instance=ExtResource("6_jxoru")]
 
 [node name="PlayerThinkUI" parent="BattleState" instance=ExtResource("7_i4i4r")]
-
-[node name="PlayerChooseSpellitemUi" parent="BattleState" instance=ExtResource("6_q8oc2")]
 
 [node name="PlayerDrawUI" parent="BattleState" instance=ExtResource("7_67hvs")]
 

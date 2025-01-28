@@ -19,7 +19,7 @@ func _state_process(_delta) -> void:
 func _state_physics_process(delta: float) -> void:
     player.player_process(delta)
 
-func _state_input(event: InputEvent) -> void:
+func _state_unhandled_input(event: InputEvent) -> void:
     if event.is_action_pressed("debug_enter_battle"):
         Transitioned.emit(self, "BattleState")
 

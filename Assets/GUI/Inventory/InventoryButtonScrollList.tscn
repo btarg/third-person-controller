@@ -1,6 +1,6 @@
-[gd_scene load_steps=22 format=3 uid="uid://dcks6gn4ttkk5"]
+[gd_scene load_steps=17 format=3 uid="uid://dcks6gn4ttkk5"]
 
-[ext_resource type="Script" path="res://Assets/GUI/Inventory/new_ui.gd" id="1_j7u3w"]
+[ext_resource type="Script" path="res://Scripts/Inventory/new_ui.gd" id="1_j7u3w"]
 [ext_resource type="Texture2D" uid="uid://b8shlq8bf0pm3" path="res://Assets/GUI/Inventory/InventoryElements/inventory-01-stock.png" id="2_jbcfa"]
 [ext_resource type="Texture2D" uid="uid://j767cph5day0" path="res://Assets/GUI/Inventory/InventoryElements/01stock.svg" id="3_3psld"]
 [ext_resource type="Texture2D" uid="uid://c1tmwbfuv3s5p" path="res://Assets/GUI/Inventory/InventoryElements/01stock-side.svg" id="4_rjyft"]
@@ -10,7 +10,6 @@
 [ext_resource type="FontFile" uid="uid://cq5dmd56sdm2c" path="res://Assets/Fonts/Impact/impact.ttf" id="6_bv1ib"]
 [ext_resource type="Texture2D" uid="uid://d1gw07u5h2jks" path="res://Assets/GUI/Inventory/InventoryElements/02item-side.svg" id="7_wth4j"]
 [ext_resource type="FontFile" uid="uid://deqhcndqvcsg5" path="res://Assets/Fonts/Arsenal/Arsenal-Italic.ttf" id="8_hufom"]
-[ext_resource type="FontFile" uid="uid://csv28qlfj5i22" path="res://Assets/Fonts/Afacad-VariableFont_wght.ttf" id="13_o250o"]
 [ext_resource type="Script" path="res://Scripts/Inventory/ButtonScrollMenu.gd" id="13_w5dpf"]
 
 [sub_resource type="FontVariation" id="FontVariation_fenjn"]
@@ -40,29 +39,6 @@ line_spacing = -10.0
 font = SubResource("FontVariation_yx6i0")
 font_size = 64
 font_color = Color(0.2, 0.8, 1, 1)
-
-[sub_resource type="FontVariation" id="FontVariation_fbwim"]
-base_font = ExtResource("13_o250o")
-variation_opentype = {
-2003265652: 700
-}
-variation_transform = Transform2D(1, 0.2, 0, 1, 0, 0)
-spacing_glyph = -4
-spacing_top = -32
-
-[sub_resource type="LabelSettings" id="LabelSettings_aqpph"]
-font = SubResource("FontVariation_fbwim")
-font_size = 91
-font_color = Color(1, 1, 1, 0)
-outline_size = 2
-outline_color = Color(0.254902, 0.815686, 1, 1)
-
-[sub_resource type="Gradient" id="Gradient_4rlcb"]
-colors = PackedColorArray(1, 0, 0, 1, 0, 0, 0, 1)
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_08rml"]
-gradient = SubResource("Gradient_4rlcb")
-fill = 2
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -141,30 +117,6 @@ offset_right = 952.0
 offset_bottom = 325.606
 text = "Difficulty class: 5"
 label_settings = SubResource("LabelSettings_s57a0")
-
-[node name="Label" type="Label" parent="."]
-visible = false
-clip_children = 2
-layout_mode = 0
-offset_right = 493.0
-offset_bottom = 369.0
-text = "HELLO WORLD
-Hello World
-hello world
-MARAGIDYNE"
-label_settings = SubResource("LabelSettings_aqpph")
-
-[node name="TextureRect" type="TextureRect" parent="Label"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_right = 11.0
-offset_bottom = -1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = SubResource("GradientTexture2D_08rml")
-expand_mode = 1
 
 [node name="ButtonScrollMenu" type="Control" parent="."]
 clip_children = 1

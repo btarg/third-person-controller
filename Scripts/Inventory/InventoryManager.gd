@@ -1,5 +1,5 @@
 extends Node
-class_name InventoryManager
+class_name Inventory
 
 ## TODO: Typed Dictionary
 ## Item id as key, count as value

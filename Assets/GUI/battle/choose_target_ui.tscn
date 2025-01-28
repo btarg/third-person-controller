@@ -1,6 +1,5 @@
-[gd_scene load_steps=4 format=3 uid="uid://bo1r6ikg415qk"]
+[gd_scene load_steps=3 format=3 uid="uid://bo1r6ikg415qk"]
 
-[ext_resource type="Script" path="res://Assets/GUI/battle/target_select_button_hint_label.gd" id="1_a2jv0"]
 [ext_resource type="Script" path="res://Scripts/GUI/TurnOrderContainer.gd" id="2_s0886"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_y02v7"]
@@ -41,16 +40,3 @@ grow_horizontal = 2
 text = "Placeholder"
 label_settings = SubResource("LabelSettings_y02v7")
 horizontal_alignment = 1
-
-[node name="ButtonHintLabel" type="RichTextLabel" parent="SelectedEnemyLabel"]
-layout_mode = 1
-offset_left = -440.0
-offset_top = -160.0
-offset_right = -56.0
-offset_bottom = 224.0
-mouse_filter = 2
-bbcode_enabled = true
-text = "A: Attack
-B: Cancel
-C:"
-script = ExtResource("1_a2jv0")

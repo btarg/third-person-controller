@@ -20,6 +20,8 @@ var focused_node: Node3D = player:
     set(value):
         focused_node = value
         moved_from_focus = false
+        # zero velocity
+        velocity = Vector3.ZERO
 
 # player has moved away from focused node
 var moved_from_focus: bool = false

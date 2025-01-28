@@ -24,7 +24,7 @@ class_name BattleCharacter
 @onready var behaviour_state_machine := self.get_node("StateMachine") as StateMachine
 
 @onready var stats := $CharacterStats as CharacterStats
-@onready var inventory := get_node_or_null("../Inventory") as InventoryManager
+@onready var inventory := get_node_or_null("../Inventory") as Inventory
 
 @onready var current_hp: int = ceil(stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP))
 # The third person player controller extends from the BattleCharacterController to make this possible

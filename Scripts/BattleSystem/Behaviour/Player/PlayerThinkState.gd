@@ -8,7 +8,7 @@ extends State
 @onready var radius_visual := get_node("/root/RadiusVisual") as CSGMesh3D
 
 # One level up is state machine, two levels up is the battle character. The inventory is on the same level
-@onready var inventory_manager := get_node("../../../Inventory") as InventoryManager
+@onready var inventory_manager := get_node("../../../Inventory") as Inventory
 @onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
 
 # Camera used for raycasts
@@ -93,11 +93,14 @@ func enter() -> void:
     else:
         print("No character selected")
 
+    battle_state.top_down_player.allow_moving_focus = true
+
 
 func exit() -> void:
     print(battle_character.character_name + " has stopped thinking")
     player_think_ui.hide()
     battle_state.turn_order_ui.hide()
+    battle_state.turn_order_ui.is_ui_active = false
 
 
 func _process_radius_visual() -> void:

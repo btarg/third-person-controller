@@ -140,6 +140,7 @@ func _state_input(event: InputEvent) -> void:
     elif event.is_action_pressed("ui_cancel"):
         if (think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_CAST
         or think_state.chosen_action == BattleEnums.EPlayerCombatAction.CA_ITEM):
+            print(">>>>> Going back to the spell/item selection state")
             Transitioned.emit(self, "ChooseSpellItemState")
         else:
             Transitioned.emit(self, "ThinkState")

@@ -112,7 +112,7 @@ func roll_initiative() -> int:
         vitality = 0
 
     # make sure to set the initiative value on our character for later reference
-    initiative = DiceRoll.create(20, 1, vitality).roll_flat()
+    initiative = DiceRoll.roll(20, 1, vitality).total()
     return initiative
 
 func heal(amount: int, from_absorb: bool = false, spell_status: BaseInventoryItem.UseStatus = BaseInventoryItem.UseStatus.SPELL_FAIL) -> void:
@@ -159,16 +159,24 @@ func award_turns(turns: int) -> void:
     print("[ONE MORE] " + character_name + " has been awarded " + str(turns) + " turns")
     BattleSignalBus.OnTurnsAwarded.emit(self, turns)
 
-func take_damage(attacker: BattleCharacter, damage_rolls: Array[DiceRoll], damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoll.DiceStatus = DiceRoll.DiceStatus.ROLL_SUCCESS, reflected: bool = false) -> BattleEnums.ESkillResult:
-    # We've already decided whether we crit or not in the attack roll d20,
-    # so we roll flat for the attacks themselves
-    return take_damage_flat(attacker, DiceRoll.roll_all_flat(damage_rolls), damage_type, dice_status, reflected)
+## Takes damage from an attacker and calculates the result based on various parameters.
+## 
+## [br][param attacker]: The BattleCharacter instance that is attacking.
+## [br][param damage_rolls]: An array of DiceRoll instances representing the damage rolls.
+## [br][param attack_roll]: A DiceRoll instance representing the attack roll: usually a d20 against Armour Class.
+## [br][param damage_type]: The type of damage being inflicted, default is PHYS (physical).
+## [br][param reflected]: A boolean indicating if the damage is reflected, default is false.
+## [br]returns a [enum BattleEnums.ESkillResult] indicating the result of the skill.
+func take_damage(attacker: BattleCharacter, damage_rolls: Array[DiceRoll], attack_roll: DiceRoll, damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, reflected: bool = false) -> BattleEnums.ESkillResult:
+    return take_damage_flat(attacker, DiceRoll.roll_all(damage_rolls), damage_type, reflected, attack_roll.get_status())
 
-func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoll.DiceStatus = DiceRoll.DiceStatus.ROLL_SUCCESS, reflected: bool = false) -> BattleEnums.ESkillResult:
+## Acts like [method take_damage] but takes a flat damage value instead of a DiceRoll array.
+## [br]Unlike [method take_damage], this method takes a [enum DiceRoll.DiceStatus] to determine the result of the skill.
+## [br]The status will default to SUCCESS, but is overridden by [method take_damage].
+func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, reflected: bool = false, dice_status: DiceRoll.DiceStatus = DiceRoll.DiceStatus.ROLL_SUCCESS) -> BattleEnums.ESkillResult:
     if damage <= 0:
         print(character_name + " took no damage")
         return BattleEnums.ESkillResult.SR_FAIL
-
     var result := BattleEnums.ESkillResult.SR_SUCCESS
 
     # Use get_or_add to prevent null values breaking this
@@ -230,7 +238,7 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
             else:
                 print(character_name + " reflected " + enum_string)
                 # Reflect damage back at attacker (true flag to prevent infinite loops)
-                attacker.take_damage_flat(self, damage, damage_type, dice_status, true)
+                attacker.take_damage_flat(self, damage, damage_type, true)
                 result = BattleEnums.ESkillResult.SR_REFLECTED
                 # Set damage to 0 so we don't apply it to the character who reflected
                 damage = 0

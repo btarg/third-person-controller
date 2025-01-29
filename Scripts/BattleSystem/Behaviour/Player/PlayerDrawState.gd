@@ -29,9 +29,9 @@ func draw(target_character: BattleCharacter, current_character: BattleCharacter,
     print("[DRAW] Drawn spell: " + drawn_spell.item_name)
 
     var draw_bonus_d4s := ceili(current_character.stats.get_stat(CharacterStatEntry.ECharacterStat.DrawBonus))
-    var draw_bonus := DiceRoll.create(4, draw_bonus_d4s).roll_flat()
+    var draw_bonus := DiceRoll.roll(4, draw_bonus_d4s).total()
     print("[DRAW] Draw bonus: " + str(draw_bonus))
-    var drawn_amount := DiceRoll.create(6, 1, draw_bonus).roll_flat()
+    var drawn_amount := DiceRoll.roll(6, 1, draw_bonus).total()
 
     print("[DRAW] Received %s %s!" % [str(drawn_amount), drawn_spell.item_name])
     current_character.inventory.add_item(drawn_spell, drawn_amount)

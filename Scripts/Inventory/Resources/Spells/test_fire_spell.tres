@@ -19,13 +19,16 @@ bonus = 0
 
 [resource]
 script = ExtResource("1_wvht2")
-spell_affinity = null
+spell_affinity = 1
 spell_power_rolls = Array[ExtResource("2_twpxa")]([SubResource("Resource_4pgx2"), SubResource("Resource_aivd8")])
-spell_radius = null
-junction_table = null
+spell_radius = 0
+junction_table = {
+0: 2.0,
+2: 1.005
+}
 item_type = 0
 item_name = "Fira"
 item_description = "Deals moderate FIRE dmg to one enemy."
-max_stack = null
-can_use_on_enemies = null
+max_stack = 999
+can_use_on_enemies = true
 can_use_on_allies = false

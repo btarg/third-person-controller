@@ -22,11 +22,14 @@ script = ExtResource("1_ea2fr")
 spell_affinity = 7
 spell_power_rolls = Array[ExtResource("2_ql46u")]([SubResource("Resource_c0nmr")])
 use_roll = SubResource("Resource_aaud3")
-spell_radius = null
-junction_table = null
+spell_radius = 0
+junction_table = {
+0: 2.0,
+2: 1.005
+}
 item_type = 0
 item_name = "Cure"
 item_description = "Restores a small amount of HP."
-max_stack = null
+max_stack = 999
 can_use_on_enemies = false
-can_use_on_allies = null
+can_use_on_allies = true

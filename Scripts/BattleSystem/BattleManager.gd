@@ -17,14 +17,13 @@ static func process_basic_attack(attacker: BattleCharacter, target: BattleCharac
     var AC : float = target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass)
     print("[ATTACK] Armour class: " + str(AC))
     
-    var attack_roll := DiceRoll.create(20, 1, ceil(AC)).roll_dc()
+    var attack_roll := DiceRoll.roll(20, 1, ceil(AC))
     print("[ATTACK] Attack Roll: " + str(attack_roll))
+    print("[ATTACK] Attack Roll Total: " + str(attack_roll.total()))
 
-    var damage := DiceRoll.create(20, 1)
-    print("[ATTACK] Damage Roll: " + str(damage))
-
+    var damage_roll := DiceRoll.roll(20, 1)
     # TODO: attacks do damage based on an animation, not instantly
-    var result := target.take_damage(attacker, [damage], attacker.basic_attack_element, attack_roll.status)
+    var result := target.take_damage(attacker, [damage_roll], attack_roll, attacker.basic_attack_element)
     print("[ATTACK] Result: " + Util.get_enum_name(BattleEnums.ESkillResult, result))
 
     return result

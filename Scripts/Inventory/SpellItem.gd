@@ -8,13 +8,24 @@ class_name SpellItem extends BaseInventoryItem
 
 @export_group("Dice Roll Settings")
 ## The dice roll used to determine the item's power when used on a target. (This is not the attack roll!)
-@export var spell_power_rolls: Array[DiceRoll] = []
+var _default_spell_power_rolls: Array[DiceRoll] = [DiceRoll.roll(8)]
+@export var spell_power_rolls: Array[DiceRoll] = []:
+    get:
+        return spell_power_rolls if spell_power_rolls.size() > 0 \
+        else _default_spell_power_rolls
+    set(value):
+        spell_power_rolls = value
+
 ## Override the spell's attack roll. Set to null to use a d20 vs the target's AC.
 @export var use_roll: DiceRoll
 
+var _roll_cache: Dictionary = {}
 func get_spell_use_roll(target: BattleCharacter) -> DiceRoll:
-    return DiceRoll.create(20, 1, ceil(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass)))\
-    if use_roll == null else use_roll
+    if use_roll:
+        return use_roll
+    return _roll_cache.get_or_add(target,
+    DiceRoll.roll(20, 1, ceil(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass))))
+
 
 ## The radius around the caster which targets need to be in to be affected by the spell.
 @export var spell_radius := 0
@@ -27,12 +38,6 @@ func get_spell_use_roll(target: BattleCharacter) -> DiceRoll:
     CharacterStatEntry.ECharacterStat.MaxHP: 2.0,
     CharacterStatEntry.ECharacterStat.Strength: 1.005,
 } 
-
-func _init() -> void:
-    if spell_power_rolls.is_empty():
-        print("[SPELL] No power rolls set for %s" % [item_name])
-        # Append default roll to prevent errors
-        spell_power_rolls.append(DiceRoll.create(8, 1))
 
 func get_item_description() -> String:
     var description_string := ""
@@ -76,10 +81,10 @@ func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
     # Almighty damage never misses, but other attacks roll to hit
     if spell_affinity != BattleEnums.EAffinityElement.ALMIGHTY:
         
-        var spell_use_roll_result := get_spell_use_roll(target).roll_dc()
-
-        print("[SPELL] Roll result for %s: %s" % [item_name, spell_use_roll_result])
-        dice_status = spell_use_roll_result.status as DiceRoll.DiceStatus
+        var spell_use_roll := get_spell_use_roll(target).reroll()
+        print("[SPELL] Rolling %s for %s total" % [spell_use_roll.to_string(), str(spell_use_roll.total())])
+        dice_status = spell_use_roll.get_status()
+        print("[SPELL] Roll status: %s" % [Util.get_enum_name(DiceRoll.DiceStatus, dice_status)])
 
         match dice_status:
             DiceRoll.DiceStatus.ROLL_SUCCESS:
@@ -94,7 +99,7 @@ func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
     match spell_affinity:
         BattleEnums.EAffinityElement.HEAL:
             # spell use status is already set to success or fail
-            var heal_amount := DiceRoll.roll_all_flat(spell_power_rolls)
+            var heal_amount := DiceRoll.roll_all(spell_power_rolls)
             target.heal(heal_amount, false, spell_use_status)
         BattleEnums.EAffinityElement.MANA:
             pass
@@ -112,11 +117,14 @@ func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
         # other spell affinities deal damage
         # take_damage() doesn't take a spell result, because we use it for basic attacks too
         _:
+            var attack_roll := DiceRoll.roll(20, 1, ceil(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass)))
             # TODO: attacks do damage based on an animation, not instantly
             # TODO: calculate damage more randomly
-            target.take_damage(user, spell_power_rolls, spell_affinity, dice_status)
+            target.take_damage(user, spell_power_rolls, attack_roll, spell_affinity)
 
     item_used.emit(item_id, spell_use_status)
 
+    # reset cached roll so we can roll again
+    _roll_cache.clear()
 
     return spell_use_status

@@ -32,13 +32,20 @@ func _ready() -> void:
     Console.add_command("remove_item_id", _remove_item_command, 3)
     
     # inventory_updated.connect(_on_inventory_updated)
-    set_item_junctioned_stat(fire_spell.item_id, CharacterStatEntry.ECharacterStat.Strength)
     add_item(heal_spell, 99)
     add_item(fire_spell, 99)
     add_item(ice_spell, 99)
     add_item(elec_spell, 99)
     add_item(wind_spell, 99)
     add_item(almighty_spell, 99)
+
+
+    # TEST: set two different spells to the same stat, should only apply the modifier for the last one
+    # since only one item is allowed to be junctioned to one stat at a time
+    # I also set the same item to two different stats, should only apply the modifier for the last one
+    set_item_junctioned_stat(fire_spell.item_id, CharacterStatEntry.ECharacterStat.Strength)
+    set_item_junctioned_stat(fire_spell.item_id, CharacterStatEntry.ECharacterStat.Vitality)
+    set_item_junctioned_stat(heal_spell.item_id, CharacterStatEntry.ECharacterStat.Strength)
 
     print_inventory()
 
@@ -69,17 +76,28 @@ func _set_junction_command(character_name: String, item_id: String, stat_int_str
     var stat := int(stat_int_string) as CharacterStatEntry.ECharacterStat
     set_item_junctioned_stat(item_id, stat)
 
-func set_item_junctioned_stat(item_id: String, stat: CharacterStatEntry.ECharacterStat) -> void:    
+func set_item_junctioned_stat(item_id: String, stat: CharacterStatEntry.ECharacterStat) -> void:
+    var old_stat := junctioned_stat_by_item.get(item_id, CharacterStatEntry.ECharacterStat.NONE) as CharacterStatEntry.ECharacterStat
+    # If the item was junctioned to a different stat, remove that junction first
+    if old_stat != CharacterStatEntry.ECharacterStat.NONE and old_stat != stat:
+        junctioned_stat_by_item.erase(item_id)
+        var prev_item := get_item(item_id) as SpellItem
+        if prev_item:
+            # Remove old stat's junction effect by forcing count=0
+            _update_junction_modifiers(prev_item, 0)
+
+    # Now apply the new junction
     junctioned_stat_by_item[item_id] = stat
     _update_junction_modifiers(get_item(item_id) as SpellItem, get_item_count(item_id))
-    Console.print_line("Junctioned item %s to stat %s" % [item_id, Util.get_enum_name(CharacterStatEntry.ECharacterStat, stat)])
+    Console.print_line("[JUNCTION] Junctioned item %s to stat %s"
+        % [item_id, Util.get_enum_name(CharacterStatEntry.ECharacterStat, stat)], true)
 
 func _get_junctioned_stat(character_name: String, item_id: String) -> CharacterStatEntry.ECharacterStat:
     if character_name != battle_character.character_internal_name:
         return CharacterStatEntry.ECharacterStat.NONE
     
     var result := junctioned_stat_by_item.get(item_id, CharacterStatEntry.ECharacterStat.NONE) as CharacterStatEntry.ECharacterStat
-    Console.print_line("Junctioned stat for item %s: %s" % [item_id, Util.get_enum_name(CharacterStatEntry.ECharacterStat, result)])
+    Console.print_line("Junctioned stat for item %s: %s" % [item_id, Util.get_enum_name(CharacterStatEntry.ECharacterStat, result)], true)
     return result
 
 # Function for debug
@@ -148,18 +166,10 @@ func _update_junction_modifiers(spell_item: SpellItem, total_item_count: int) ->
     if not spell_item:
         print("[Junction] Spell item is null")
         return
-    print("[Junction] %s called modifier update with count " % spell_item.item_name + str(total_item_count))
-    if not spell_item.junction_table:
-        print("[Junction] Spell has no junction table")
-        return
-
-    if spell_item.junction_table.is_empty():
-        print("[Junction] Spell has no junction table")
-        return
-
+    # print("[Junction] %s called modifier update with count " % spell_item.item_name + str(total_item_count))
     var junctioned_stat := junctioned_stat_by_item.get(spell_item.item_id, CharacterStatEntry.ECharacterStat.NONE) as CharacterStatEntry.ECharacterStat
 
-    if total_item_count > 0:
+    if total_item_count > 0 and spell_item.junction_table and spell_item.junction_table.size() > 0:
         for stat: CharacterStatEntry.ECharacterStat in spell_item.junction_table.keys():
             # Only apply the modifier if it matches the junctioned stat
             if stat != junctioned_stat:

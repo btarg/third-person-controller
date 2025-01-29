@@ -36,6 +36,7 @@ func get_spell_use_roll(target: BattleCharacter) -> DiceRoll:
 @export var junction_table = {
     CharacterStatEntry.ECharacterStat.MaxHP: 2.0,
     CharacterStatEntry.ECharacterStat.Strength: 1.005,
+    CharacterStatEntry.ECharacterStat.Vitality: 1.005,
 } 
 
 func get_item_description() -> String:

@@ -15,10 +15,10 @@ script = ExtResource("1_3k22y")
 spell_affinity = 4
 spell_power_rolls = Array[ExtResource("2_0vsjh")]([])
 use_roll = SubResource("Resource_c3wc4")
-spell_radius = 0
 junction_table = {
 0: 2.0,
-2: 1.005
+2: 1.005,
+5: 1.005
 }
 item_type = 0
 item_name = "Garula"
@@ -26,3 +26,4 @@ item_description = "Deals moderate WIND dmg to one enemy."
 max_stack = 999
 can_use_on_enemies = true
 can_use_on_allies = false
+spell_range = 5

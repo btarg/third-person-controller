@@ -22,10 +22,10 @@ script = ExtResource("1_dwovg")
 spell_affinity = 11
 modifier = SubResource("Resource_jp5gd")
 spell_power_rolls = Array[ExtResource("3_svi6p")]([])
-spell_radius = 0
 junction_table = {
 0: 2.0,
-2: 1.005
+2: 1.005,
+5: 1.005
 }
 item_type = 0
 item_name = "Silence"
@@ -33,3 +33,4 @@ item_description = "Prevents enemies from casting spells for 3 turns."
 max_stack = 999
 can_use_on_enemies = true
 can_use_on_allies = false
+spell_range = 5

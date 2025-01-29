@@ -12,7 +12,7 @@ var count_style_box: StyleBoxFlat
 
 var tweens: Array[Tween] = []
 
-const TEXT_COLOR := Color(213, 207, 190, 1)
+const TEXT_COLOR := Color(212, 207, 190, 1)
 const COUNT_BACKGROUND_COLOR := Color(217, 217, 217, 1)
 
 const TRANSITION_TIME := 0.3

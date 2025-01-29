@@ -22,6 +22,8 @@ var _last_available_actions := BattleEnums.EAvailableCombatActions.NONE
 
 var turns_played := -1
 
+var movement_locked_in := false
+
 var available_actions : BattleEnums.EAvailableCombatActions = BattleEnums.EAvailableCombatActions.SELF:
     get:
         return available_actions
@@ -283,10 +285,12 @@ func ready_next_turn() -> void:
         current_character.turns_left -= 1
         if current_character.turns_left > 0:
             print("[ONE MORE] %s gets %s more turns!" % [current_character.character_name, current_character.turns_left])
+            movement_locked_in = true
         else:
             current_character.turns_left = 0 # cap at 0 minimum
             current_character_index += 1
             current_character.behaviour_state_machine.set_state("IdleState")
+            movement_locked_in = false
 
     # Prevent overflow
     if current_character_index >= turn_order.size():

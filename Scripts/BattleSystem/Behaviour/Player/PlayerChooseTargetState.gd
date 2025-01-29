@@ -119,10 +119,12 @@ func _process_targeting() -> void:
 
 func _end_targeting() -> void:
     # check if active in case the character has left the battle (ie. died)
-    if active:
-        print("Ending target selection")
-        Transitioned.emit(self, "IdleState")
-        battle_state.ready_next_turn()
+    if not active:
+        return
+
+    print("Ending target selection")
+    Transitioned.emit(self, "IdleState")
+    battle_state.ready_next_turn()
 
 func _state_input(event: InputEvent) -> void:
 

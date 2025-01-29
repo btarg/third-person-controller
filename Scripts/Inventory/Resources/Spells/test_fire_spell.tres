@@ -24,7 +24,6 @@ spell_power_rolls = Array[ExtResource("2_twpxa")]([SubResource("Resource_4pgx2")
 spell_radius = null
 junction_table = null
 item_type = 0
-item_id = null
 item_name = "Fira"
 item_description = "Deals moderate FIRE dmg to one enemy."
 max_stack = null

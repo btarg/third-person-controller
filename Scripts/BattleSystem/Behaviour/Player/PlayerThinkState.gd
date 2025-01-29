@@ -14,8 +14,6 @@ extends State
 # Camera used for raycasts
 # We get the node manually here to avoid @onready order shenanigans
 @onready var top_down_camera := battle_state.top_down_player.get_node("TopDownPlayerPivot/SpringArm3D/TopDownCamera") as Camera3D
-
-
 @onready var player_think_ui := battle_state.get_node("PlayerThinkUI") as PlayerThinkUI
 
 var chosen_action: BattleEnums.EPlayerCombatAction = BattleEnums.EPlayerCombatAction.CA_DEFEND
@@ -201,6 +199,11 @@ func _state_unhandled_input(event: InputEvent) -> void:
             return
         
         if event.is_action_pressed("combat_move"):
+
+            if battle_state.movement_locked_in:
+                print("[MOVE] Movement is locked in")
+                return
+
             chosen_action = BattleEnums.EPlayerCombatAction.CA_MOVE
             # var result := Util.raycast_from_center_or_mouse(top_down_camera, [battle_state.top_down_player.get_rid()])
             # var position := Vector3.INF

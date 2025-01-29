@@ -33,7 +33,7 @@ font_size = 77
 [sub_resource type="LabelSettings" id="LabelSettings_mjkk5"]
 font = ExtResource("2_hy4mq")
 font_size = 96
-font_color = Color(0, 0, 0, 1)
+font_color = Color(0.835294, 0.811765, 0.745098, 1)
 
 [node name="InventoryButton" type="Control"]
 clip_contents = true

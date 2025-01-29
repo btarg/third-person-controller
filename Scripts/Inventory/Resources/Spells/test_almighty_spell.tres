@@ -12,7 +12,6 @@ junction_table = {
 2: 1.005
 }
 item_type = 0
-item_id = "almighty_spell"
 item_name = "Megidolaon"
 item_description = "Deals heavy ALMIGHTY dmg to one enemy"
 max_stack = null

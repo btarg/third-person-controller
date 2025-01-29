@@ -50,9 +50,12 @@ func draw(target_character: BattleCharacter, current_character: BattleCharacter,
     _end_targeting()
 
 func _end_targeting() -> void:
-    if active:
-        Transitioned.emit(self, "IdleState")
-        battle_state.ready_next_turn()
+    if not active:
+        return
+
+    Transitioned.emit(self, "IdleState")
+    battle_state.ready_next_turn()
+
 func _back_to_target() -> void:
     if active:
         Transitioned.emit(self, "ChooseTargetState")

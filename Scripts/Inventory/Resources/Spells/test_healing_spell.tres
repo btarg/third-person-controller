@@ -25,7 +25,6 @@ use_roll = SubResource("Resource_aaud3")
 spell_radius = null
 junction_table = null
 item_type = 0
-item_id = null
 item_name = "Cure"
 item_description = "Restores a small amount of HP."
 max_stack = null

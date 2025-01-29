@@ -24,7 +24,6 @@ spell_power_rolls = null
 spell_radius = null
 junction_table = null
 item_type = 0
-item_id = null
 item_name = "Silence"
 item_description = "Prevents enemies from casting spells for 3 turns."
 max_stack = null

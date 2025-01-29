@@ -112,7 +112,7 @@ func roll_initiative() -> int:
         vitality = 0
 
     # make sure to set the initiative value on our character for later reference
-    initiative = DiceRoller.roll_flat(20, 1) + vitality
+    initiative = DiceRoll.create(20, 1, vitality).roll_flat()
     return initiative
 
 func heal(amount: int, from_absorb: bool = false, spell_status: BaseInventoryItem.UseStatus = BaseInventoryItem.UseStatus.SPELL_FAIL) -> void:
@@ -159,12 +159,12 @@ func award_turns(turns: int) -> void:
     print("[ONE MORE] " + character_name + " has been awarded " + str(turns) + " turns")
     BattleSignalBus.OnTurnsAwarded.emit(self, turns)
 
-func take_damage(attacker: BattleCharacter, damage_rolls: Array[DiceRoll], damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoller.DiceStatus = DiceRoller.DiceStatus.ROLL_SUCCESS, reflected: bool = false) -> BattleEnums.ESkillResult:
+func take_damage(attacker: BattleCharacter, damage_rolls: Array[DiceRoll], damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoll.DiceStatus = DiceRoll.DiceStatus.ROLL_SUCCESS, reflected: bool = false) -> BattleEnums.ESkillResult:
     # We've already decided whether we crit or not in the attack roll d20,
     # so we roll flat for the attacks themselves
-    return take_damage_flat(attacker, DiceRoller.roll_all_flat(damage_rolls), damage_type, dice_status, reflected)
+    return take_damage_flat(attacker, DiceRoll.roll_all_flat(damage_rolls), damage_type, dice_status, reflected)
 
-func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoller.DiceStatus = DiceRoller.DiceStatus.ROLL_SUCCESS, reflected: bool = false) -> BattleEnums.ESkillResult:
+func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS, dice_status: DiceRoll.DiceStatus = DiceRoll.DiceStatus.ROLL_SUCCESS, reflected: bool = false) -> BattleEnums.ESkillResult:
     if damage <= 0:
         print(character_name + " took no damage")
         return BattleEnums.ESkillResult.SR_FAIL
@@ -194,11 +194,11 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
     and damage_type != BattleEnums.EAffinityElement.ALMIGHTY):
         # dice crits only apply to UNKNOWN, (generic) and RESIST affinities
         match dice_status:
-            DiceRoller.DiceStatus.ROLL_CRIT_SUCCESS:
+            DiceRoll.DiceStatus.ROLL_CRIT_SUCCESS:
                 affinity_type = BattleEnums.EAffinityType.WEAK
-            DiceRoller.DiceStatus.ROLL_CRIT_FAIL:
+            DiceRoll.DiceStatus.ROLL_CRIT_FAIL:
                 affinity_type = BattleEnums.EAffinityType.IMMUNE
-            DiceRoller.DiceStatus.ROLL_FAIL:
+            DiceRoll.DiceStatus.ROLL_FAIL:
                 affinity_type = BattleEnums.EAffinityType.RESIST
 
     #### HANDLE CRIT DAMAGE ####
@@ -240,7 +240,7 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
             # basic attacks even with affinities do 0 damage on fail
             # this obviously does not apply to weaknesses since they are
             # handled in the crit block above
-            if (dice_status == DiceRoller.DiceStatus.ROLL_FAIL
+            if (dice_status == DiceRoll.DiceStatus.ROLL_FAIL
             and attacker.basic_attack_element == damage_type):
                 print(character_name + " resisted " + enum_string)
                 damage = 0
@@ -268,8 +268,8 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
     # (aka normal damage - doesn't apply to almighty)
     elif attacker and damage_type != BattleEnums.EAffinityElement.ALMIGHTY:
         # Regular failed rolls don't do damage for basic melee attacks (non spell attacks)
-        if ((dice_status == DiceRoller.DiceStatus.ROLL_FAIL
-        or dice_status == DiceRoller.DiceStatus.ROLL_CRIT_FAIL)
+        if ((dice_status == DiceRoll.DiceStatus.ROLL_FAIL
+        or dice_status == DiceRoll.DiceStatus.ROLL_CRIT_FAIL)
         and attacker.basic_attack_element == damage_type):
             damage = 0
             result = BattleEnums.ESkillResult.SR_FAIL

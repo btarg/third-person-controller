@@ -38,14 +38,14 @@ func get_item_description() -> String:
     var description_string := ""
 
     if spell_affinity == BattleEnums.EAffinityElement.HEAL:
-        description_string += "Restores %s HP " % [DiceRoller.get_dice_array_as_string(spell_power_rolls)]
+        description_string += "Restores %s HP " % [DiceRoll.get_dice_array_as_string(spell_power_rolls)]
     elif spell_affinity == BattleEnums.EAffinityElement.MANA:
-        description_string += "Restores %s MP " % [DiceRoller.get_dice_array_as_string(spell_power_rolls)]
+        description_string += "Restores %s MP " % [DiceRoll.get_dice_array_as_string(spell_power_rolls)]
     elif spell_affinity in [BattleEnums.EAffinityElement.BUFF,
     BattleEnums.EAffinityElement.DEBUFF]:
         description_string += "Applies " + modifier.name
     else:
-        description_string += "Deals %s %s damage " % [DiceRoller.get_dice_array_as_string(spell_power_rolls), Util.get_enum_name(BattleEnums.EAffinityElement, spell_affinity)]
+        description_string += "Deals %s %s damage " % [DiceRoll.get_dice_array_as_string(spell_power_rolls), Util.get_enum_name(BattleEnums.EAffinityElement, spell_affinity)]
 
     if can_use_on_enemies and can_use_on_allies:
         description_string += "to any target."
@@ -71,7 +71,7 @@ func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
     print("[SPELL] %s used %s on %s" % [user.character_name, item_name, target.character_name])
     
     var spell_use_status := UseStatus.SPELL_FAIL
-    var dice_status := DiceRoller.DiceStatus.ROLL_SUCCESS
+    var dice_status := DiceRoll.DiceStatus.ROLL_SUCCESS
 
     # Almighty damage never misses, but other attacks roll to hit
     if spell_affinity != BattleEnums.EAffinityElement.ALMIGHTY:
@@ -79,22 +79,22 @@ func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
         var spell_use_roll_result := get_spell_use_roll(target).roll_dc()
 
         print("[SPELL] Roll result for %s: %s" % [item_name, spell_use_roll_result])
-        dice_status = spell_use_roll_result.status as DiceRoller.DiceStatus
+        dice_status = spell_use_roll_result.status as DiceRoll.DiceStatus
 
         match dice_status:
-            DiceRoller.DiceStatus.ROLL_SUCCESS:
+            DiceRoll.DiceStatus.ROLL_SUCCESS:
                 spell_use_status = UseStatus.SPELL_SUCCESS
-            DiceRoller.DiceStatus.ROLL_CRIT_SUCCESS:
+            DiceRoll.DiceStatus.ROLL_CRIT_SUCCESS:
                 spell_use_status = UseStatus.SPELL_CRIT_SUCCESS
-            DiceRoller.DiceStatus.ROLL_FAIL:
+            DiceRoll.DiceStatus.ROLL_FAIL:
                 spell_use_status = UseStatus.SPELL_FAIL
-            DiceRoller.DiceStatus.ROLL_CRIT_FAIL:
+            DiceRoll.DiceStatus.ROLL_CRIT_FAIL:
                 spell_use_status = UseStatus.SPELL_CRIT_FAIL
 
     match spell_affinity:
         BattleEnums.EAffinityElement.HEAL:
             # spell use status is already set to success or fail
-            var heal_amount := DiceRoller.roll_all_flat(spell_power_rolls)
+            var heal_amount := DiceRoll.roll_all_flat(spell_power_rolls)
             target.heal(heal_amount, false, spell_use_status)
         BattleEnums.EAffinityElement.MANA:
             pass

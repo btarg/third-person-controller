@@ -18,17 +18,17 @@ float range_lerp(float value, float min1, float min2, float max1, float max2){
 void fragment() {
     float dist = distance(UV, vec2(0.5, 0.5));
     float o = cos(TIME * speed);
-    
+
     // Ring calculation - remove smoothstep for hard edge
     float ring_alpha = step(dist, ring_radius) * step(ring_radius * thickness, dist);
-    
+
     // Inner circle calculation with edge glow
     float edge_dist = ring_radius * thickness;
     float glow_start_dist = edge_dist * glow_start;
     float base_alpha = inner_color.a;
     float edge_alpha = smoothstep(glow_start_dist, edge_dist, dist) * glow_intensity;
     float inner_alpha = step(dist, edge_dist) * max(base_alpha, edge_alpha);
-    
+
     // Color mixing for ring
     vec3 ring_color;
     if (oscillate_colour) {
@@ -37,7 +37,7 @@ void fragment() {
     } else {
         ring_color = mix(outer_color.rgb, lerp_color.rgb, step(ring_radius, dist));
     }
-    
+
     // Final color blend with hard transition
     ALBEDO = mix(inner_color.rgb, ring_color, step(ring_radius * thickness, dist));
     ALPHA = ring_alpha > 0.0 ? 1.0 : inner_alpha;

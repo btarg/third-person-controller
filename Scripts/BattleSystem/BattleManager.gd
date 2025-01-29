@@ -17,7 +17,7 @@ static func process_basic_attack(attacker: BattleCharacter, target: BattleCharac
     var AC : float = target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass)
     print("[ATTACK] Armour class: " + str(AC))
     
-    var attack_roll := DiceRoller.roll_dc(20, ceil(AC), 1)
+    var attack_roll := DiceRoll.create(20, 1, ceil(AC)).roll_dc()
     print("[ATTACK] Attack Roll: " + str(attack_roll))
 
     var damage := DiceRoll.create(20, 1)

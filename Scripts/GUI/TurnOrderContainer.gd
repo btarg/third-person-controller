@@ -47,7 +47,8 @@ func _unhandled_input(event: InputEvent) -> void:
     if entries.is_empty():
         return
 
-    if event.is_action_pressed("ui_focus_next"):
+    if (event.is_action_pressed("ui_focus_next")
+    and battle_state.current_character.behaviour_state_machine.current_state is PlayerThinkState):
         is_ui_active = !is_ui_active
     
     if not is_ui_active:

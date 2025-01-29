@@ -47,7 +47,7 @@ func _choose_spell_item(spell: BaseInventoryItem) -> void:
         # floor this to int to prevent bullshit
         var distance: float = floori(battle_state.current_character.get_parent().global_position.distance_to(
             battle_state.player_selected_character.get_parent().global_position))
-        
+        # TODO: draw spell range radius
         if (distance > battle_state.current_character.stats.get_stat(CharacterStatEntry.ECharacterStat.AttackRange)
         or distance > spell.spell_range):
             print("[SPELL/ITEM] Target is out of range (distance: " + str(distance) + ", range: " + str(spell.spell_range) + ")")

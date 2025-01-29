@@ -97,10 +97,7 @@ func player_process(delta: float) -> void:
 ## Called from state
 func input_update_from_battle_state(event: InputEvent) -> void:
     if enabled:
-        if event is InputEventKey and event.is_pressed() and event.keycode == KEY_F:
-            var new_focus := Node3D.new()
-            focused_node = new_focus
-        elif event is InputEventKey and event.is_pressed() and event.keycode == KEY_P:
+        if event is InputEventKey and event.is_pressed() and event.keycode == KEY_P:
             focused_node = player
 
         spring_arm_pivot.pivot_input_update(event)

@@ -182,8 +182,12 @@ func update_labels() -> void:
                 continue
             description_label.text = item.get_item_description()
             if item is SpellItem:
+
                 var spell_use_roll := (item as SpellItem).get_spell_use_roll(battle_state.player_selected_character)
-                dc_label.text = "Roll: %s" % spell_use_roll.to_string()
+                if spell_use_roll.difficulty_class > 1:
+                    dc_label.text = "Roll: %s" % spell_use_roll.to_string()
+                else:
+                    dc_label.text = "Will always succeed"
             else:
                 dc_label.text = ""
 

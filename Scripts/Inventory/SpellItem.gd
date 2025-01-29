@@ -23,6 +23,9 @@ var _roll_cache: Dictionary = {}
 func get_spell_use_roll(target: BattleCharacter) -> DiceRoll:
     if use_roll:
         return use_roll
+    if spell_affinity == BattleEnums.EAffinityElement.ALMIGHTY:
+        return DiceRoll.roll(20, 1, 0) # DC 0: always hits
+
     return _roll_cache.get_or_add(target,
     DiceRoll.roll(20, 1, ceil(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass))))
 

@@ -67,20 +67,8 @@ var item_button_map: Dictionary = {}
 
 signal item_button_pressed(item: BaseInventoryItem)
 
-# Debug items
-var test_item := preload("res://Scripts/Inventory/Resources/new_item.tres") as BaseInventoryItem
-var test_item2 := preload("res://Scripts/Inventory/Resources/new_item2.tres") as BaseInventoryItem
-var test_spell := preload("res://Scripts/Inventory/Resources/Spells/test_healing_spell.tres") as SpellItem
 
 func _ready() -> void:
-
-    # test_spell_inventory.add_item(test_spell, 15)
-    # test_item_inventory.add_item(test_item, 10)
-    # test_item_inventory.add_item(test_item2, 10)
-
-    # item_inventory = test_item_inventory
-
-    item_button_pressed.connect(_test_button_pressed)
 
     hold_timer.wait_time = HOLD_INTERVAL
     hold_timer.one_shot = true
@@ -191,7 +179,7 @@ func update_labels() -> void:
             else:
                 dc_label.text = ""
 
-func _input(event: InputEvent) -> void:
+func _unhandled_input(event: InputEvent) -> void:
     if (not visible
     or event is InputEventMouseMotion):
         return

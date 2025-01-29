@@ -29,10 +29,6 @@ func get_spell_use_roll(target: BattleCharacter) -> DiceRoll:
     return _roll_cache.get_or_add(target,
     DiceRoll.roll(20, 1, ceil(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass))))
 
-
-## The radius around the caster which targets need to be in to be affected by the spell.
-@export var spell_radius := 0
-
 @export_group("Junction system")
 
 ## Dictionary with a character stat entry as key and a float as value

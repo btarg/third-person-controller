@@ -35,6 +35,9 @@ var item_id : String = "default_item_id":
 @export var can_use_on_enemies: bool = true
 @export var can_use_on_allies: bool = true
 
+## How far away a target can be to use this item (does not apply to self)
+@export var spell_range: int = 5
+
 signal item_used(item_id: String, use_status: BaseInventoryItem.UseStatus)
 
 # Preload audio types

@@ -38,8 +38,20 @@ func enter() -> void:
     battle_state.top_down_player.focused_node = battle_state.player_selected_character.get_parent()
 
 func _choose_spell_item(spell: BaseInventoryItem) -> void:
-    if not active:
+    if not active or not spell:
         return
+
+    # If we are using the item on another character, check if the target is in range
+    if battle_state.available_actions != BattleEnums.EAvailableCombatActions.SELF:
+        # distance between current character and selected character
+        # floor this to int to prevent bullshit
+        var distance: float = floori(battle_state.current_character.get_parent().global_position.distance_to(
+            battle_state.player_selected_character.get_parent().global_position))
+        
+        if (distance > battle_state.current_character.stats.get_stat(CharacterStatEntry.ECharacterStat.AttackRange)
+        or distance > spell.spell_range):
+            print("[SPELL/ITEM] Target is out of range (distance: " + str(distance) + ", range: " + str(spell.spell_range) + ")")
+            return
 
     print("[SPELL/ITEM] Spell chosen: " + spell.item_name)
     think_state.chosen_spell_or_item = spell

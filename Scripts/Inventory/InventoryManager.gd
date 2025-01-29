@@ -136,7 +136,7 @@ func add_item(item: BaseInventoryItem, count: int = 1) -> void:
         # Add the item to the inventory
         items[item.item_id] = {"resource": item, "count": count}
         is_new_item = true
-        # item.item_used.connect(_on_item_used)
+        item.item_used.connect(_on_item_used)
     
     var total := items[item.item_id]["count"] as int
     inventory_updated.emit(item, total, is_new_item)
@@ -145,10 +145,10 @@ func add_item(item: BaseInventoryItem, count: int = 1) -> void:
     
 
 func _update_junction_modifiers(spell_item: SpellItem, total_item_count: int) -> void:
-    print("[Junction] Modifier update called with count " + str(total_item_count))
     if not spell_item:
         print("[Junction] Spell item is null")
         return
+    print("[Junction] %s called modifier update with count " % spell_item.item_name + str(total_item_count))
     if not spell_item.junction_table:
         print("[Junction] Spell has no junction table")
         return

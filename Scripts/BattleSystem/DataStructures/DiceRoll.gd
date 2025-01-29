@@ -23,8 +23,8 @@ var _total_rolled: int = 0
 func total() -> int:
     return _total_rolled
 
-## Rerolls the dice and returns the total.
-## This will change the status returned by [method get_status()] to reflect the new total's.
+## Rerolls the total and returns the DiceRoll object.
+## This will change the status returned by [method get_status()].
 ## If you just want to get the status without rerolling, use [method get_status()]
 func reroll() -> DiceRoll:
     self._internal_roll()
@@ -34,6 +34,7 @@ func reroll() -> DiceRoll:
 func get_status() -> DiceStatus:
     return _current_status
 
+## Constructs a new DiceRoll object with the given parameters and rolls the dice.
 static func roll(_die_sides: int, _num_rolls: int = 1, _difficulty_class: int = 1, _bonus: int = 0) -> DiceRoll:
     var new_roll := DiceRoll.new()
     new_roll.die_sides = _die_sides

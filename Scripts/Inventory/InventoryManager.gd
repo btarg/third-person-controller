@@ -77,6 +77,11 @@ func _set_junction_command(character_name: String, item_id: String, stat_int_str
     var stat := int(stat_int_string) as CharacterStatEntry.ECharacterStat
     set_item_junctioned_stat(item_id, stat)
 
+## Set the stat that an item is junctioned to.
+## [br]If the item was already junctioned to a different stat, the previous junction is removed.
+## [br]Stats will usually be integers, but junction modifiers are typically additive floats. The final stat will be rounded.
+## [br]E.g. 99 items junctioned to Strength with a multiplier of 1.005 and a base stat value of 1.0 will add 0.495 to the stat value,
+## resulting in 1.5 being added to the attack, then the attack gets rounded up.
 func set_item_junctioned_stat(item_id: String, stat: CharacterStatEntry.ECharacterStat) -> void:
     var old_stat := junctioned_stat_by_item.get(item_id, CharacterStatEntry.ECharacterStat.NONE) as CharacterStatEntry.ECharacterStat
     # If the item was junctioned to a different stat, remove that junction first

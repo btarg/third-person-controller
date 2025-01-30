@@ -15,13 +15,14 @@ const JUNCTION_DECIMAL_PLACES: int = 5
 @onready var battle_character := get_node("../BattleCharacter") as BattleCharacter
 
 signal inventory_updated(resource: BaseInventoryItem, count: int, is_new_item: bool)
+signal item_used(item_id: BaseInventoryItem, use_status: BaseInventoryItem.UseStatus)
 
-@onready var fire_spell: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_fire_spell.tres")
-@onready var heal_spell: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_healing_spell.tres")
-@onready var almighty_spell: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_almighty_spell.tres")
-@onready var ice_spell: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_ice_spell.tres")
-@onready var elec_spell: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_elec_spell.tres")
-@onready var wind_spell: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_wind_spell.tres")
+var fire_spell: BaseInventoryItem = load("res://Scripts/Inventory/Resources/Spells/test_fire_spell.tres")
+var heal_spell: BaseInventoryItem = load("res://Scripts/Inventory/Resources/Spells/test_healing_spell.tres")
+var almighty_spell: BaseInventoryItem = load("res://Scripts/Inventory/Resources/Spells/test_almighty_spell.tres")
+var ice_spell: BaseInventoryItem = load("res://Scripts/Inventory/Resources/Spells/test_ice_spell.tres")
+var elec_spell: BaseInventoryItem = load("res://Scripts/Inventory/Resources/Spells/test_elec_spell.tres")
+var wind_spell: BaseInventoryItem = load("res://Scripts/Inventory/Resources/Spells/test_wind_spell.tres")
 
 func _ready() -> void:
     Console.add_command("set_junction", _set_junction_command, 3)
@@ -108,7 +109,7 @@ func _on_inventory_updated(resource: BaseInventoryItem, count: int, is_new_item:
     else:
         print("Item count updated")
 
-func _on_item_used(item_id: String, status: BaseInventoryItem.UseStatus) -> void:
+func on_item_used(item: BaseInventoryItem, status: BaseInventoryItem.UseStatus) -> void:
     match status:
         BaseInventoryItem.UseStatus.CONSUMED_HP:
             print("SIGNAL: Item used to restore HP")
@@ -119,9 +120,10 @@ func _on_item_used(item_id: String, status: BaseInventoryItem.UseStatus) -> void
         BaseInventoryItem.UseStatus.EQUIPPED:
             print("SIGNAL: Item equipped")
         _:
-            print("SIGNAL: Item used: " + item_id)
+            print("SIGNAL: Item used: " + item.item_name)
 
-    remove_item(item_id, 1)
+    item_used.emit(item, status)
+    remove_item(item, 1)
 
 func _generate_stat_modifier(spell_item: SpellItem, stat: CharacterStatEntry.ECharacterStat, value: float) -> StatModifier:
     var modifier: StatModifier = StatModifier.new()
@@ -139,10 +141,9 @@ func _generate_stat_modifier(spell_item: SpellItem, stat: CharacterStatEntry.ECh
     return modifier
 
 
-# Function to add items to the inventory
 func add_item(item: BaseInventoryItem, count: int = 1) -> void:
     var is_new_item: bool = false
-    if item.item_id in items:
+    if items.has(item.item_id):
         var current_count := items[item.item_id]["count"] as int
         var new_count := current_count + count
         # Ensure we do not exceed the max stack count
@@ -152,15 +153,15 @@ func add_item(item: BaseInventoryItem, count: int = 1) -> void:
         items[item.item_id]["count"] = new_count
     else:
         # Add the item to the inventory
+        item.inventory = self
         items[item.item_id] = {"resource": item, "count": count}
         is_new_item = true
-        item.item_used.connect(_on_item_used)
-    
+
     var total := items[item.item_id]["count"] as int
     inventory_updated.emit(item, total, is_new_item)
+    
     if item is SpellItem:
         _update_junction_modifiers(item as SpellItem, total)
-    
 
 func _update_junction_modifiers(spell_item: SpellItem, total_item_count: int) -> void:
     if not spell_item:
@@ -218,8 +219,6 @@ func remove_item(item: Variant, count: int) -> void:
     var new_count := current_count - count
     if new_count <= 0:
         print("Removing item from inventory")
-        # disconnect signal for use
-        # item_resource.disconnect("item_used", _on_item_used)
         # erase item from map
         items.erase(item_id)
         new_count = 0

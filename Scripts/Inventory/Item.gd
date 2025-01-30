@@ -38,7 +38,7 @@ var item_id : String = "default_item_id":
 ## How far away a target can be to use this item (does not apply to self)
 @export var spell_range: int = 5
 
-signal item_used(item_id: String, use_status: BaseInventoryItem.UseStatus)
+var inventory: Inventory = null
 
 # Preload audio types
 var heal_sound := preload("res://Assets/Sounds/heal.wav") as AudioStream
@@ -89,6 +89,11 @@ func can_use_on(user: BattleCharacter, target: BattleCharacter) -> bool:
 
     return false
 
+func _update_inventory(status: UseStatus) -> void:
+    if not inventory:
+        return
+    inventory.on_item_used(self, status)
+
 func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
     var status: UseStatus
 
@@ -102,6 +107,7 @@ func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
         _:
             print("Item cannot be consumed: %s" % item_name)
             status = UseStatus.CANNOT_USE
-
-    item_used.emit(item_id, status)
+    
+    _update_inventory(status)
+    
     return status

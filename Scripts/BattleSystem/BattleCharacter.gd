@@ -285,7 +285,8 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
             var attacker_strength := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.Strength)
             print("[Attack] Original Damage: " + str(damage))
             print(attacker.character_name + " has strength: " + str(attacker_strength))
-            damage = ceil(damage * attacker_strength)
+            # UPDATE: strength now adds to damage instead of multiplying (rounded up)
+            damage = ceil(damage + attacker_strength)
             print("[Attack] Damage with strength: " + str(damage))
     
     if damage > 0:

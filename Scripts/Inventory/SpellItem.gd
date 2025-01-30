@@ -34,9 +34,8 @@ func get_spell_use_roll(target: BattleCharacter) -> DiceRoll:
 ## Dictionary with a character stat entry as key and a float as value
 ## TODO: Typed Dictionary
 @export var junction_table = {
-    CharacterStatEntry.ECharacterStat.MaxHP: 2.0,
-    CharacterStatEntry.ECharacterStat.Strength: 1.005,
-    CharacterStatEntry.ECharacterStat.Vitality: 1.005,
+    CharacterStatEntry.ECharacterStat.Strength: 0.005,
+    CharacterStatEntry.ECharacterStat.Vitality: 0.005,
 } 
 
 func get_item_description() -> String:
@@ -70,7 +69,6 @@ func get_use_sound(_status: UseStatus = UseStatus.SPELL_SUCCESS) -> AudioStream:
     if spell_affinity == BattleEnums.EAffinityElement.HEAL:
         return heal_sound
     return null
-
 
 func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
     print("[SPELL] %s used %s on %s" % [user.character_name, item_name, target.character_name])
@@ -122,7 +120,7 @@ func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
             # TODO: calculate damage more randomly
             target.take_damage(user, spell_power_rolls, attack_roll, spell_affinity)
 
-    item_used.emit(item_id, spell_use_status)
+    super._update_inventory(spell_use_status)
 
     # reset cached roll so we can roll again
     _roll_cache.clear()

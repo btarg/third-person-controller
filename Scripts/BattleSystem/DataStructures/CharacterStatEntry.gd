@@ -4,7 +4,7 @@ class_name CharacterStatEntry
 enum ECharacterStat { ## Character Stat
     MaxHP, ## Integer
     MaxSP, ## Integer
-    Strength, ## Multiplier for physical damage when not resisted, absorbed, or immune (float 0-1)
+    Strength, ## Added to physical damage when not resisted, absorbed, or immune (float 0-1)
     Defense, ## Used to reduce incoming damage of resisted affinities (float 0-1)
     ArmourClass, ## Integer DC for the attacker to hit this character
     Vitality, ## Integer bonus for initiative rolls

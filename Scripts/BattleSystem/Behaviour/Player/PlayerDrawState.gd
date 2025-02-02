@@ -24,7 +24,10 @@ func _populate_draw_list() -> void:
     item_display_list.clear()
     var spells := battle_state.player_selected_character.draw_list
     for spell in spells:
-        item_display_list.add_item(spell.item_name)
+        if battle_state.current_character.is_spell_familiar(spell):
+            item_display_list.add_item(spell.item_name)
+        else:
+            item_display_list.add_item("???")
     if item_display_list.item_count > 0:
         item_display_list.select(0)
         selected_spell_index = 0
@@ -58,12 +61,14 @@ func draw(target_character: BattleCharacter, current_character: BattleCharacter,
         print("[DRAW] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
     else:
         print("[DRAW] Received %s %s!" % [str(drawn_amount), drawn_spell.item_name])
-        current_character.inventory.add_item(drawn_spell, drawn_amount)
-
         if current_character.inventory:
             current_character.inventory.add_item(drawn_spell, drawn_amount)
         else:
             print("[DRAW] Character has no inventory")
+
+    if not current_character.is_spell_familiar(drawn_spell):
+        current_character.add_familiar_spell(drawn_spell)
+
     _end_targeting()
 
 func _end_targeting() -> void:
@@ -90,7 +95,7 @@ func _state_input(event: InputEvent) -> void:
     if event.is_action_pressed("ui_cancel"):
         _back_to_target()
     elif event.is_action_pressed("ui_accept"):
-        draw(battle_state.player_selected_character, battle_state.current_character, false)
+        draw(battle_state.player_selected_character, battle_state.current_character, true)
 
 func _state_unhandled_input(_event: InputEvent) -> void:
     pass

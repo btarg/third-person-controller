@@ -14,6 +14,8 @@ class_name BattleCharacter
     BattleEnums.EAffinityElement.FIRE,
 ]
 
+var _familiar_spells: Array[SpellItem] = []
+
 @export var debug_always_crit: bool = false
 
 # TODO: replace this draw list for every character
@@ -61,6 +63,17 @@ func _ready() -> void:
     elif character_internal_name == "Player":
         affinities = CharacterAffinities.affinities_test_player
 
+    # if the player has a spell, they should know what it is when drawing it
+    if inventory:
+        inventory.inventory_updated.connect(_on_inventory_updated)
+
+func _on_inventory_updated(resource: BaseInventoryItem, _count: int, is_new_item: bool) -> void:
+    if not is_new_item:
+        return
+    
+    if resource is SpellItem and not is_spell_familiar(resource as SpellItem):
+        add_familiar_spell(resource as SpellItem)
+
 func print_stat(stat_int_string: String) -> void:
     var stat := int(stat_int_string) as CharacterStatEntry.ECharacterStat
     var stat_value := stats.get_stat(stat)
@@ -75,6 +88,13 @@ func print_modifiers() -> void:
             var stat_value_string := "x" if modifier.is_multiplier else "+"
             stat_value_string += str(modifier.stat_value)
             Console.print_line(modifier.name + " - " + enum_name + ": " + stat_value_string, true)
+
+func is_spell_familiar(spell: SpellItem) -> bool:
+    return _familiar_spells.has(spell)
+
+func add_familiar_spell(spell: SpellItem) -> void:
+    print("[Familiar] " + character_name + " has learned " + spell.item_name)
+    _familiar_spells.append(spell)
 
 func on_join_battle() -> void:
     # We can reset the silence effect here since all combat buffs/debuffs are reset anyway

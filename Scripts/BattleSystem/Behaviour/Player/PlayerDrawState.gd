@@ -56,7 +56,6 @@ func draw(target_character: BattleCharacter, current_character: BattleCharacter,
     if cast_immediately:
         var status := drawn_spell.use(current_character, target_character, false)
         print("[DRAW] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
-        _end_targeting()
     else:
         print("[DRAW] Received %s %s!" % [str(drawn_amount), drawn_spell.item_name])
         current_character.inventory.add_item(drawn_spell, drawn_amount)

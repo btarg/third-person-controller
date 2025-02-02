@@ -70,7 +70,7 @@ func get_use_sound(_status: UseStatus = UseStatus.SPELL_SUCCESS) -> AudioStream:
         return heal_sound
     return null
 
-func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
+func use(user: BattleCharacter, target: BattleCharacter, update_inventory: bool = true) -> UseStatus:
     print("[SPELL] %s used %s on %s" % [user.character_name, item_name, target.character_name])
     
     var spell_use_status := UseStatus.SPELL_FAIL
@@ -120,7 +120,8 @@ func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
             # TODO: calculate damage more randomly
             target.take_damage(user, spell_power_rolls, attack_roll, spell_affinity)
 
-    super._update_inventory(spell_use_status)
+    if update_inventory:
+        _update_inventory(spell_use_status)
 
     # reset cached roll so we can roll again
     _roll_cache.clear()

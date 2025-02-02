@@ -10,6 +10,10 @@ class_name BattleCharacter
 @export var affinities: Dictionary = {}
 @export var basic_attack_element: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS
 
+@export var mastery_elements: Array[BattleEnums.EAffinityElement] = [
+    BattleEnums.EAffinityElement.FIRE,
+]
+
 @export var debug_always_crit: bool = false
 
 # TODO: replace this draw list for every character

@@ -23,6 +23,9 @@ var _total_rolled: int = 0
 func total() -> int:
     return _total_rolled
 
+func flat_total() -> int:
+    return _total_rolled - bonus
+
 ## Rerolls the total and returns the DiceRoll object.
 ## This will change the status returned by [method get_status()].
 ## If you just want to get the status without rerolling, use [method get_status()]

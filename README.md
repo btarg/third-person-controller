@@ -11,7 +11,7 @@
     - [x] UI reacts to actual results of combat (`SR_ABSORB` should not be counted as a `SPELL_SUCCESS`)
     - [x] Make camera collide with the world but not players/enemies
     - [x] Fix movement bug 
-    - [ ] Get basic UI visuals in place for player and enemy health bars
+    - [ ] Get basic UI visuals in place for player and enemy health bars 
     - [ ] UI for dynamic combat choice system
     - [x] Basic visual feedback such as damage numbers and attack animations
     - [ ] Implement basic form of enemy AI

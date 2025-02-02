@@ -15,3 +15,10 @@ offset_right = 314.0
 offset_bottom = 198.0
 bbcode_enabled = true
 text = "Chosen spell/item: Fira"
+
+[node name="ItemList" type="ItemList" parent="."]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 30.0
+offset_right = 262.0
+offset_bottom = 292.0

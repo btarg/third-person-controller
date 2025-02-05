@@ -36,11 +36,11 @@ func set_text() -> void:
     # We can move and defend when hovering ground or self
     if battle_state.available_actions in [BattleEnums.EAvailableCombatActions.SELF,
     BattleEnums.EAvailableCombatActions.GROUND]:
-        final_text += ControllerHelper.get_button_glyph_img_embed("combat_defend", IMG_SIZE) + " Defend\n"
+        # final_text += ControllerHelper.get_button_glyph_img_embed("combat_defend", IMG_SIZE) + " Defend\n"
         final_text += ControllerHelper.get_button_glyph_img_embed("combat_move", IMG_SIZE) + " Move\n"
 
     if battle_state.available_actions == BattleEnums.EAvailableCombatActions.ENEMY:
-        final_text += ControllerHelper.get_button_glyph_img_embed("combat_attack", IMG_SIZE) + " Attack\n"
+        final_text += ControllerHelper.get_button_glyph_img_embed("combat_select_target", IMG_SIZE) + " Attack\n"
         final_text += ControllerHelper.get_button_glyph_img_embed("combat_draw", IMG_SIZE) + " Draw\n"
 
 
@@ -52,7 +52,7 @@ func set_text() -> void:
             final_text += ControllerHelper.get_button_glyph_img_embed_by_name("keyboard_mouse/keyboard_arrows_all", IMG_SIZE) + " Move\n"
 
         final_text += ControllerHelper.get_button_glyph_img_embed("run", IMG_SIZE) + " Sprint\n"
-        final_text += ControllerHelper.get_button_glyph_img_embed("ui_cancel", IMG_SIZE) + " Cancel movement\n"
+        final_text += ControllerHelper.get_button_glyph_img_embed("combat_move", IMG_SIZE) + " Cancel movement\n"
     
     else:
         final_text += ControllerHelper.get_button_glyph_img_embed("combat_spellitem", IMG_SIZE) + " Cast spell / use item\n"

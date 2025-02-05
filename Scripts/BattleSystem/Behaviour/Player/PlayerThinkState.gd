@@ -224,7 +224,7 @@ func _state_unhandled_input(event: InputEvent) -> void:
 
     elif battle_state.available_actions == BattleEnums.EAvailableCombatActions.ENEMY:
 
-        if event.is_action_pressed("combat_attack"):
+        if event.is_action_pressed("combat_select_target"):
             process_action(BattleEnums.EPlayerCombatAction.CA_ATTACK)
         
         elif event.is_action_pressed("combat_draw"):

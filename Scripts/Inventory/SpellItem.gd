@@ -60,7 +60,10 @@ func get_item_description() -> String:
 
     if spell_affinity in [BattleEnums.EAffinityElement.BUFF,
     BattleEnums.EAffinityElement.DEBUFF]:
-        description_string += ":\n%s for %s turns" % [modifier.description, str(modifier.turn_duration)]
+        if modifier.turn_duration == -1:
+            description_string += ":\n%s indefinitely" % [modifier.description]
+        else:
+            description_string += ":\n%s for %s turns" % [modifier.description, str(modifier.turn_duration)]
     description_string += "."
 
     return description_string

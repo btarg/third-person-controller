@@ -7,7 +7,7 @@ class_name BattleMessage
 func _ready() -> void:
     label.text = ""
 
-func show_messages(messages: Array[String], duration: float = 0.5) -> void:
+func show_messages(messages: Array[String], duration: float = 1) -> void:
     if messages.size() < 1:
         return
 

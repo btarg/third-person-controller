@@ -37,8 +37,8 @@ func enter() -> void:
 
     battle_state.top_down_player.focused_node = battle_state.player_selected_character.get_parent()
 
-func _choose_spell_item(spell: BaseInventoryItem) -> void:
-    if not active or not spell:
+func _choose_spell_item(chosen_item: BaseInventoryItem) -> void:
+    if not active or not chosen_item:
         return
 
     # If we are using the item on another character, check if the target is in range
@@ -49,23 +49,28 @@ func _choose_spell_item(spell: BaseInventoryItem) -> void:
             battle_state.player_selected_character.get_parent().global_position))
         # TODO: draw spell range radius
         if (distance > battle_state.current_character.stats.get_stat(CharacterStatEntry.ECharacterStat.AttackRange)
-        or distance > spell.spell_range):
-            print("[SPELL/ITEM] Target is out of range (distance: " + str(distance) + ", range: " + str(spell.spell_range) + ")")
+        or distance > chosen_item.spell_range):
+            print("[SPELL/ITEM] Target is out of range (distance: " + str(distance) + ", range: " + str(chosen_item.spell_range) + ")")
             return
 
-    print("[SPELL/ITEM] Spell chosen: " + spell.item_name)
-    think_state.chosen_spell_or_item = spell
 
-    if think_state.chosen_spell_or_item.item_type == BaseInventoryItem.ItemType.SPELL:
-        think_state.chosen_action = BattleEnums.EPlayerCombatAction.CA_CAST
-    else:
-        think_state.chosen_action = BattleEnums.EPlayerCombatAction.CA_ITEM
-
-    if think_state.chosen_spell_or_item.can_use_on(
+    if chosen_item.can_use_on(
         battle_state.current_character, battle_state.player_selected_character):
-        Transitioned.emit(self, "ChooseTargetState")
+        should_render_line = false
+        spell_ui.hide()
+        await battle_state.message_ui.show_messages([chosen_item.item_name])
+        var status := chosen_item.use(battle_state.current_character, battle_state.player_selected_character)
+        print("[SPELL/ITEM] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
+        _end_targeting()
     else:
-        print("[SPELL/ITEM] Cannot use " + think_state.chosen_spell_or_item.item_name + " on " + battle_state.player_selected_character.character_name)
+        print("[SPELL/ITEM] Cannot use " + chosen_item.item_name + " on " + battle_state.player_selected_character.character_name)
+
+func _end_targeting() -> void:
+    # check if active in case the character has left the battle (ie. died)
+    if not active:
+        return
+    Transitioned.emit(self, "IdleState")
+    battle_state.ready_next_turn()
 
 func _back_to_think() -> void:
     if active:

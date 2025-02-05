@@ -111,6 +111,10 @@ func get_stat(stat: CharacterStatEntry.ECharacterStat, with_modifiers: bool = tr
         if entry.stat_key == stat:
             stat_value = entry.stat_value
             break
+
+    if stat_value == -1.0:
+        return 1.0
+    
     var stat_value_with_modifiers := stat_value
     var stat_modifiers_copy := stat_modifiers.duplicate()
 
@@ -119,31 +123,30 @@ func get_stat(stat: CharacterStatEntry.ECharacterStat, with_modifiers: bool = tr
         func(a: StatModifier, b: StatModifier) -> bool:
             return true if a.turns_left < b.turns_left else false)
 
-    if stat_value != -1.0:
-        for modifier: StatModifier in stat_modifiers_copy:
-            if not modifier.modifier_active:
-                print("[Modifier] MODIFIER " + modifier.name + " IS INACTIVE")
-                continue
+    for modifier: StatModifier in stat_modifiers_copy:
+        if not modifier.modifier_active:
+            print("[Modifier] MODIFIER " + modifier.name + " IS INACTIVE")
+            continue
 
-            if stat == modifier.stat:
-                if modifier.can_stack:
+        if stat == modifier.stat:
+            if modifier.can_stack:
 
-                    if modifier.is_multiplier:
-                        stat_value_with_modifiers *= modifier.stat_value
-                    else:
-                        stat_value_with_modifiers += modifier.stat_value
-
-                elif modifier.stack_override:
-                    
-                    if modifier.is_multiplier:
-                        stat_value_with_modifiers = stat_value * modifier.stat_value
-                    else:
-                        stat_value_with_modifiers = stat_value + modifier.stat_value
-
-                    break # do not apply any other modifiers
+                if modifier.is_multiplier:
+                    stat_value_with_modifiers *= modifier.stat_value
                 else:
-                    # non stackable modifiers that do not override will be removed
-                    stat_modifiers.erase(modifier)
+                    stat_value_with_modifiers += modifier.stat_value
+
+            elif modifier.stack_override:
+                
+                if modifier.is_multiplier:
+                    stat_value_with_modifiers = stat_value * modifier.stat_value
+                else:
+                    stat_value_with_modifiers = stat_value + modifier.stat_value
+
+                break # do not apply any other modifiers
+            else:
+                # non stackable modifiers that do not override will be removed
+                stat_modifiers.erase(modifier)
     
     return stat_value_with_modifiers if with_modifiers else stat_value
 

@@ -17,6 +17,7 @@ extends State
 @onready var player_think_ui := battle_state.get_node("PlayerThinkUI") as PlayerThinkUI
 
 var _last_raycast_selected_character: BattleCharacter
+var _has_already_chosen_action := false
 
 func _ready() -> void:
     player_think_ui.hide()
@@ -49,6 +50,8 @@ func _on_turn_started(turn_character: BattleCharacter) -> void:
         print("No character controller found")
 
 func enter() -> void:
+    _has_already_chosen_action = false
+
     if battle_character.current_hp <= 0:
         # Players are able to be revived once "dead"
         Transitioned.emit(self, "DeadState")
@@ -222,7 +225,7 @@ func _state_unhandled_input(event: InputEvent) -> void:
     elif battle_state.available_actions == BattleEnums.EAvailableCombatActions.ENEMY:
 
         if event.is_action_pressed("combat_attack"):
-            _process_basic_attack(battle_state.current_character, battle_state.player_selected_character)
+            process_action(BattleEnums.EPlayerCombatAction.CA_ATTACK)
         
         elif event.is_action_pressed("combat_draw"):
             process_action(BattleEnums.EPlayerCombatAction.CA_DRAW)
@@ -231,13 +234,18 @@ func _state_unhandled_input(event: InputEvent) -> void:
     
 
 func process_action(chosen_action: BattleEnums.EPlayerCombatAction) -> void:
+    if _has_already_chosen_action:
+        return
+    _has_already_chosen_action = true
+
+
     var target_character := battle_state.player_selected_character
     if not target_character:
         print("No target selected!")
         return
     match chosen_action:
         BattleEnums.EPlayerCombatAction.CA_ATTACK:
-            var attack := _process_basic_attack(battle_state.current_character, target_character)
+            var attack := await _process_basic_attack(battle_state.current_character, target_character)
             if attack != BattleEnums.ESkillResult.SR_OUT_OF_RANGE:
                 battle_state.ready_next_turn()
         BattleEnums.EPlayerCombatAction.CA_DRAW:
@@ -246,6 +254,8 @@ func process_action(chosen_action: BattleEnums.EPlayerCombatAction) -> void:
         _:
             print("Invalid action")
             battle_state.ready_next_turn()
+
+    
 
 
 func _process_basic_attack(attacker: BattleCharacter, target: BattleCharacter) -> BattleEnums.ESkillResult:
@@ -258,7 +268,7 @@ func _process_basic_attack(attacker: BattleCharacter, target: BattleCharacter) -
         print("[ATTACK] Target out of range!")
         return BattleEnums.ESkillResult.SR_OUT_OF_RANGE
 
-    battle_state.message_ui.show_messages(["Attack"])
+    await battle_state.message_ui.show_messages(["Attack"])
 
     print("%s attacks %s with %s!" % [attacker.character_name, target.character_name, 
         Util.get_enum_name(BattleEnums.EAffinityElement, attacker.basic_attack_element)])

@@ -46,9 +46,9 @@ func _ready() -> void:
     # TEST: set two different spells to the same stat, should only apply the modifier for the last one
     # since only one item is allowed to be junctioned to one stat at a time
     # I also set the same item to two different stats, should only apply the modifier for the last one
-    set_item_junctioned_stat(fire_spell.item_id, CharacterStatEntry.ECharacterStat.Strength)
-    set_item_junctioned_stat(fire_spell.item_id, CharacterStatEntry.ECharacterStat.Vitality)
-    set_item_junctioned_stat(heal_spell.item_id, CharacterStatEntry.ECharacterStat.Strength)
+    set_item_junctioned_stat(fire_spell.item_id, CharacterStatEntry.ECharacterStat.PhysicalStrength)
+    set_item_junctioned_stat(fire_spell.item_id, CharacterStatEntry.ECharacterStat.PhysicalDefense)
+    set_item_junctioned_stat(heal_spell.item_id, CharacterStatEntry.ECharacterStat.PhysicalStrength)
 
     print_inventory()
 
@@ -148,7 +148,7 @@ func _generate_stat_modifier(spell_item: SpellItem, stat: CharacterStatEntry.ECh
     return modifier
 
 
-func add_item(item: BaseInventoryItem, count: int = 1) -> void:
+func add_item(item: BaseInventoryItem, count: int = 1) -> void:    
     var is_new_item: bool = false
     if items.has(item.item_id):
         var current_count := items[item.item_id]["count"] as int

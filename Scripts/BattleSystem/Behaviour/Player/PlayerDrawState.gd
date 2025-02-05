@@ -6,6 +6,7 @@ class_name PlayerDrawState
 @onready var draw_label := draw_ui.get_node("Label") as RichTextLabel
 @onready var item_display_list := draw_ui.get_node("ItemList") as ItemList
 
+# TODO: should this be a stat on the character?
 const MASTERY_DRAW_ROLLS := 2
 
 var selected_spell_index := 0
@@ -42,7 +43,7 @@ func draw(target_character: BattleCharacter, current_character: BattleCharacter,
 
     print("[DRAW] Drawn spell: " + drawn_spell.item_name)
 
-    var draw_bonus_d4s := ceili(current_character.stats.get_stat(CharacterStatEntry.ECharacterStat.DrawBonus))
+    var draw_bonus_d4s := ceili(current_character.stats.get_stat(CharacterStatEntry.ECharacterStat.Luck))
     var draw_bonus := DiceRoll.roll(4, draw_bonus_d4s).total()
 
     # Mastery gives 2 d6 rolls for drawing instead of 1, but does not affect the draw bonus

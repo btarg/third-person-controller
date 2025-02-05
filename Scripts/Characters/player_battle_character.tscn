@@ -40,17 +40,17 @@ stat_value = 1.0
 [sub_resource type="Resource" id="Resource_g1ejn"]
 script = ExtResource("10_8eke6")
 stat_key = 6
-stat_value = 2.0
+stat_value = 5.0
 
 [sub_resource type="Resource" id="Resource_q0f4k"]
 script = ExtResource("10_8eke6")
 stat_key = 7
-stat_value = 1.0
+stat_value = 15.0
 
 [sub_resource type="Resource" id="Resource_3wxh5"]
 script = ExtResource("10_8eke6")
 stat_key = 8
-stat_value = 15.0
+stat_value = 1.0
 
 [sub_resource type="Resource" id="Resource_r04hq"]
 script = ExtResource("10_8eke6")
@@ -93,4 +93,3 @@ script = ExtResource("10_l7i33")
 [node name="CharacterStats" type="Node" parent="."]
 script = ExtResource("9_pe6mx")
 stats = Array[ExtResource("10_8eke6")]([SubResource("Resource_5m16x"), SubResource("Resource_4w5ru"), SubResource("Resource_xokjm"), SubResource("Resource_d7f32"), SubResource("Resource_b0cr8"), SubResource("Resource_g1ejn"), SubResource("Resource_q0f4k"), SubResource("Resource_3wxh5"), SubResource("Resource_r04hq"), SubResource("Resource_tab8j")])
-stat_modifiers = null

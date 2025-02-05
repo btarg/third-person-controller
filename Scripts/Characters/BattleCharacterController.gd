@@ -24,7 +24,11 @@ var is_running: bool = false
 const ANIMATION_BLEND : float = 7.0
 
 # Movement stat
-# @onready var base_movement := battle_character.stats.get_stat(CharacterStatEntry.ECharacterStat.Movement)
+var base_movement: float:
+    get:
+        return battle_character.stats.get_stat(CharacterStatEntry.ECharacterStat.Speed)
+    set(value):
+        base_movement = value
 
 @onready var home_position := global_position
 var free_movement : bool = false:
@@ -34,8 +38,6 @@ var free_movement : bool = false:
         print("[MOVE] Free movement state changed! " + str(value))
         free_movement = value
 
-# DEBUG
-var base_movement := 20.0
 var movement_left := 0.0
 
 var _should_move := false

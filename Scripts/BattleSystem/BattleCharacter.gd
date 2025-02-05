@@ -131,12 +131,12 @@ func start_turn() -> void:
         down_turns = 0
 
 func roll_initiative() -> int:
-    var vitality := ceili(stats.get_stat(CharacterStatEntry.ECharacterStat.Vitality))
-    if vitality < 0:
-        vitality = 0
+    var initiative_bonus := ceili(stats.get_stat(CharacterStatEntry.ECharacterStat.Speed))
+    if initiative_bonus < 0:
+        initiative_bonus = 0
 
     # make sure to set the initiative value on our character for later reference
-    initiative = DiceRoll.roll(20, 1, vitality).total()
+    initiative = DiceRoll.roll(20, 1, initiative_bonus).total()
     return initiative
 
 func heal(amount: int, from_absorb: bool = false, spell_status: BaseInventoryItem.UseStatus = BaseInventoryItem.UseStatus.SPELL_FAIL) -> void:
@@ -257,7 +257,7 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
             # TODO: attack mirrors and magic mirrors should have a counter for how many reflections they can do before breaking
             if reflected:
                 print("[REFLECT] " + character_name + " resisted reflected " + enum_string)
-                damage = _calculate_resist_damage(damage)
+                damage = _calculate_resist_damage(damage, damage_type)
                 result = BattleEnums.ESkillResult.SR_RESISTED
             else:
                 print(character_name + " reflected " + enum_string)
@@ -278,7 +278,7 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
                 damage = 0
                 result = BattleEnums.ESkillResult.SR_FAIL
             else:
-                damage = _calculate_resist_damage(damage)
+                damage = _calculate_resist_damage(damage, damage_type)
                 result = BattleEnums.ESkillResult.SR_RESISTED
 
         elif (affinity_type == BattleEnums.EAffinityType.IMMUNE
@@ -306,7 +306,9 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
             damage = 0
             result = BattleEnums.ESkillResult.SR_FAIL
         else:
-            var attacker_strength := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.Strength)
+            var attacker_strength := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.PhysicalStrength)\
+            if damage_type == BattleEnums.EAffinityElement.PHYS else attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.MagicalStrength)
+            
             print("[Attack] Original Damage: " + str(damage))
             print(attacker.character_name + " has strength: " + str(attacker_strength))
             # UPDATE: strength now adds to damage instead of multiplying (rounded up)
@@ -343,9 +345,11 @@ func _calculate_crit_damage(attacker: BattleCharacter, damage: int) -> int:
     print("[CRIT] Calculated damage: " + str(calculated_damage))
     return calculated_damage
     
-func _calculate_resist_damage(initial_damage: int) -> int:
+func _calculate_resist_damage(initial_damage: int, element: BattleEnums.EAffinityElement) -> int:
     # use defense stat to reduce damage
-    var defense := stats.get_stat(CharacterStatEntry.ECharacterStat.Defense)
+    var defense := stats.get_stat(CharacterStatEntry.ECharacterStat.PhysicalDefense)\
+    if element == BattleEnums.EAffinityElement.PHYS else stats.get_stat(CharacterStatEntry.ECharacterStat.Spirit)
+
     var calculated_damage := ceili(initial_damage * (1.0 - defense))
     print("[RESIST] Defense: " + str(defense) + " (" + str(defense * 100) + "%)")
     print("[RESIST] Calculated damage: %s (original: %s)" % [str(calculated_damage), initial_damage])

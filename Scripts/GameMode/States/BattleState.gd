@@ -282,6 +282,9 @@ func ready_next_turn() -> void:
         Transitioned.emit(self, "ExplorationState")
 
     if current_character:
+        # End turn
+        current_character.stats.active_modifiers_start_turn(false)
+
         current_character.turns_left -= 1
         if current_character.turns_left > 0:
             print("[ONE MORE] %s gets %s more turns!" % [current_character.character_name, current_character.turns_left])

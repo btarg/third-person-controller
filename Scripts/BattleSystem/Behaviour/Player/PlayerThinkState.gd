@@ -18,11 +18,7 @@ extends State
 
 var chosen_action: BattleEnums.EPlayerCombatAction = BattleEnums.EPlayerCombatAction.CA_DEFEND
 
-@onready var fire_spell: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_fire_spell.tres")
-@onready var heal_spell: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_healing_spell.tres")
-@onready var almighty_spell: BaseInventoryItem = preload("res://Scripts/Inventory/Resources/Spells/test_almighty_spell.tres")
-@onready var silence_spell := preload("res://Scripts/Inventory/Resources/Spells/silence_spell.tres") as BaseInventoryItem
-@onready var chosen_spell_or_item: BaseInventoryItem = silence_spell
+@onready var chosen_spell_or_item: BaseInventoryItem
 
 var _last_raycast_selected_character: BattleCharacter
 

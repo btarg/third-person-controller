@@ -23,6 +23,7 @@ var almighty_spell: BaseInventoryItem = load("res://Scripts/Inventory/Resources/
 var ice_spell: BaseInventoryItem = load("res://Scripts/Inventory/Resources/Spells/test_ice_spell.tres")
 var elec_spell: BaseInventoryItem = load("res://Scripts/Inventory/Resources/Spells/test_elec_spell.tres")
 var wind_spell: BaseInventoryItem = load("res://Scripts/Inventory/Resources/Spells/test_wind_spell.tres")
+var silence_spell: BaseInventoryItem = load("res://Scripts/Inventory/Resources/Spells/silence_spell.tres")
 
 func _ready() -> void:
     Console.add_command("set_junction", _set_junction_command, 3)
@@ -39,6 +40,7 @@ func _ready() -> void:
     add_item(elec_spell, 99)
     add_item(wind_spell, 99)
     add_item(almighty_spell, 99)
+    add_item(silence_spell, 99)
 
 
     # TEST: set two different spells to the same stat, should only apply the modifier for the last one

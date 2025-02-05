@@ -10,6 +10,8 @@ var turn_order: Array[BattleCharacter] = []
 @onready var top_down_player := get_tree().get_nodes_in_group("TopDownPlayer").front() as TopDownPlayerController
 var test_enemy := preload("res://Scenes/Characters/Enemies/test_enemy.tscn") as PackedScene
 
+@onready var message_ui := get_node("BattleMessage") as BattleMessage
+
 var enemy_units: Array[BattleCharacter] = []
 var player_units: Array[BattleCharacter] = []
 
@@ -289,6 +291,8 @@ func ready_next_turn() -> void:
         if current_character.turns_left > 0:
             print("[ONE MORE] %s gets %s more turns!" % [current_character.character_name, current_character.turns_left])
             movement_locked_in = true
+            await message_ui.show_messages(["One more turn for " + current_character.character_name], 1)
+
         else:
             current_character.turns_left = 0 # cap at 0 minimum
             current_character_index += 1

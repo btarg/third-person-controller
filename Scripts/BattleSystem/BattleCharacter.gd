@@ -111,7 +111,7 @@ func on_leave_battle() -> void:
 
 func _on_battle_turn_started(character: BattleCharacter) -> void:
     if character == self:
-        start_turn()
+        await start_turn()
     elif character_active:
         character_active = false
 
@@ -122,7 +122,7 @@ func start_turn() -> void:
     character_active = true
     OnCharacterTurnStarted.emit()
 
-    stats.active_modifiers_start_turn()
+    await stats.active_modifiers_start_turn()
 
     if down_turns > 0:
         behaviour_state_machine.set_state("DownedState")

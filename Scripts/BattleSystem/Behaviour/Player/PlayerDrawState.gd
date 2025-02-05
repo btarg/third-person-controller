@@ -57,12 +57,15 @@ func draw(target_character: BattleCharacter, current_character: BattleCharacter,
     
 
     if cast_immediately:
+        await battle_state.message_ui.show_messages([drawn_spell.item_name])
         var status := drawn_spell.use(current_character, target_character, false)
         print("[DRAW] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
     else:
-        print("[DRAW] Received %s %s!" % [str(drawn_amount), drawn_spell.item_name])
+        
         if current_character.inventory:
             current_character.inventory.add_item(drawn_spell, drawn_amount)
+            print("[DRAW] Received %s %s!" % [str(drawn_amount), drawn_spell.item_name])
+            battle_state.message_ui.show_messages(["%s drew %s %ss!" % [current_character.character_name, str(drawn_amount), drawn_spell.item_name]])
         else:
             print("[DRAW] Character has no inventory")
 

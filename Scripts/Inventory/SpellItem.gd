@@ -47,16 +47,21 @@ func get_item_description() -> String:
         description_string += "Restores %s MP " % [DiceRoll.get_dice_array_as_string(spell_power_rolls)]
     elif spell_affinity in [BattleEnums.EAffinityElement.BUFF,
     BattleEnums.EAffinityElement.DEBUFF]:
-        description_string += "Applies " + modifier.name
+        description_string += "Applies " + modifier.name + " "
     else:
         description_string += "Deals %s %s damage " % [DiceRoll.get_dice_array_as_string(spell_power_rolls), Util.get_enum_name(BattleEnums.EAffinityElement, spell_affinity)]
 
     if can_use_on_enemies and can_use_on_allies:
-        description_string += "to any target."
+        description_string += "to any target"
     elif can_use_on_enemies:
-        description_string += "to an enemy."
+        description_string += "to an enemy"
     elif can_use_on_allies:
-        description_string += "to an ally."
+        description_string += "to an ally"
+
+    if spell_affinity in [BattleEnums.EAffinityElement.BUFF,
+    BattleEnums.EAffinityElement.DEBUFF]:
+        description_string += ":\n%s for %s turns" % [modifier.description, str(modifier.turn_duration)]
+    description_string += "."
 
     return description_string
 

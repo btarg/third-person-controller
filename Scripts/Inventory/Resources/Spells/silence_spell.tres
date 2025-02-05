@@ -9,7 +9,7 @@ script = ExtResource("1_441gy")
 stat = 14
 modifier_id = "silence"
 name = "Silenced"
-description = "Cannot cast spells."
+description = "Prevents enemies from using spells"
 is_multiplier = false
 stat_value = 1.0
 turn_duration = 3
@@ -29,7 +29,7 @@ junction_table = {
 }
 item_type = 0
 item_name = "Silence"
-item_description = "Prevents enemies from casting spells for 3 turns."
+item_description = ""
 max_stack = 999
 can_use_on_enemies = true
 can_use_on_allies = false

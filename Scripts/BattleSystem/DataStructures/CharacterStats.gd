@@ -94,9 +94,9 @@ func active_modifiers_start_turn(start: bool = true) -> void:
             var active_modifier := modifier as ActiveStatModifier
             
             if start:
-                active_modifier.on_turn_start()
+                await active_modifier.on_turn_start()
             else:
-                active_modifier.on_turn_finished()
+                await active_modifier.on_turn_finished()
 
 ## Remove all modifiers that are not supposed to be applied out of combat
 func reset_modifiers() -> void:

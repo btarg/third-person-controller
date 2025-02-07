@@ -36,6 +36,32 @@ var _familiar_spells: Array[SpellItem] = []
 # The third person player controller extends from the BattleCharacterController to make this possible
 @onready var character_controller := get_parent() as BattleCharacterController
 
+@export_group("Experience and levelling")
+
+@export var level: int = 4
+
+var experience_to_next_level: int:
+    get:
+        return floor(1000 * (level ** 1.5))
+
+var _current_xp_total: int = 0
+
+@export var experience: int:
+    get:
+        return _current_xp_total
+    set(value):
+        _current_xp_total = value
+
+        # Level up if the total XP has reached the threshold.
+        # Do NOT subtract XP so that the total XP remains cumulative.
+        while _current_xp_total >= experience_to_next_level:
+            level += 1
+            stats.level_up_all_stats()
+            Console.print_line("[LEVEL UP] " + character_name + " has leveled up to " + str(level), true)
+        Console.print_line(str(experience_to_next_level))
+        Console.print_line("[XP] " + character_name + " has " + str(_current_xp_total) + " XP (level " + str(level) + ")", true)
+        Console.print_line("[XP] " + character_name + " needs " + str(experience_to_next_level - _current_xp_total) + " XP to level up", true)
+
 signal OnLeaveBattle
 signal OnCharacterTurnStarted
 

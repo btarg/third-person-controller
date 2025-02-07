@@ -84,10 +84,27 @@ func _ready() -> void:
 
     Console.add_command("level_up", _level_up_character_command, 1)
     Console.add_command("level_up_stat", _level_up_stat_command, 2)
+    Console.add_command("givexp", _give_xp_command, 2)
+    Console.add_command("print_xp", _print_xp_command, 1)
 
     current_character = player.battle_character
     player_selected_character = current_character
 
+func _print_xp_command(character_name: String) -> void:
+    for character: BattleCharacter in get_tree().get_nodes_in_group("BattleCharacter"):
+        if character.character_internal_name.to_lower() == character_name.to_lower():
+            Console.print_line("%s has %s XP at level %s (next level at %s)" %
+            [character.character_name, character.experience, character.level, character.experience_to_next_level], true)
+            return
+    Console.print_line("No character found with name %s" % [character_name])
+
+func _give_xp_command(character_name: String, amount_string: String) -> void:
+    var amount := int(amount_string)
+    for character: BattleCharacter in get_tree().get_nodes_in_group("BattleCharacter"):
+        if character.character_internal_name.to_lower() == character_name.to_lower():
+            character.experience += amount
+            return
+    Console.print_line("No character found with name %s" % [character_name])
 
 func _level_up_stat_command(character_name: String, stat_int_string: String) -> void:
     var stat := int(stat_int_string) as CharacterStatEntry.ECharacterStat

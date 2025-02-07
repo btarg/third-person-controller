@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://bo1r6ikg415qk"]
 
-[ext_resource type="Script" path="res://Scripts/GUI/TurnOrderContainer.gd" id="2_s0886"]
+[ext_resource type="Script" path="res://Scripts/GUI/Battle/TurnOrderContainer.gd" id="2_s0886"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_y02v7"]
 font_size = 36

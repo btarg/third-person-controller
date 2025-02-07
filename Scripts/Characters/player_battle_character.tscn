@@ -41,7 +41,6 @@ stat_value = 1.0
 script = ExtResource("10_8eke6")
 stat_key = 6
 stat_value = 5.0
-stat_value = 5.0
 
 [sub_resource type="Resource" id="Resource_q0f4k"]
 script = ExtResource("10_8eke6")
@@ -65,7 +64,15 @@ stat_value = 10.0
 
 [node name="BattleCharacter" type="Node" groups=["BattleCharacter"]]
 script = ExtResource("1_bgai8")
+character_type = null
 default_character_name = "The Player"
+affinities = null
+basic_attack_element = null
+mastery_elements = null
+debug_always_crit = null
+draw_list = null
+level = null
+experience = null
 
 [node name="StateMachine" type="Node" parent="."]
 script = ExtResource("2_iyxf5")

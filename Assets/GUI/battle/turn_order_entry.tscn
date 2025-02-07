@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://ba5xuywp60bn3"]
 
 [ext_resource type="Texture2D" uid="uid://iwia327cimei" path="res://icon.svg" id="1_amy6w"]
-[ext_resource type="Script" path="res://Assets/GUI/ClickableControl.gd" id="1_gv8dp"]
+[ext_resource type="Script" path="res://Scripts/GUI/ClickableControl.gd" id="1_gv8dp"]
 
 [node name="TurnOrderEntry" type="VBoxContainer"]
 mouse_filter = 0

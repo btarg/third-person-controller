@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SpellItem" load_steps=3 format=3 uid="uid://cbir0tni56d0e"]
+
+[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/SpellItem.gd" id="1_kpclh"]
+[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/DiceRoll.gd" id="2_tg5m2"]
+
+[resource]
+script = ExtResource("1_kpclh")
+spell_affinity = 9
+spell_power_rolls = Array[ExtResource("2_tg5m2")]([])
+junction_table = {
+0: 2.0,
+2: 1.005,
+5: 1.005
+}
+item_type = 0
+item_name = "Megidolaon"
+item_description = "Deals heavy ALMIGHTY dmg to one enemy"
+max_stack = 999
+can_use_on_enemies = true
+can_use_on_allies = false
+spell_range = 5

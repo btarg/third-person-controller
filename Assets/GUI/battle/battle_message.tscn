@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://bq8fjfbydggyg"]
 
-[ext_resource type="Script" path="res://Scripts/GUI/battle_message.gd" id="1_boyrl"]
+[ext_resource type="Script" path="res://Scripts/GUI/Battle/battle_message.gd" id="1_boyrl"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_8fyn5"]
 font_size = 36

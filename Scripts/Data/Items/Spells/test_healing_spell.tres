@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="SpellItem" load_steps=5 format=3 uid="uid://bmdlkpnpqbx4g"]
+
+[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/SpellItem.gd" id="1_ea2fr"]
+[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/DiceRoll.gd" id="2_ql46u"]
+
+[sub_resource type="Resource" id="Resource_c0nmr"]
+script = ExtResource("2_ql46u")
+die_sides = 8
+num_rolls = 1
+difficulty_class = 0
+bonus = 0
+
+[sub_resource type="Resource" id="Resource_aaud3"]
+script = ExtResource("2_ql46u")
+die_sides = 100
+num_rolls = 1
+difficulty_class = 5
+bonus = 0
+
+[resource]
+script = ExtResource("1_ea2fr")
+spell_affinity = 7
+spell_power_rolls = Array[ExtResource("2_ql46u")]([SubResource("Resource_c0nmr")])
+use_roll = SubResource("Resource_aaud3")
+junction_table = {
+0: 2.0,
+2: 1.005,
+5: 1.005
+}
+item_type = 0
+item_name = "Cure"
+item_description = "Restores a small amount of HP."
+max_stack = 999
+can_use_on_enemies = false
+can_use_on_allies = true
+spell_range = 5

@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="SpellItem" load_steps=5 format=3 uid="uid://b7wxo6pw5e1hp"]
+
+[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/SpellItem.gd" id="1_wvht2"]
+[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/DiceRoll.gd" id="2_twpxa"]
+
+[sub_resource type="Resource" id="Resource_4pgx2"]
+script = ExtResource("2_twpxa")
+die_sides = 8
+num_rolls = 2
+difficulty_class = 0
+bonus = 0
+
+[sub_resource type="Resource" id="Resource_aivd8"]
+script = ExtResource("2_twpxa")
+die_sides = 6
+num_rolls = 1
+difficulty_class = 0
+bonus = 0
+
+[resource]
+script = ExtResource("1_wvht2")
+spell_affinity = 1
+spell_power_rolls = Array[ExtResource("2_twpxa")]([SubResource("Resource_4pgx2"), SubResource("Resource_aivd8")])
+junction_table = {
+0: 2.0,
+2: 1.005,
+5: 1.005
+}
+item_type = 0
+item_name = "Fira"
+item_description = "Deals moderate FIRE dmg to one enemy."
+max_stack = 999
+can_use_on_enemies = true
+can_use_on_allies = false
+spell_range = 5

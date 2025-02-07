@@ -1,6 +1,5 @@
-[gd_scene load_steps=17 format=3 uid="uid://dcks6gn4ttkk5"]
+[gd_scene load_steps=16 format=3 uid="uid://dcks6gn4ttkk5"]
 
-[ext_resource type="Script" path="res://Scripts/Inventory/new_ui.gd" id="1_j7u3w"]
 [ext_resource type="Texture2D" uid="uid://b8shlq8bf0pm3" path="res://Assets/GUI/Inventory/InventoryElements/inventory-01-stock.png" id="2_jbcfa"]
 [ext_resource type="Texture2D" uid="uid://j767cph5day0" path="res://Assets/GUI/Inventory/InventoryElements/01stock.svg" id="3_3psld"]
 [ext_resource type="Texture2D" uid="uid://c1tmwbfuv3s5p" path="res://Assets/GUI/Inventory/InventoryElements/01stock-side.svg" id="4_rjyft"]
@@ -10,7 +9,7 @@
 [ext_resource type="FontFile" uid="uid://cq5dmd56sdm2c" path="res://Assets/Fonts/Impact/impact.ttf" id="6_bv1ib"]
 [ext_resource type="Texture2D" uid="uid://d1gw07u5h2jks" path="res://Assets/GUI/Inventory/InventoryElements/02item-side.svg" id="7_wth4j"]
 [ext_resource type="FontFile" uid="uid://deqhcndqvcsg5" path="res://Assets/Fonts/Arsenal/Arsenal-Italic.ttf" id="8_hufom"]
-[ext_resource type="Script" path="res://Scripts/Inventory/ButtonScrollMenu.gd" id="13_w5dpf"]
+[ext_resource type="Script" path="res://Scripts/GUI/Inventory/ButtonScrollMenu.gd" id="13_w5dpf"]
 
 [sub_resource type="FontVariation" id="FontVariation_fenjn"]
 base_font = ExtResource("6_bv1ib")
@@ -48,7 +47,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
-script = ExtResource("1_j7u3w")
 
 [node name="Inventory-01-stock" type="Sprite2D" parent="."]
 position = Vector2(900, 324)

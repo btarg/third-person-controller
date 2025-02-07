@@ -196,9 +196,10 @@ func autocomplete() -> void:
 			if (split_text.size() > 1):
 				var command := split_text[0]
 				var param_input := split_text[1]
-				for param in command_parameters[command]:
-					if (param_input in param):
-						suggestions.append(str(command, " ", param))
+				if command_parameters.has(command):
+					for param in command_parameters[command]:
+						if (param_input in param):
+							suggestions.append(str(command, " ", param))
 		else:
 			var sorted_commands := []
 			for command in console_commands:
@@ -269,11 +270,15 @@ func scroll_to_bottom() -> void:
 	scroll.value = scroll.max_value - scroll.page
 
 
-func print_error(text : String, print_godot := false) -> void:
+func print_error(text : Variant, print_godot := false) -> void:
+	if not text is String:
+		text = str(text)
 	print_line("[color=light_coral]	   ERROR:[/color] %s" % text, print_godot)
 
 
-func print_line(text : String, print_godot := false) -> void:
+func print_line(text : Variant, print_godot := false) -> void:
+	if not text is String:
+		text = str(text)
 	if (!rich_label): # Tried to print something before the console was loaded.
 		call_deferred("print_line", text)
 	else:

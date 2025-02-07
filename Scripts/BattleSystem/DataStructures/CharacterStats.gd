@@ -8,6 +8,27 @@ signal OnStatChanged(stat: CharacterStatEntry.ECharacterStat, new_value: float)
 
 @onready var this_character := self.get_parent() as BattleCharacter
 
+
+func level_up_all_stats() -> void:
+    for i in range(stats.size()):
+        if stats[i].level_up_roll == null:
+            Console.print_line("[Stat] Cannot level up stat " + Util.get_enum_name(CharacterStatEntry.ECharacterStat, stats[i].stat_key) + " because the level up roll is null.", true)
+            continue
+        stats[i].stat_value += stats[i].level_up_roll.reroll().total()
+        Console.print_line("[Stat] LEVEL UP: " + Util.get_enum_name(CharacterStatEntry.ECharacterStat, stats[i].stat_key) + " INCREASED TO " + str(stats[i].stat_value), true)
+        OnStatChanged.emit(stats[i].stat_key, stats[i].stat_value)
+
+func level_up_stat(stat: CharacterStatEntry.ECharacterStat) -> void:
+    for i in range(stats.size()):
+        if stats[i].stat_key == stat:
+            if stats[i].level_up_roll == null:
+                Console.print_line("[Stat] Cannot level up stat " + Util.get_enum_name(CharacterStatEntry.ECharacterStat, stat) + " because the level up roll is null.", true)
+                return
+            stats[i].stat_value += stats[i].level_up_roll.reroll().total()
+            print("[Stat] LEVEL UP: " + Util.get_enum_name(CharacterStatEntry.ECharacterStat, stat) + " INCREASED TO " + str(stats[i].stat_value))
+            OnStatChanged.emit(stat, stats[i].stat_value)
+            break
+
 func add_stat_entry(entry: CharacterStatEntry) -> void:
     stats.append(entry)
 

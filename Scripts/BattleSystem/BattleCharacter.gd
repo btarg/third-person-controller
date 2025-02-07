@@ -77,7 +77,7 @@ func _on_inventory_updated(resource: BaseInventoryItem, _count: int, is_new_item
 func print_stat(stat_int_string: String) -> void:
     var stat := int(stat_int_string) as CharacterStatEntry.ECharacterStat
     var stat_value := stats.get_stat(stat)
-    Console.print_line("Stat %s: %s" % [Util.get_enum_name(CharacterStatEntry.ECharacterStat, stat), str(stat_value)])
+    Console.print_line("Stat %s: %s" % [Util.get_enum_name(CharacterStatEntry.ECharacterStat, stat), str(stat_value)], true)
 
 func print_modifiers() -> void:
     if stats.stat_modifiers.size() == 0:
@@ -317,13 +317,13 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
     
     if damage > 0:
         current_hp -= damage
-        BattleSignalBus.OnTakeDamage.emit(self, damage)
         if current_hp <= 0:
             current_hp = 0
             BattleSignalBus.OnDeath.emit(self)
             print("[DEATH] " + character_name + " has died!!")
             
             if character_type != BattleEnums.ECharacterType.PLAYER:
+                # enemies are destroyed when they die
                 battle_state.leave_battle(self)
                 # destroy parent object
                 get_parent().queue_free()
@@ -331,9 +331,9 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
                 # Players are able to be revived once "dead"
                 behaviour_state_machine.set_state("DeadState")
 
+    BattleSignalBus.OnTakeDamage.emit(self, damage)
     var damage_number := DamageNumber.create_damage_number(damage, damage_type, result, self.get_parent(), battle_state.top_down_player.camera)
     add_child(damage_number)
-    
     print("[DAMAGE] %s did %s damage to %s (%s)" % [attacker.character_name, damage, character_name, Util.get_enum_name(BattleEnums.ESkillResult, result)])
     
     return result
@@ -349,8 +349,8 @@ func _calculate_resist_damage(initial_damage: int, element: BattleEnums.EAffinit
     # use defense stat to reduce damage
     var defense := stats.get_stat(CharacterStatEntry.ECharacterStat.PhysicalDefense)\
     if element == BattleEnums.EAffinityElement.PHYS else stats.get_stat(CharacterStatEntry.ECharacterStat.Spirit)
-
-    var calculated_damage := ceili(initial_damage * (1.0 - defense))
-    print("[RESIST] Defense: " + str(defense) + " (" + str(defense * 100) + "%)")
+    # Updated: no longer use defense as a percentage since it would be OP with the new levelling system
+    var calculated_damage := ceili(initial_damage - defense)
+    print("[RESIST] Defense: " + str(defense))
     print("[RESIST] Calculated damage: %s (original: %s)" % [str(calculated_damage), initial_damage])
     return calculated_damage

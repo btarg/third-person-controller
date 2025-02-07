@@ -274,8 +274,13 @@ func _process_basic_attack(attacker: BattleCharacter, target: BattleCharacter) -
         Util.get_enum_name(BattleEnums.EAffinityElement, attacker.basic_attack_element)])
     
     var AC := target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass)
-    var attack_roll := DiceRoll.roll(20, 1, ceil(AC))
-    var damage_roll := DiceRoll.roll(20, 1)
+    var luck := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.Luck)
+    var attack_roll := DiceRoll.roll(20, 1, ceil(AC), luck) # use luck as bonus
+
+    var phys_str := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.PhysicalStrength)
+
+    # TODO: use an actual damage roll
+    var damage_roll := DiceRoll.roll(20, 1, phys_str)
 
     var result := target.take_damage(attacker, [damage_roll], attack_roll, attacker.basic_attack_element)
     print("[ATTACK] Result: " + Util.get_enum_name(BattleEnums.ESkillResult, result))

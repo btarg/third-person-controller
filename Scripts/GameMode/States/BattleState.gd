@@ -77,15 +77,42 @@ func _ready() -> void:
     Console.add_command("set_dmg_element", _command_set_dmg_element, 1)
 
     Console.add_command("print_modifiers", _print_modifiers_command, 1)
-    Console.add_command("print_stat", _print_stat_command, 1)
+    Console.add_command("print_stat", _print_stat_command, 2)
     Console.add_command("print_inventory", _print_inventory_command, 1)
 
     Console.add_command("add_modifier", _add_modifier_command, 2)
 
+    Console.add_command("level_up", _level_up_character_command, 1)
+    Console.add_command("level_up_stat", _level_up_stat_command, 2)
+
     current_character = player.battle_character
     player_selected_character = current_character
 
-    # turn_order_ui.is_ui_active = false
+
+func _level_up_stat_command(character_name: String, stat_int_string: String) -> void:
+    var stat := int(stat_int_string) as CharacterStatEntry.ECharacterStat
+    
+    for character: BattleCharacter in get_tree().get_nodes_in_group("BattleCharacter"):
+        if character.character_internal_name.to_lower() == character_name.to_lower():
+            character.stats.level_up_stat(stat)
+                
+            Console.print_line("Leveled up %s's %s" % [
+                character.character_name,
+                Util.get_enum_name(CharacterStatEntry.ECharacterStat, stat)])
+
+            _print_stat_command(character_name, stat_int_string)
+            
+            return
+            
+    Console.print_line("No character found with name %s" % [character_name])
+
+
+func _level_up_character_command(character_name: String) -> void:
+    for character: BattleCharacter in get_tree().get_nodes_in_group("BattleCharacter"):
+        if character.character_internal_name.to_lower() == character_name.to_lower():
+            character.stats.level_up_all_stats()
+            return
+    Console.print_line("No character found with name %s" % [character_name])
 
 func _print_inventory_command(character_name: String) -> void:
     Console.print_line("Inventory for %s\n====" % [character_name], true)
@@ -116,9 +143,20 @@ func _add_modifier_command(char_name: String, modifier_name: String) -> void:
     target_char.stats.add_modifier(resource as StatModifier)
     Console.print_line("Added %s to %s" % [modifier_name, target_char.character_name])
 
-func _print_stat_command(stat_int_string: String) -> void:
-    if player_selected_character:
-        player_selected_character.print_stat(stat_int_string)
+func _print_stat_command(char_name: String = "", stat_int_string: String = "") -> void:
+    if char_name.is_empty():
+        if player_selected_character:
+            Console.print_line("Stats for %s" % [player_selected_character.character_name], true)
+            player_selected_character.print_stat(stat_int_string)
+        else:
+            Console.print_line("No current character", true)
+    else:
+        for c: BattleCharacter in get_tree().get_nodes_in_group("BattleCharacter"):
+            if c.character_internal_name.to_lower() == char_name.to_lower():
+                Console.print_line("Stats for %s" % [c.character_name], true)
+                c.print_stat(stat_int_string)
+                return
+        Console.print_line("No character found with name %s" % [char_name], true)
 
 func _print_modifiers_command(char_name: String = "") -> void:
     if char_name.is_empty():

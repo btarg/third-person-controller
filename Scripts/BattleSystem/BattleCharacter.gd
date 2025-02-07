@@ -37,9 +37,7 @@ var _familiar_spells: Array[SpellItem] = []
 @onready var character_controller := get_parent() as BattleCharacterController
 
 @export_group("Experience and levelling")
-
-@export var level: int = 4
-
+@export var level: int = 1
 var experience_to_next_level: int:
     get:
         return floor(1000 * (level ** 1.5))
@@ -86,8 +84,10 @@ func _ready() -> void:
     # TODO: set affinities in editor once typed dictionaries are supported in Godot 4.4
     if character_internal_name == "TestEnemy":
         affinities = CharacterAffinities.affinities_test_enemy
+        level = 4
     elif character_internal_name == "Player":
         affinities = CharacterAffinities.affinities_test_player
+        level = 1
 
     # if the player has a spell, they should know what it is when drawing it
     if inventory:
@@ -344,18 +344,8 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
     if damage > 0:
         current_hp -= damage
         if current_hp <= 0:
-            current_hp = 0
-            BattleSignalBus.OnDeath.emit(self)
-            print("[DEATH] " + character_name + " has died!!")
-            
-            if character_type != BattleEnums.ECharacterType.PLAYER:
-                # enemies are destroyed when they die
-                battle_state.leave_battle(self)
-                # destroy parent object
-                get_parent().queue_free()
-            else:
-                # Players are able to be revived once "dead"
-                behaviour_state_machine.set_state("DeadState")
+            _on_death(attacker)
+            return BattleEnums.ESkillResult.SR_DEATH
 
     BattleSignalBus.OnTakeDamage.emit(self, damage)
     var damage_number := DamageNumber.create_damage_number(damage, damage_type, result, self.get_parent(), battle_state.top_down_player.camera)
@@ -363,6 +353,33 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
     print("[DAMAGE] %s did %s damage to %s (%s)" % [attacker.character_name, damage, character_name, Util.get_enum_name(BattleEnums.ESkillResult, result)])
     
     return result
+
+func _on_death(attacker: BattleCharacter) -> void:
+    current_hp = 0
+    BattleSignalBus.OnDeath.emit(self)
+    print("[DEATH] " + character_name + " has died!!")
+
+    if character_type != BattleEnums.ECharacterType.PLAYER:
+        # Award XP to the player that killed the enemy
+        if attacker and attacker.character_type == BattleEnums.ECharacterType.PLAYER:
+            # Base XP is 100, multiply by level difference (min 1)
+            var xp_multiplier := maxf(1.0, level - attacker.level)
+            print("[XP] Level difference: " + str(xp_multiplier))
+            var xp_reward := ceili(100 * xp_multiplier)
+            attacker.experience += xp_reward
+            print("[XP] %s gained %d XP for defeating %s" % [
+                attacker.character_name, 
+                xp_reward,
+                character_name
+            ])
+        
+        # enemies are destroyed when they die
+        battle_state.leave_battle(self)
+        # destroy parent object
+        get_parent().queue_free()
+    else:
+        # Players are able to be revived once "dead"
+        behaviour_state_machine.set_state("DeadState")
 
 func _calculate_crit_damage(attacker: BattleCharacter, damage: int) -> int:
     var crit_multiplier := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.AttackCritMultiplier)

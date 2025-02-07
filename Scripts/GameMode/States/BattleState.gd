@@ -93,11 +93,7 @@ func _ready() -> void:
 func _print_xp_command(character_name: String) -> void:
     for character: BattleCharacter in get_tree().get_nodes_in_group("BattleCharacter"):
         if character.character_internal_name.to_lower() == character_name.to_lower():
-<<<<<<< HEAD
             Console.print_line("%s has %s XP at level %s (next level at %s)" %
-=======
-            Console.print_line("%s has %s XP at level %s (%s left until next level)" %
->>>>>>> b9d873fd4936bdacdb7a0bd427664a8a38e59729
             [character.character_name, character.experience, character.level, character.experience_to_next_level], true)
             return
     Console.print_line("No character found with name %s" % [character_name])

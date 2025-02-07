@@ -42,7 +42,11 @@ var _familiar_spells: Array[SpellItem] = []
 
 var experience_to_next_level: int:
     get:
+<<<<<<< HEAD
         return floor(1000 * (level ** 1.5))
+=======
+        return round(4 * float(level ** 3) / 5)
+>>>>>>> b9d873fd4936bdacdb7a0bd427664a8a38e59729
 
 var _current_xp_total: int = 0
 

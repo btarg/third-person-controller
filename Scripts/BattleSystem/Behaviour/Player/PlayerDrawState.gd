@@ -14,12 +14,14 @@ var selected_spell_index := 0
 func _ready() -> void:
     draw_ui.hide()
     item_display_list.item_selected.connect(_on_spell_selected)
-
+    ControllerHelper.OnInputDeviceChanged.connect(_update_label)
+    
 func enter() -> void:
     print("[DRAW] Entered draw state")
     draw_ui.show()
-    draw_label.text = "Choose spell to draw..."
+
     _populate_draw_list()
+    _update_label()
 
 func _populate_draw_list() -> void:
     item_display_list.clear()
@@ -100,12 +102,23 @@ func _state_process(_delta: float) -> void:
 func _state_physics_process(_delta: float) -> void:
     item_display_list.grab_focus()
 
+func _update_label() -> void:
+    var drawtext := ""
+
+    # Controller glyphs for drawing
+    drawtext = ControllerHelper.get_button_glyph_img_embed("combat_attack") + " Stock\n"
+    drawtext += ControllerHelper.get_button_glyph_img_embed("combat_spellitem") + " Cast\n"
+    drawtext += ControllerHelper.get_button_glyph_img_embed("ui_cancel") + " Back\n"
+
+    draw_label.text = drawtext
+
 func _state_input(event: InputEvent) -> void:
     if event.is_action_pressed("ui_cancel"):
         _back_to_think()
-    elif (event.is_action_pressed("ui_accept")
-    or event.is_action_pressed("combat_attack")):
+    elif event.is_action_pressed("combat_attack"):
         draw(battle_state.player_selected_character, battle_state.current_character, false)
+    elif event.is_action_pressed("combat_spellitem"):
+        draw(battle_state.player_selected_character, battle_state.current_character, true)
 
 func _state_unhandled_input(_event: InputEvent) -> void:
     pass

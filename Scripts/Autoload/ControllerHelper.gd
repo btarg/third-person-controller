@@ -52,12 +52,14 @@ func _ready() -> void:
     if Input.get_connected_joypads().size() > 0:
         is_using_controller = true
 
+## Gets the embed for the button glyph texture for the current input device based on the action name
 func get_button_glyph_img_embed(action: String, size: int = 48, horizontal_decoration: bool = false, vertical_decoration: bool = false) -> String:
     var glyph_path := get_button_glyph(action)
     if glyph_path == "NONE":
         return "[color=red]NO GLYPH FOUND[/color]"
     return "[img=%s]%s[/img]" % [str(size), get_button_glyph(action, horizontal_decoration, vertical_decoration)]
 
+## Gets multiple embeds for the button glyph texture for the current input device based on the action name
 func get_button_glyph_img_embeds(action: String, size: int = 48, horizontal_decoration: bool = false, vertical_decoration: bool = false) -> String:
     var glyph_paths := get_button_glyphs(action, horizontal_decoration, vertical_decoration)
     if glyph_paths.is_empty():
@@ -68,6 +70,7 @@ func get_button_glyph_img_embeds(action: String, size: int = 48, horizontal_deco
         result += "[img=%s]%s[/img] " % [str(size), glyph_path]
     return result.strip_edges()
 
+## Gets a single embed for the button glyph texture by its file name (not the input action)
 func get_button_glyph_img_embed_by_name(path: String, size: int = 48) -> String:
     return "[img=%s]%s[/img]" % [str(size), get_button_glyph_by_name(path)]
 

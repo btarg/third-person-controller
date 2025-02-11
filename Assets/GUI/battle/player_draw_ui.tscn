@@ -11,15 +11,19 @@ mouse_filter = 1
 
 [node name="Label" type="RichTextLabel" parent="."]
 layout_mode = 0
-offset_right = 187.0
-offset_bottom = 29.0
+offset_left = 256.0
+offset_top = 8.0
+offset_right = 520.0
+offset_bottom = 248.0
 mouse_filter = 2
 bbcode_enabled = true
-text = "Chosen spell/item: Fira"
+text = "1. action
+2. action
+3. action"
 
 [node name="ItemList" type="ItemList" parent="."]
 layout_mode = 0
-offset_left = 4.0
-offset_top = 30.0
-offset_right = 262.0
-offset_bottom = 292.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 256.0
+offset_bottom = 248.0

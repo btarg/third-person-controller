@@ -5,11 +5,11 @@
 [ext_resource type="Script" path="res://Scripts/Autoload/GameMode/States/ExplorationState.gd" id="3_ek5qm"]
 [ext_resource type="Script" path="res://Scripts/Autoload/GameMode/States/InBattle/BattleLostState.gd" id="4_0ymg5"]
 [ext_resource type="PackedScene" uid="uid://dcks6gn4ttkk5" path="res://Assets/GUI/Inventory/InventoryButtonScrollList.tscn" id="4_430l1"]
-[ext_resource type="PackedScene" uid="uid://bq8fjfbydggyg" path="res://Assets/GUI/battle/battle_message.tscn" id="4_gfcts"]
+[ext_resource type="PackedScene" uid="uid://bq8fjfbydggyg" path="res://Assets/GUI/Battle/battle_message.tscn" id="4_gfcts"]
 [ext_resource type="Script" path="res://Scripts/Autoload/GameMode/States/InBattle/BattleVictoryState.gd" id="5_aqrr1"]
-[ext_resource type="PackedScene" uid="uid://bo1r6ikg415qk" path="res://Assets/GUI/battle/choose_target_ui.tscn" id="6_jxoru"]
-[ext_resource type="PackedScene" uid="uid://cm485fldbqcp1" path="res://Assets/GUI/battle/player_draw_ui.tscn" id="7_67hvs"]
-[ext_resource type="PackedScene" uid="uid://k5nbstqmbqve" path="res://Assets/GUI/battle/player_think_ui.tscn" id="7_i4i4r"]
+[ext_resource type="PackedScene" uid="uid://bo1r6ikg415qk" path="res://Assets/GUI/Battle/choose_target_ui.tscn" id="6_jxoru"]
+[ext_resource type="PackedScene" uid="uid://cm485fldbqcp1" path="res://Assets/GUI/Battle/player_draw_ui.tscn" id="7_67hvs"]
+[ext_resource type="PackedScene" uid="uid://k5nbstqmbqve" path="res://Assets/GUI/Battle/player_think_ui.tscn" id="7_i4i4r"]
 
 [node name="GameModeStateMachine" type="Node"]
 process_mode = 1

@@ -3,7 +3,7 @@ class_name DamageNumber
 
 # Key: Label, Value: Control
 var labels := {}
-var label_settings := preload("res://Assets/GUI/battle/damage_number.tres") as LabelSettings
+var label_settings := preload("res://Assets/GUI/Battle/damage_number.tres") as LabelSettings
 
 var container : HBoxContainer
 @export var display_seconds := 2.0

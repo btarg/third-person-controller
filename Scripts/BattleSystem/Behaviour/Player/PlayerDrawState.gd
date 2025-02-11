@@ -33,6 +33,7 @@ func _populate_draw_list() -> void:
         item_display_list.select(0)
         selected_spell_index = 0
 
+
 func _on_spell_selected(index: int) -> void:
     selected_spell_index = index
 
@@ -70,7 +71,7 @@ func draw(target_character: BattleCharacter, current_character: BattleCharacter,
             if current_character.mastery_elements.has(drawn_spell.spell_affinity):
                 draw_display_string += " (Mastery)"
 
-            battle_state.message_ui.show_messages([draw_display_string % [current_character.character_name, str(drawn_amount), drawn_spell.item_name]])
+            await battle_state.message_ui.show_messages([draw_display_string % [current_character.character_name, str(drawn_amount), drawn_spell.item_name]])
         else:
             print("[DRAW] Character has no inventory")
 
@@ -97,12 +98,13 @@ func _state_process(_delta: float) -> void:
     pass
 
 func _state_physics_process(_delta: float) -> void:
-    pass
+    item_display_list.grab_focus()
 
 func _state_input(event: InputEvent) -> void:
     if event.is_action_pressed("ui_cancel"):
         _back_to_think()
-    elif event.is_action_pressed("ui_accept"):
+    elif (event.is_action_pressed("ui_accept")
+    or event.is_action_pressed("combat_attack")):
         draw(battle_state.player_selected_character, battle_state.current_character, false)
 
 func _state_unhandled_input(_event: InputEvent) -> void:

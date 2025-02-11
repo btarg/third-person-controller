@@ -59,6 +59,7 @@ func _gui_input(event: InputEvent) -> void:
     if event.is_pressed() and not event.is_echo():
         if (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT
         or event.is_action_pressed("ui_accept")
+        or event.is_action_pressed("combat_attack")
         or event.is_action_pressed("ui_select")):
             pressed_item.emit()
 

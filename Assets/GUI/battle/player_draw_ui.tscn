@@ -11,8 +11,9 @@ mouse_filter = 1
 
 [node name="Label" type="RichTextLabel" parent="."]
 layout_mode = 0
-offset_right = 314.0
-offset_bottom = 198.0
+offset_right = 187.0
+offset_bottom = 29.0
+mouse_filter = 2
 bbcode_enabled = true
 text = "Chosen spell/item: Fira"
 

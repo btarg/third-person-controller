@@ -175,7 +175,7 @@ func update_labels() -> void:
                 if spell_use_roll.difficulty_class > 1:
                     dc_label.text = "Roll: %s" % spell_use_roll.to_string()
                 else:
-                    dc_label.text = "Will always succeed"
+                    dc_label.text = "No Difficulty Class"
             else:
                 dc_label.text = ""
 
@@ -226,7 +226,8 @@ func _on_scroll_timer_timeout() -> void:
         update_index(1, false)
 
 func _physics_process(delta: float) -> void:
-    if buttons.size() == 0:
+    if (buttons.size() == 0
+    or not is_visible_in_tree()):
         scrollbar_visual.hide()
         return
 

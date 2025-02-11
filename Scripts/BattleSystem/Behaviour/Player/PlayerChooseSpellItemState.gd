@@ -4,12 +4,12 @@ class_name PlayerChooseSpellItemState
 @onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
 @onready var think_state := get_node("../ThinkState") as PlayerThinkState
 
-@onready var spell_ui := battle_state.get_node("PlayerChooseSpellitemUI") as Control
-@onready var spell_scroll_menu := spell_ui.get_node("ButtonScrollMenu") as ButtonScrollMenu
+@onready var inventory_ui := battle_state.get_node("PlayerChooseSpellitemUI") as Control
+@onready var inv_scroll_menu := inventory_ui.get_node("ButtonScrollMenu") as ButtonScrollMenu
 
 func _ready() -> void:
-    spell_scroll_menu.item_button_pressed.connect(_choose_spell_item)
-    spell_ui.hide()
+    inv_scroll_menu.item_button_pressed.connect(_choose_spell_item)
+    inventory_ui.hide()
 
 func enter() -> void:
     battle_state.top_down_player.allow_moving_focus = false
@@ -28,11 +28,11 @@ func enter() -> void:
         should_render_line = true
 
 
-    spell_scroll_menu.item_inventory = battle_state.current_character.inventory.filter(func(item: BaseInventoryItem):
+    inv_scroll_menu.item_inventory = battle_state.current_character.inventory.filter(func(item: BaseInventoryItem):
         return item.can_use_on(battle_state.current_character, battle_state.player_selected_character)
     )
-    spell_scroll_menu.update_labels()
-    spell_ui.show()
+    inv_scroll_menu.update_labels()
+    inventory_ui.show()
     print("[SPELL/ITEM] " + str(battle_state.current_character.inventory.items.size()) + " items in inventory")
 
     battle_state.top_down_player.focused_node = battle_state.player_selected_character.get_parent()
@@ -57,7 +57,7 @@ func _choose_spell_item(chosen_item: BaseInventoryItem) -> void:
     if chosen_item.can_use_on(
         battle_state.current_character, battle_state.player_selected_character):
         should_render_line = false
-        spell_ui.hide()
+        inventory_ui.hide()
         await battle_state.message_ui.show_messages([chosen_item.item_name])
         var status := chosen_item.use(battle_state.current_character, battle_state.player_selected_character)
         print("[SPELL/ITEM] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
@@ -78,7 +78,7 @@ func _back_to_think() -> void:
 
 func exit() -> void:
     should_render_line = false
-    spell_ui.hide()
+    inventory_ui.hide()
 
     super.exit()
 
@@ -86,13 +86,8 @@ func _state_process(_delta: float) -> void: pass
 func _state_physics_process(_delta: float) -> void:
     super._state_physics_process(_delta)
 
-
 func _state_input(event: InputEvent) -> void:
     if event.is_action_pressed("ui_cancel"):
         _back_to_think()
-    if event is InputEventKey:
-        if event.is_pressed():
-            if event.keycode == KEY_1:
-                spell_scroll_menu.item_inventory = battle_state.current_character.inventory
 
 func _state_unhandled_input(_event: InputEvent) -> void: pass

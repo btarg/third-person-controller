@@ -326,8 +326,7 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
 	# (aka normal damage - doesn't apply to almighty)
 	elif attacker and damage_type != BattleEnums.EAffinityElement.ALMIGHTY:
 		# Regular failed rolls don't do damage for basic melee attacks (non spell attacks)
-		if ((dice_status == DiceRoll.DiceStatus.ROLL_FAIL
-		or dice_status == DiceRoll.DiceStatus.ROLL_CRIT_FAIL)
+		if (dice_status in [DiceRoll.DiceStatus.ROLL_FAIL, DiceRoll.DiceStatus.ROLL_CRIT_FAIL]
 		and attacker.basic_attack_element == damage_type):
 			damage = 0
 			result = BattleEnums.ESkillResult.SR_FAIL

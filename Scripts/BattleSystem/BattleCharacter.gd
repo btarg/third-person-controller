@@ -332,7 +332,8 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
 			result = BattleEnums.ESkillResult.SR_FAIL
 		else:
 			var attacker_strength := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.PhysicalStrength)\
-			if damage_type == BattleEnums.EAffinityElement.PHYS else attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.MagicalStrength)
+			        if damage_type == BattleEnums.EAffinityElement.PHYS else\
+                            attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.MagicalStrength)
 			
 			print("[Attack] Original Damage: " + str(damage))
 			print(attacker.character_name + " has strength: " + str(attacker_strength))
@@ -352,6 +353,7 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
 	print("[DAMAGE] %s did %s damage to %s (%s)" % [attacker.character_name, damage, character_name, Util.get_enum_name(BattleEnums.ESkillResult, result)])
 	
 	return result
+
 
 func _on_death(attacker: BattleCharacter) -> void:
 	current_hp = 0

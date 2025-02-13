@@ -1,6 +1,6 @@
 [gd_scene load_steps=12 format=3 uid="uid://da3mueut4kujj"]
 
-[ext_resource type="Script" path="res://Assets/GUI/Inventory/InventoryElements/inventory_item_button_paint.gd" id="1_5oq8g"]
+[ext_resource type="Script" path="res://Scripts/GUI/Inventory/inventory_item_button_paint.gd" id="1_5oq8g"]
 [ext_resource type="Material" uid="uid://dehsw0w224ohy" path="res://Assets/GUI/paint/paint_shader.tres" id="1_fd8nq"]
 [ext_resource type="Texture2D" uid="uid://cx2jdlx2rnduf" path="res://Assets/GUI/Inventory/InventoryElements/paint.png" id="1_xo5lv"]
 [ext_resource type="FontFile" uid="uid://g7802j74catg" path="res://Assets/Fonts/Arsenal/Arsenal-BoldItalic.ttf" id="2_hy4mq"]

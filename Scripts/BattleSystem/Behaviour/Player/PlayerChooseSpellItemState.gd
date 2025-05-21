@@ -2,6 +2,8 @@ extends LineRenderingState
 class_name PlayerChooseSpellItemState
 
 @onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
+@onready var battle_character := state_machine.get_parent() as BattleCharacter
+
 @onready var think_state := get_node("../ThinkState") as PlayerThinkState
 
 @onready var inventory_ui := battle_state.get_node("PlayerChooseSpellitemUI") as Control
@@ -69,8 +71,8 @@ func _end_targeting() -> void:
     # check if active in case the character has left the battle (ie. died)
     if not active:
         return
-    Transitioned.emit(self, "IdleState")
-    battle_state.ready_next_turn()
+    _back_to_think()
+    battle_character.spend_actions(1)
 
 func _back_to_think() -> void:
     if active:

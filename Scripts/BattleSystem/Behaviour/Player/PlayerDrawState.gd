@@ -2,6 +2,8 @@ extends State
 class_name PlayerDrawState
 
 @onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
+@onready var battle_character := state_machine.get_parent() as BattleCharacter
+
 @onready var draw_ui := battle_state.get_node("PlayerDrawUI") as Control
 @onready var draw_label := draw_ui.get_node("Label") as RichTextLabel
 @onready var item_display_list := draw_ui.get_node("ItemList") as ItemList
@@ -85,8 +87,8 @@ func draw(target_character: BattleCharacter, current_character: BattleCharacter,
 func _end_targeting() -> void:
     if not active:
         return
-    Transitioned.emit(self, "IdleState")
-    battle_state.ready_next_turn()
+    _back_to_think()
+    battle_character.spend_actions(1)
 
 func _back_to_think() -> void:
     if active:

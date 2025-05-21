@@ -59,6 +59,9 @@ func enter() -> void:
 
     player_think_ui.show()
     player_think_ui.set_text()
+    
+    # Update the radius visual to show movement range
+    _process_radius_visual()
 
     if battle_state.turn_order_ui.is_ui_active:
         battle_state.turn_order_ui.is_ui_active = false
@@ -79,9 +82,17 @@ func enter() -> void:
 
 func exit() -> void:
     print(battle_character.character_name + " has stopped thinking")
+    
+    # If the character is still moving when exiting, cancel movement and return home
+    if battle_character.character_controller and battle_character.character_controller.is_moving():
+        battle_character.character_controller.return_to_home_position()
+    
     player_think_ui.hide()
     battle_state.turn_order_ui.hide()
     battle_state.turn_order_ui.is_ui_active = false
+    
+    # Hide the radius visual when exiting think state
+    radius_visual.visible = false
 
 
 func _process_radius_visual() -> void:
@@ -161,10 +172,12 @@ func _state_process(_delta: float) -> void: pass
 
 func _on_movement_finished() -> void:
     # Disconnect ourselves to prevent multiple connections
-    battle_state.current_character.character_controller.OnMovementFinished.disconnect(_on_movement_finished)
+    if battle_state.current_character.character_controller.OnMovementFinished.is_connected(_on_movement_finished):
+        battle_state.current_character.character_controller.OnMovementFinished.disconnect(_on_movement_finished)
 
     battle_state.select_character(battle_state.current_character)
     player_think_ui.set_text()
+    _process_radius_visual()
 
 func _state_unhandled_input(event: InputEvent) -> void:
 
@@ -247,13 +260,13 @@ func process_action(chosen_action: BattleEnums.EPlayerCombatAction) -> void:
         BattleEnums.EPlayerCombatAction.CA_ATTACK:
             var attack := await _process_basic_attack(battle_state.current_character, target_character)
             if attack != BattleEnums.ESkillResult.SR_OUT_OF_RANGE:
-                battle_state.ready_next_turn()
+                battle_character.spend_actions(1)
         BattleEnums.EPlayerCombatAction.CA_DRAW:
             Transitioned.emit(self, "DrawState")
             
         _:
             print("Invalid action")
-            battle_state.ready_next_turn()
+            battle_character.spend_actions(1)
 
     
 

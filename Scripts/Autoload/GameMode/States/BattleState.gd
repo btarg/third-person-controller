@@ -1,8 +1,10 @@
 extends State
 class_name BattleState
 
-
 var turn_order: Array[BattleCharacter] = []
+
+# We start with 3 actions per character, like Pathfinder
+const START_ACTIONS := 3
 
 # get exploration player
 @onready var player := get_tree().get_nodes_in_group("Player").front() as PlayerController
@@ -15,15 +17,13 @@ var test_enemy := preload("res://Scenes/Characters/Enemies/test_enemy.tscn") as 
 var enemy_units: Array[BattleCharacter] = []
 var player_units: Array[BattleCharacter] = []
 
-# String : int
-var character_counts: Dictionary = {}
+var character_counts: Dictionary[String, int] = {}
 
 var current_character_index: int = 0
 var current_character: BattleCharacter
 var _last_available_actions := BattleEnums.EAvailableCombatActions.NONE
 
 var turns_played := -1
-
 var movement_locked_in := false
 
 var available_actions : BattleEnums.EAvailableCombatActions = BattleEnums.EAvailableCombatActions.SELF:
@@ -339,18 +339,17 @@ func ready_next_turn() -> void:
         Transitioned.emit(self, "ExplorationState")
 
     if current_character:
-        # End turn
-        current_character.stats.active_modifiers_start_turn(false)
 
-        current_character.turns_left -= 1
-        if current_character.turns_left > 0:
-            print("[ONE MORE] %s gets %s more turns!" % [current_character.character_name, current_character.turns_left])
-            movement_locked_in = true
-            await message_ui.show_messages(["One more turn for " + current_character.character_name], 1)
-
+        # This character still has actions left, so don't move to the next character yet
+        if current_character.actions_left > 0:
+            print("[ONE MORE] %s gets %s more actions!" % [current_character.character_name, current_character.actions_left])
+            await message_ui.show_messages(["%s gets %s more actions!" % [current_character.character_name, current_character.actions_left]])
+            return
         else:
-            current_character.turns_left = 0 # cap at 0 minimum
-            current_character_index += 1
+            current_character.stats.active_modifiers_on_turn(false)
+            
+            current_character.actions_left = 0 # cap at 0 minimum
+            current_character_index += 1 # move to next character
             current_character.behaviour_state_machine.set_state("IdleState")
             movement_locked_in = false
 
@@ -362,8 +361,8 @@ func ready_next_turn() -> void:
     _focus_character(current_character)
 
     # 0 turns left means the character is a new character
-    if current_character.turns_left == 0:
-        current_character.turns_left = 1
+    if current_character.actions_left == 0:
+        current_character.actions_left = START_ACTIONS
 
     # Select self at start of battle
     if (current_character.character_type == BattleEnums.ECharacterType.PLAYER

@@ -14,8 +14,12 @@ func enter() -> void:
     battle_character.down_turns -= 1
     print(battle_character.character_name + " is down for the next " + str(battle_character.down_turns) + " turns!")
     
+    if battle_character.down_turns <= 0:
+        battle_character.down_turns = 0
+        print(battle_character.character_name + " is no longer down!")
+
     _stop_thinking()
-    battle_character.battle_state.ready_next_turn()
+    battle_character.battle_state.ready_next_turn() # bypass all turns
 
 func _stop_thinking() -> void:
     Transitioned.emit(self, "IdleState")

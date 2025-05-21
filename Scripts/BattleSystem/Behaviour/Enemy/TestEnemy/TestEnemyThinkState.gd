@@ -24,8 +24,11 @@ func enter() -> void:
 
     await wait(1)
 
-    _stop_thinking()
-    battle_character.battle_state.ready_next_turn()
+    _back_to_think()
+    battle_character.spend_actions(1)
+
+func _back_to_think() -> void:
+    Transitioned.emit(self, "ThinkState")
 
 func _stop_thinking() -> void:
     Transitioned.emit(self, "IdleState")

@@ -52,7 +52,9 @@ func set_text() -> void:
             final_text += ControllerHelper.get_button_glyph_img_embed_by_name("keyboard_mouse/keyboard_arrows_all", IMG_SIZE) + " Move\n"
 
         final_text += ControllerHelper.get_button_glyph_img_embed("run", IMG_SIZE) + " Sprint\n"
-        final_text += ControllerHelper.get_button_glyph_img_embed("combat_move", IMG_SIZE) + " Cancel movement\n"
+        final_text += ControllerHelper.get_button_glyph_img_embed("combat_move", IMG_SIZE) + " Confirm movement\n"
+        final_text += ControllerHelper.get_button_glyph_img_embed("ui_cancel", IMG_SIZE) + " Cancel movement\n"
+
     
     else:
         final_text += ControllerHelper.get_button_glyph_img_embed("combat_spellitem", IMG_SIZE) + " Cast spell / use item\n"

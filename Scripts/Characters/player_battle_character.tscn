@@ -1,16 +1,16 @@
 [gd_scene load_steps=22 format=3 uid="uid://dilt8hwo0hvca"]
 
-[ext_resource type="Script" path="res://Scripts/BattleSystem/BattleCharacter.gd" id="1_bgai8"]
-[ext_resource type="Script" path="res://Scripts/StateMachine/StateMachine.gd" id="2_iyxf5"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Enemy/IdleState.gd" id="3_o8777"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerThinkState.gd" id="4_8vwnx"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerDrawState.gd" id="6_6wono"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerChooseSpellItemState.gd" id="7_tqx6b"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/DownedState.gd" id="9_dybv6"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/CharacterStats.gd" id="9_pe6mx"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/CharacterStatEntry.gd" id="10_8eke6"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerDeadState.gd" id="10_l7i33"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerMoveState.gd" id="10_t7ot4"]
+[ext_resource type="Script" uid="uid://ca2i1uok8pfy1" path="res://Scripts/BattleSystem/BattleCharacter.gd" id="1_bgai8"]
+[ext_resource type="Script" uid="uid://cb4gnc2kqnx5r" path="res://Scripts/StateMachine/StateMachine.gd" id="2_iyxf5"]
+[ext_resource type="Script" uid="uid://kexuvq1uq7c1" path="res://Scripts/BattleSystem/Behaviour/Enemy/IdleState.gd" id="3_o8777"]
+[ext_resource type="Script" uid="uid://dpgg4w51tku6o" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerThinkState.gd" id="4_8vwnx"]
+[ext_resource type="Script" uid="uid://ck2pxbskj6o0l" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerDrawState.gd" id="6_6wono"]
+[ext_resource type="Script" uid="uid://vf0yvxhc82i7" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerChooseSpellItemState.gd" id="7_tqx6b"]
+[ext_resource type="Script" uid="uid://cuwcpybjipvq7" path="res://Scripts/BattleSystem/Behaviour/DownedState.gd" id="9_dybv6"]
+[ext_resource type="Script" uid="uid://bnjuv2hlrrkfo" path="res://Scripts/BattleSystem/DataStructures/CharacterStats.gd" id="9_pe6mx"]
+[ext_resource type="Script" uid="uid://dxouogvyc8hgf" path="res://Scripts/BattleSystem/DataStructures/CharacterStatEntry.gd" id="10_8eke6"]
+[ext_resource type="Script" uid="uid://b4ub5lqsx7xob" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerDeadState.gd" id="10_l7i33"]
+[ext_resource type="Script" uid="uid://b2hicrpawpocv" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerMoveState.gd" id="10_t7ot4"]
 
 [sub_resource type="Resource" id="Resource_5m16x"]
 script = ExtResource("10_8eke6")
@@ -45,7 +45,7 @@ stat_value = 5.0
 [sub_resource type="Resource" id="Resource_q0f4k"]
 script = ExtResource("10_8eke6")
 stat_key = 7
-stat_value = 15.0
+stat_value = 10.0
 
 [sub_resource type="Resource" id="Resource_3wxh5"]
 script = ExtResource("10_8eke6")
@@ -64,15 +64,7 @@ stat_value = 10.0
 
 [node name="BattleCharacter" type="Node" groups=["BattleCharacter"]]
 script = ExtResource("1_bgai8")
-character_type = null
 default_character_name = "The Player"
-affinities = null
-basic_attack_element = null
-mastery_elements = null
-debug_always_crit = null
-draw_list = null
-level = null
-experience = null
 
 [node name="StateMachine" type="Node" parent="."]
 script = ExtResource("2_iyxf5")

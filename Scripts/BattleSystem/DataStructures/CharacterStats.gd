@@ -109,7 +109,8 @@ func update_modifiers() -> void:
         else:
             print("[Modifier] MODIFIER " + modifier.name + " HAS INFINITE DURATION")
 
-func active_modifiers_start_turn(start: bool = true) -> void:
+## Use true for the start of the turn and false for the end of the turn
+func active_modifiers_on_turn(start: bool = true) -> void:
     for modifier: StatModifier in stat_modifiers:
         if modifier is ActiveStatModifier:
             var active_modifier := modifier as ActiveStatModifier

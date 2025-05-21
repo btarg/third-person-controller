@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="SpellItem" load_steps=5 format=3 uid="uid://bmdlkpnpqbx4g"]
 
-[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/SpellItem.gd" id="1_ea2fr"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/DiceRoll.gd" id="2_ql46u"]
+[ext_resource type="Script" uid="uid://cwyovt5hobip" path="res://Scripts/BattleSystem/DataStructures/SpellItem.gd" id="1_ea2fr"]
+[ext_resource type="Script" uid="uid://dymhc7pcpegip" path="res://Scripts/BattleSystem/DataStructures/DiceRoll.gd" id="2_ql46u"]
 
 [sub_resource type="Resource" id="Resource_c0nmr"]
 script = ExtResource("2_ql46u")

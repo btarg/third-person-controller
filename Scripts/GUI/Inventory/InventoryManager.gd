@@ -1,11 +1,9 @@
 extends Node
 class_name Inventory
-
-## TODO: Typed Dictionary
-## Item id as key, count as value
-var items: Dictionary = {}
+## Value is a dictionary with keys "resource" and "count"
+var items: Dictionary[String, Dictionary] = {}
 ## Dictionary of item_id as key and a modifier id as value
-var linked_modifiers: Dictionary = {}
+var linked_modifiers: Dictionary[String, String] = {}
 
 ## Item id as key, junctioned stat as value
 var junctioned_stat_by_item: Dictionary = {}
@@ -26,21 +24,14 @@ var wind_spell: BaseInventoryItem = load("res://Scripts/Data/Items/Spells//test_
 var silence_spell: BaseInventoryItem = load("res://Scripts/Data/Items/Spells//silence_spell.tres")
 
 func _ready() -> void:
-    Console.add_command("set_junction", _set_junction_command, 3)
-    Console.add_command("get_junction", _get_junctioned_stat, 2)
 
-    # TODO: these won't work here, they need to be moved out to avoid re-registering
-    Console.add_command("add_item_path", _add_item_command, 3)
-    Console.add_command("remove_item_id", _remove_item_command, 3)
-    
-    # inventory_updated.connect(_on_inventory_updated)
-    add_item(heal_spell, 99)
-    add_item(fire_spell, 99)
-    add_item(ice_spell, 99)
-    add_item(elec_spell, 99)
-    add_item(wind_spell, 99)
-    add_item(almighty_spell, 99)
-    add_item(silence_spell, 99)
+    add_item(heal_spell, 15)
+    add_item(fire_spell, 15)
+    add_item(ice_spell, 15)
+    add_item(elec_spell, 15)
+    add_item(wind_spell, 15)
+    add_item(almighty_spell, 15)
+    add_item(silence_spell, 15)
 
 
     # TEST: set two different spells to the same stat, should only apply the modifier for the last one
@@ -184,10 +175,10 @@ func _update_junction_modifiers(spell_item: SpellItem, total_item_count: int) ->
                 continue
             
             var base_stat_value := battle_character.stats.get_stat(stat, false)
-            var multiplier := spell_item.junction_table[stat] as float
+            var junction_value := spell_item.junction_table[stat]
             # Calculate how much to add to the stat value for each item in the stack
             # (difference between the base stat value and the value added by one multiplier)
-            var add_to_stat_value: float = (base_stat_value * multiplier) - base_stat_value
+            var add_to_stat_value: float = (base_stat_value + junction_value) - base_stat_value
             add_to_stat_value *= total_item_count
             var modifier := _generate_stat_modifier(spell_item, stat, add_to_stat_value)
             # if we already have the modifier with this id, update the value

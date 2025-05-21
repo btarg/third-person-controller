@@ -32,10 +32,9 @@ func get_spell_use_roll(target: BattleCharacter) -> DiceRoll:
 @export_group("Junction system")
 
 ## Dictionary with a character stat entry as key and a float as value
-## TODO: Typed Dictionary
-@export var junction_table = {
-    CharacterStatEntry.ECharacterStat.PhysicalStrength: 0.005,
-    CharacterStatEntry.ECharacterStat.PhysicalDefense: 0.005,
+@export var junction_table: Dictionary[CharacterStatEntry.ECharacterStat, float] = {
+    CharacterStatEntry.ECharacterStat.PhysicalStrength: 1,
+    CharacterStatEntry.ECharacterStat.PhysicalDefense: 1,
 } 
 
 func get_item_description() -> String:

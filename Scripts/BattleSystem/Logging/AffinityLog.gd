@@ -1,6 +1,5 @@
 extends Node
 # Key = character internal name, Value = Dictionary of EAffinityElement : EAffinityType
-# TODO: typed dictionary when Godot 4.4 is out
 var _logged_affinities: Dictionary = {
         # "TestEnemy": {
         #     BattleEnums.EAffinityElement.FIRE : BattleEnums.EAffinityType.RESIST,

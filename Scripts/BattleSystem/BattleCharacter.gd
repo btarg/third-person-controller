@@ -7,7 +7,7 @@ class_name BattleCharacter
 @onready var character_internal_name := get_parent().get_name()
 
 # Key = EAffinityElement, Value = EAffinityType
-@export var affinities: Dictionary = {}
+@export var affinities: Dictionary[BattleEnums.EAffinityElement, BattleEnums.EAffinityType] = {}
 @export var basic_attack_element: BattleEnums.EAffinityElement = BattleEnums.EAffinityElement.PHYS
 
 @export var mastery_elements: Array[BattleEnums.EAffinityElement] = [
@@ -80,14 +80,6 @@ func _ready() -> void:
     BattleSignalBus.OnTurnStarted.connect(_on_battle_turn_started)
 
     print(character_name + " CURRENT HP: " + str(current_hp))
-
-    # TODO: set affinities in editor once typed dictionaries are supported in Godot 4.4
-    if character_internal_name == "TestEnemy":
-        affinities = CharacterAffinities.affinities_test_enemy
-        level = 4
-    elif character_internal_name == "Player":
-        affinities = CharacterAffinities.affinities_test_player
-        level = 1
 
     # if the player has a spell, they should know what it is when drawing it
     if inventory:

@@ -22,11 +22,11 @@ script = ExtResource("1_ea2fr")
 spell_affinity = 7
 spell_power_rolls = Array[ExtResource("2_ql46u")]([SubResource("Resource_c0nmr")])
 use_roll = SubResource("Resource_aaud3")
-junction_table = {
+junction_table = Dictionary[int, float]({
 0: 2.0,
 2: 1.005,
 5: 1.005
-}
+})
 item_type = 0
 item_name = "Cure"
 item_description = "Restores a small amount of HP."

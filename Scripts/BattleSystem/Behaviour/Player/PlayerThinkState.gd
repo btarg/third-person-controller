@@ -5,7 +5,7 @@ extends State
 # @onready var exploration_player := get_tree().get_nodes_in_group("Player").front() as PlayerController
 
 @onready var battle_character := state_machine.get_parent() as BattleCharacter
-@onready var radius_visual := get_node("/root/RadiusVisual") as CSGMesh3D
+@onready var radius_visual := get_node("/root/RadiusVisual") as MeshInstance3D
 
 # One level up is state machine, two levels up is the battle character. The inventory is on the same level
 @onready var inventory_manager := get_node("../../../Inventory") as Inventory
@@ -35,12 +35,14 @@ func _cleanup_visuals() -> void:
 
 func _on_leave_battle() -> void:
     if active:
+        _cleanup_visuals()
         Transitioned.emit(self, "IdleState")
     else:
         exit()
 
 func _on_turn_started(turn_character: BattleCharacter) -> void:
     if turn_character != battle_character:
+        _cleanup_visuals()
         return # not our turn
 
     if battle_character.character_controller:
@@ -59,9 +61,6 @@ func enter() -> void:
 
     player_think_ui.show()
     player_think_ui.set_text()
-    
-    # Update the radius visual to show movement range
-    _process_radius_visual()
 
     if battle_state.turn_order_ui.is_ui_active:
         battle_state.turn_order_ui.is_ui_active = false
@@ -90,9 +89,7 @@ func exit() -> void:
     player_think_ui.hide()
     battle_state.turn_order_ui.hide()
     battle_state.turn_order_ui.is_ui_active = false
-    
-    # Hide the radius visual when exiting think state
-    radius_visual.visible = false
+
 
 
 func _process_radius_visual() -> void:
@@ -168,7 +165,9 @@ func _state_physics_process(_delta: float) -> void:
         
         _last_raycast_selected_character = character
 
-func _state_process(_delta: float) -> void: pass
+func _state_process(_delta: float) -> void:
+    # Update the radius visual to show movement range
+    _process_radius_visual()
 
 func _on_movement_finished() -> void:
     # Disconnect ourselves to prevent multiple connections

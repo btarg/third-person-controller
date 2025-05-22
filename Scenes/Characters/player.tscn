@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://cr2ersq7g6q6f"]
+[gd_scene load_steps=18 format=3 uid="uid://cr2ersq7g6q6f"]
 
 [ext_resource type="Script" uid="uid://dno7sl2ana8cp" path="res://Scripts/Characters/Player.gd" id="1_hn6di"]
 [ext_resource type="Script" uid="uid://berih7gl84huw" path="res://Scripts/Characters/SpringArmPivot.gd" id="2_f8ihf"]
@@ -6,11 +6,7 @@
 [ext_resource type="AnimationLibrary" uid="uid://2c87hdkwp40d" path="res://Assets/Models/Characters/player_locomotion_library.res" id="4_6ccjh"]
 [ext_resource type="Curve" uid="uid://ch35oxe57h1jf" path="res://Assets/Data/pivot_camera_curve.tres" id="4_q26jy"]
 [ext_resource type="PackedScene" uid="uid://dilt8hwo0hvca" path="res://Scripts/Characters/player_battle_character.tscn" id="5_xaof6"]
-[ext_resource type="Script" uid="uid://cwyovt5hobip" path="res://Scripts/BattleSystem/DataStructures/SpellItem.gd" id="7_cueqf"]
 [ext_resource type="PackedScene" uid="uid://cclit0nmwr0cn" path="res://Assets/GUI/3d/target_line_renderer.tscn" id="7_pggr3"]
-[ext_resource type="Resource" uid="uid://b7wxo6pw5e1hp" path="res://Scripts/Data/Items/Spells/test_fire_spell.tres" id="8_01b8d"]
-[ext_resource type="Resource" uid="uid://bmdlkpnpqbx4g" path="res://Scripts/Data/Items/Spells/test_healing_spell.tres" id="9_xccyk"]
-[ext_resource type="Resource" uid="uid://cbir0tni56d0e" path="res://Scripts/Data/Items/Spells/test_almighty_spell.tres" id="10_h1n2f"]
 [ext_resource type="Script" uid="uid://3ddie3cwu05n" path="res://Scripts/GUI/Inventory/InventoryManager.gd" id="12_dpkcw"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_4egpj"]
@@ -58,7 +54,7 @@ nodes/iwr_blend/position = Vector2(420, 160)
 nodes/output/position = Vector2(880, 180)
 node_connections = [&"ground_air_transition", 0, &"iwr_blend", &"ground_air_transition", 1, &"Air", &"iwr_blend", 0, &"Idle", &"iwr_blend", 1, &"Walk", &"iwr_blend", 2, &"Run", &"output", 0, &"ground_air_transition"]
 
-[sub_resource type="ImmediateMesh" id="ImmediateMesh_dxpk4"]
+[sub_resource type="ImmediateMesh" id="ImmediateMesh_gdgf0"]
 
 [node name="Player" type="CharacterBody3D" groups=["Player"]]
 process_mode = 1
@@ -123,14 +119,6 @@ parameters/ground_air_transition/current_index = 0
 parameters/iwr_blend/blend_amount = -1.0
 
 [node name="BattleCharacter" parent="." instance=ExtResource("5_xaof6")]
-character_type = 0
-affinities = Dictionary[int, int]({})
-basic_attack_element = 0
-mastery_elements = Array[int]([1])
-debug_always_crit = false
-draw_list = Array[ExtResource("7_cueqf")]([ExtResource("8_01b8d"), ExtResource("9_xccyk"), ExtResource("10_h1n2f")])
-level = 1
-experience = 0
 
 [node name="Inventory" type="Node" parent="."]
 script = ExtResource("12_dpkcw")
@@ -138,4 +126,4 @@ script = ExtResource("12_dpkcw")
 [node name="LineRenderer3D" parent="." instance=ExtResource("7_pggr3")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 material_override = null
-mesh = SubResource("ImmediateMesh_dxpk4")
+mesh = SubResource("ImmediateMesh_gdgf0")

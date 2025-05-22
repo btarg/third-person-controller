@@ -1,10 +1,10 @@
 [gd_scene load_steps=25 format=4 uid="uid://lithrctytmps"]
 
 [ext_resource type="Texture2D" uid="uid://cood1wvfxqy6f" path="res://Assets/Models/maria_maria_diffuse.png" id="1_ncmc8"]
-[ext_resource type="Script" path="res://Scripts/Characters/BattleCharacterController.gd" id="1_pcwwu"]
+[ext_resource type="Script" uid="uid://e1cay4jgtpt3" path="res://Scripts/Characters/BattleCharacterController.gd" id="1_pcwwu"]
 [ext_resource type="Texture2D" uid="uid://cgvbujlfw8qm0" path="res://Assets/Models/maria_maria_normal.png" id="2_5pxa7"]
 [ext_resource type="PackedScene" uid="uid://dilt8hwo0hvca" path="res://Scripts/Characters/player_battle_character.tscn" id="3_de1id"]
-[ext_resource type="Script" path="res://Scripts/GUI/Inventory/InventoryManager.gd" id="4_6w51r"]
+[ext_resource type="Script" uid="uid://3ddie3cwu05n" path="res://Scripts/GUI/Inventory/InventoryManager.gd" id="4_6w51r"]
 [ext_resource type="PackedScene" uid="uid://cclit0nmwr0cn" path="res://Assets/GUI/3d/target_line_renderer.tscn" id="6_bj0dr"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_40nyb"]
@@ -2115,11 +2115,11 @@ tracks/52/keys = PackedFloat32Array(0, 1, 0.00560153, 0.999057, 0.0427257, -0.00
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_2eojd"]
 _data = {
-"FastRun": SubResource("Animation_uekjk"),
-"Idle": SubResource("Animation_nyy71"),
-"SlowRun": SubResource("Animation_sc1we"),
-"Tpose": SubResource("Animation_mvb5m"),
-"Walk": SubResource("Animation_ltmau")
+&"FastRun": SubResource("Animation_uekjk"),
+&"Idle": SubResource("Animation_nyy71"),
+&"SlowRun": SubResource("Animation_sc1we"),
+&"Tpose": SubResource("Animation_mvb5m"),
+&"Walk": SubResource("Animation_ltmau")
 }
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_t84g8"]
@@ -2167,7 +2167,7 @@ nodes/iwr_blend/position = Vector2(420, 160)
 nodes/output/position = Vector2(880, 180)
 node_connections = [&"ground_air_transition", 0, &"iwr_blend", &"ground_air_transition", 1, &"Air", &"iwr_blend", 0, &"Idle", &"iwr_blend", 1, &"Walk", &"iwr_blend", 2, &"Run", &"output", 0, &"ground_air_transition"]
 
-[sub_resource type="ImmediateMesh" id="ImmediateMesh_cs1ff"]
+[sub_resource type="ImmediateMesh" id="ImmediateMesh_02uv4"]
 
 [node name="TestAlly" type="CharacterBody3D"]
 collision_layer = 2
@@ -2648,7 +2648,7 @@ skin = SubResource("Skin_p0emh")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Mesh"]
 libraries = {
-"": SubResource("AnimationLibrary_2eojd")
+&"": SubResource("AnimationLibrary_2eojd")
 }
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
@@ -2674,4 +2674,4 @@ parameters/iwr_blend/blend_amount = -1.0
 [node name="LineRenderer3D" parent="." instance=ExtResource("6_bj0dr")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 material_override = null
-mesh = SubResource("ImmediateMesh_cs1ff")
+mesh = SubResource("ImmediateMesh_02uv4")

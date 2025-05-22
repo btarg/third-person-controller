@@ -31,10 +31,6 @@ var button_spacing: int = -1
 @onready var scroll_timer := Timer.new()
 @onready var hold_timer := Timer.new()
 
-### INVENTORY SECTION ###
-@onready var test_item_inventory := Inventory.new()
-@onready var test_spell_inventory := Inventory.new()
-
 @onready var description_label := %InfoDescription as Label
 @onready var dc_label := description_label.get_node("InfoDC") as Label
 
@@ -53,17 +49,13 @@ var item_inventory: Inventory:
         if not buttons.is_empty():
             delete_all_buttons()
 
-        # update all items
-        # if we change the connected inventory after it has its items already,
-        # we cannot rely fully on the signal to update the UI
-
-        var filtered_inventory := new_inventory.filter(func(item: BaseInventoryItem):
+        # FIX: we get a list of items but not a copy of the inventory!
+        var filtered_inventory_items := new_inventory.filtered_items(func(item: BaseInventoryItem):
             return item.can_use_on(battle_state.current_character, battle_state.player_selected_character)
         )
-
-        for item_id in filtered_inventory.items.keys():
-            var item_entry: BaseInventoryItem = new_inventory.get_item(item_id)
-            _update_inventory_item(item_entry, new_inventory.get_item_count(item_id), true)
+        for item_entry in filtered_inventory_items:
+            # var item_entry: BaseInventoryItem = new_inventory.get_item(item_id)
+            _update_inventory_item(item_entry, new_inventory.get_item_count(item_entry.item_id), true)
 
         item_inventory = new_inventory
 

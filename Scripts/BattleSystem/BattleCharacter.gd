@@ -97,6 +97,8 @@ func spend_actions(actions: int) -> void:
     battle_state.ready_next_turn()
 
 func _on_inventory_updated(resource: BaseInventoryItem, _count: int, is_new_item: bool) -> void:
+    print("[INVENTORY] " + character_name + " has updated their inventory")
+    
     if not is_new_item:
         return
     

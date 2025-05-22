@@ -43,14 +43,22 @@ func _ready() -> void:
 
     print_inventory()
 
-func filter(predicate: Callable) -> Inventory:
-    var filtered_inventory := Inventory.new()
+func filtered_item_ids(predicate: Callable) -> Array[String]:
+    var filtered_item_list: Array[String] = []
     for item_id in items.keys():
-        var item_resource: BaseInventoryItem = items[item_id]["resource"]
-        var count := int(items[item_id]["count"])
-        if predicate.call(item_resource):
-            filtered_inventory.add_item(item_resource, count)
-    return filtered_inventory
+        var item: BaseInventoryItem = items[item_id]["resource"] as BaseInventoryItem
+        if predicate.call(item):
+            filtered_item_list.append(item_id)
+    return filtered_item_list
+
+
+func filtered_items(predicate: Callable) -> Array[BaseInventoryItem]:
+    var filtered_item_list: Array[BaseInventoryItem] = []
+    for item_id in items.keys():
+        var item: BaseInventoryItem = items[item_id]["resource"] as BaseInventoryItem
+        if predicate.call(item):
+            filtered_item_list.append(item)
+    return filtered_item_list
 
 func _add_item_command(character_name: String, item_path: String, count_string: String) -> void:
     if character_name != battle_character.character_internal_name:

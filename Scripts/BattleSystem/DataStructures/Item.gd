@@ -90,8 +90,6 @@ func can_use_on(user: BattleCharacter, target: BattleCharacter) -> bool:
     return false
 
 func _update_inventory(status: UseStatus) -> void:
-    if not inventory:
-        return
     inventory.on_item_used(self, status)
 
 func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:

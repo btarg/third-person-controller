@@ -56,7 +56,12 @@ var item_inventory: Inventory:
         # update all items
         # if we change the connected inventory after it has its items already,
         # we cannot rely fully on the signal to update the UI
-        for item_id in new_inventory.items.keys():
+
+        var filtered_inventory := new_inventory.filter(func(item: BaseInventoryItem):
+            return item.can_use_on(battle_state.current_character, battle_state.player_selected_character)
+        )
+
+        for item_id in filtered_inventory.items.keys():
             var item_entry: BaseInventoryItem = new_inventory.get_item(item_id)
             _update_inventory_item(item_entry, new_inventory.get_item_count(item_id), true)
 

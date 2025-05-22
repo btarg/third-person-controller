@@ -30,9 +30,7 @@ func enter() -> void:
         should_render_line = true
 
 
-    inv_scroll_menu.item_inventory = battle_state.current_character.inventory.filter(func(item: BaseInventoryItem):
-        return item.can_use_on(battle_state.current_character, battle_state.player_selected_character)
-    )
+    inv_scroll_menu.item_inventory = battle_state.current_character.inventory
     inv_scroll_menu.update_labels()
     inventory_ui.show()
     print("[SPELL/ITEM] " + str(battle_state.current_character.inventory.items.size()) + " items in inventory")

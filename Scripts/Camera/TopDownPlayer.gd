@@ -93,6 +93,11 @@ func player_process(delta: float) -> void:
     move_and_slide()
     spring_arm_pivot.camera_physics_process(delta)
 
+func snap_to_focused_node() -> void:
+    if focused_node and focused_node.is_inside_tree():
+        global_transform.origin = focused_node.global_transform.origin
+    else:
+        printerr("No focused node set!")
 
 ## Called from state
 func input_update_from_battle_state(event: InputEvent) -> void:

@@ -59,10 +59,7 @@ func _choose_spell_item(chosen_item: BaseInventoryItem) -> void:
         should_render_line = false
         inventory_ui.hide()
         await battle_state.message_ui.show_messages([chosen_item.item_name])
-        
         var status := chosen_item.use(battle_state.current_character, battle_state.player_selected_character)
-        
-        
         print("[SPELL/ITEM] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
         _end_targeting()
     else:

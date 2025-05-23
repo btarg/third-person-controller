@@ -252,8 +252,11 @@ func return_to_home_position() -> void:
     battle_state.movement_locked_in = false
 
     # Reset movement to full amount since we're canceling movement
-    movement_left = base_movement
+    movement_left = base_movement * battle_character.actions_left
     amount_moved = 0.0
+
+    # reset camera immediately
+    battle_state.top_down_player.snap_to_focused_node()
     
     # Signal that movement is finished
     OnMovementFinished.emit()

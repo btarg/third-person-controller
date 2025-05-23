@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://k5nbstqmbqve"]
 
-[ext_resource type="Script" path="res://Scripts/GUI/Battle/PlayerThinkUI.gd" id="1_77inu"]
+[ext_resource type="Script" uid="uid://dywvof4q2pjim" path="res://Scripts/GUI/Battle/PlayerThinkUI.gd" id="1_77inu"]
 [ext_resource type="Texture2D" uid="uid://de7qhlqsald88" path="res://Assets/GUI/Icons/crosshair131.png" id="2_r0vth"]
 
 [node name="PlayerThinkUI" type="Control"]

@@ -33,6 +33,9 @@ var _familiar_spells: Array[SpellItem] = []
 @onready var inventory := get_node_or_null("../Inventory") as Inventory
 
 @onready var current_hp: int = ceil(stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP))
+@onready var current_mp: int = ceil(stats.get_stat(CharacterStatEntry.ECharacterStat.MaxMP))
+
+
 # The third person player controller extends from the BattleCharacterController to make this possible
 @onready var character_controller := get_parent() as BattleCharacterController
 
@@ -62,6 +65,7 @@ var _current_xp_total: int = 0
 
 signal OnLeaveBattle
 signal OnCharacterTurnStarted
+signal OnSpendActions(character: BattleCharacter)
 
 var character_active := false
 var initiative: int = 0
@@ -95,6 +99,7 @@ func spend_actions(actions: int) -> void:
     else:
         print(character_name + " has " + str(actions_left) + " actions left")
     battle_state.ready_next_turn()
+    OnSpendActions.emit(self)
 
 func _on_inventory_updated(resource: BaseInventoryItem, _count: int, is_new_item: bool) -> void:
     print("[INVENTORY] " + character_name + " has updated their inventory")

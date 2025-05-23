@@ -1,10 +1,13 @@
 class_name SpellItem extends BaseInventoryItem
 
 @export_group("Spell")
+
+## if zero, this is not an AOE spell
+@export var area_of_effect_radius: float = 0.0
+
 @export var spell_affinity := BattleEnums.EAffinityElement.FIRE
 ## The set modifier only applies if the affinity is a buff or debuff
 @export var modifier: StatModifier
-
 
 @export_group("Dice Roll Settings")
 ## The dice roll used to determine the item's power when used on a target. (This is not the attack roll!)
@@ -16,18 +19,20 @@ var _default_spell_power_rolls: Array[DiceRoll] = [DiceRoll.roll(8)]
     set(value):
         spell_power_rolls = value
 
-## Override the spell's attack roll. Set to null to use a d20 vs the target's AC.
+## Override the spell's use roll (not the damage roll). Set to null to use a d20 vs the target's AC.
 @export var use_roll: DiceRoll
 
-var _roll_cache: Dictionary = {}
-func get_spell_use_roll(target: BattleCharacter) -> DiceRoll:
+var _roll_cache: Dictionary[BattleCharacter, DiceRoll] = {}
+
+func get_spell_use_roll(caster: BattleCharacter, target: BattleCharacter) -> DiceRoll:
     if use_roll:
         return use_roll
     if spell_affinity == BattleEnums.EAffinityElement.ALMIGHTY:
         return DiceRoll.roll(20, 1, 0) # DC 0: always hits
 
     return _roll_cache.get_or_add(target,
-    DiceRoll.roll(20, 1, ceil(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass))))
+    DiceRoll.roll(20, 1, ceil(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass)),
+    ceil(caster.stats.get_stat(CharacterStatEntry.ECharacterStat.MagicalStrength)))) # NEW: add magical strength to the roll
 
 @export_group("Junction system")
 
@@ -44,8 +49,7 @@ func get_item_description() -> String:
         description_string += "Restores %s HP " % [DiceRoll.get_dice_array_as_string(spell_power_rolls)]
     elif spell_affinity == BattleEnums.EAffinityElement.MANA:
         description_string += "Restores %s MP " % [DiceRoll.get_dice_array_as_string(spell_power_rolls)]
-    elif spell_affinity in [BattleEnums.EAffinityElement.BUFF,
-    BattleEnums.EAffinityElement.DEBUFF]:
+    elif modifier:
         description_string += "Applies " + modifier.name + " "
     else:
         description_string += "Deals %s %s damage " % [DiceRoll.get_dice_array_as_string(spell_power_rolls), Util.get_enum_name(BattleEnums.EAffinityElement, spell_affinity)]
@@ -57,8 +61,12 @@ func get_item_description() -> String:
     elif can_use_on_allies:
         description_string += "to an ally"
 
-    if spell_affinity in [BattleEnums.EAffinityElement.BUFF,
-    BattleEnums.EAffinityElement.DEBUFF]:
+    if area_of_effect_radius > 0 and item_type == ItemType.SPELL_USE_ANYWHERE:
+        description_string += " within %s units" % [str(area_of_effect_radius)]
+    else:
+        description_string += " at any range"
+
+    if modifier:
         if modifier.turn_duration == -1:
             description_string += ":\n%s indefinitely" % [modifier.description]
         else:
@@ -77,7 +85,8 @@ func get_use_sound(_status: UseStatus = UseStatus.SPELL_SUCCESS) -> AudioStream:
         return heal_sound
     return null
 
-func use(user: BattleCharacter, target: BattleCharacter, update_inventory: bool = true) -> UseStatus:
+
+func use(user: BattleCharacter, target: BattleCharacter, update_inventory: bool = true) -> UseStatus:   
     print("[SPELL] %s used %s on %s" % [user.character_name, item_name, target.character_name])
     
     var spell_use_status := UseStatus.SPELL_FAIL
@@ -86,7 +95,7 @@ func use(user: BattleCharacter, target: BattleCharacter, update_inventory: bool 
     # Almighty damage never misses, but other attacks roll to hit
     if spell_affinity != BattleEnums.EAffinityElement.ALMIGHTY:
         
-        var spell_use_roll := get_spell_use_roll(target).reroll()
+        var spell_use_roll := get_spell_use_roll(user, target).reroll()
         print("[SPELL] Rolling %s for %s total" % [spell_use_roll.to_string(), str(spell_use_roll.total())])
         dice_status = spell_use_roll.get_status()
         print("[SPELL] Roll status: %s" % [Util.get_enum_name(DiceRoll.DiceStatus, dice_status)])

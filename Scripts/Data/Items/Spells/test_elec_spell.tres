@@ -1,21 +1,24 @@
 [gd_resource type="Resource" script_class="SpellItem" load_steps=3 format=3 uid="uid://dtee6temgrdtn"]
 
-[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/SpellItem.gd" id="1_0rvvm"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/DiceRoll.gd" id="2_1pkbe"]
+[ext_resource type="Script" uid="uid://cwyovt5hobip" path="res://Scripts/BattleSystem/DataStructures/SpellItem.gd" id="1_0rvvm"]
+[ext_resource type="Script" uid="uid://dymhc7pcpegip" path="res://Scripts/BattleSystem/DataStructures/DiceRoll.gd" id="2_1pkbe"]
 
 [resource]
 script = ExtResource("1_0rvvm")
+area_of_effect_radius = 0.0
 spell_affinity = 3
 spell_power_rolls = Array[ExtResource("2_1pkbe")]([])
-junction_table = {
+junction_table = Dictionary[int, float]({
 0: 2.0,
 2: 1.005,
 5: 1.005
-}
+})
 item_type = 0
 item_name = "Thundara"
 item_description = "Deals moderate ELEC dmg to one enemy."
 max_stack = 999
 can_use_on_enemies = true
 can_use_on_allies = false
-spell_range = 5
+effective_range = 5
+actions_cost = 1
+mp_cost = 0

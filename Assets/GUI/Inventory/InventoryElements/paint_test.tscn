@@ -20,7 +20,7 @@
 [ext_resource type="Texture2D" uid="uid://cawy0vy30prp6" path="res://Assets/GUI/paint/018.png" id="18_175dg"]
 [ext_resource type="Texture2D" uid="uid://csipw788rljrs" path="res://Assets/GUI/paint/019.png" id="19_p8itl"]
 [ext_resource type="Texture2D" uid="uid://dscs6f227l866" path="res://Assets/GUI/paint/020.png" id="20_jregj"]
-[ext_resource type="Script" path="res://Assets/GUI/Inventory/InventoryElements/paint_test.gd" id="21_0c5he"]
+[ext_resource type="Script" uid="uid://wb8mbrhacpy6" path="res://Assets/GUI/Inventory/InventoryElements/paint_test.gd" id="21_0c5he"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_w3c0i"]
 animations = [{

@@ -3,7 +3,7 @@ class_name CharacterStatEntry
 
 enum ECharacterStat { ## Character Stat
     MaxHP, ## Integer
-    MaxSP, ## Integer
+    MaxMP, ## Integer
     
     # Physical stats
     PhysicalStrength, ## Added to physical damage when not resisted, absorbed, or immune

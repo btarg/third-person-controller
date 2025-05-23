@@ -100,7 +100,7 @@ func _process_radius_visual() -> void:
         radius_visual.visible = false
         return
 
-    print("Processing radius visual: " + battle_character.character_name)
+    # print("Processing radius visual: " + battle_character.character_name)
     radius_visual.global_position = battle_character.character_controller.global_position
     radius_visual.global_position.y += 0.01 # prevent Z-fighting
     

@@ -33,4 +33,4 @@ item_description = "Restores a small amount of HP."
 max_stack = 999
 can_use_on_enemies = false
 can_use_on_allies = true
-spell_range = 5
+effective_range = 5.0

@@ -51,7 +51,7 @@ var item_inventory: Inventory:
 
         # FIX: we get a list of items but not a copy of the inventory!
         var filtered_inventory_items := new_inventory.filtered_items(func(item: BaseInventoryItem):
-            return item.can_use_on(battle_state.current_character, battle_state.player_selected_character)
+            return item.can_use_on(battle_state.current_character, battle_state.player_selected_character)\
         )
         for item_entry in filtered_inventory_items:
             # var item_entry: BaseInventoryItem = new_inventory.get_item(item_id)
@@ -60,7 +60,7 @@ var item_inventory: Inventory:
         item_inventory = new_inventory
 
 # Map item id to button
-var item_button_map: Dictionary = {}
+var item_button_map: Dictionary[String, InventoryItemButtonPaint] = {}
 
 signal item_button_pressed(item: BaseInventoryItem)
 
@@ -99,7 +99,7 @@ func _add_button(item: BaseInventoryItem, item_count: int) -> void:
         print("New button spacing: " + str(button_spacing))
     
     new_button.mouse_entered.connect(_handleButtonFocus.bind(new_button))
-    new_button.pressed_item.connect(_handleButtonPressed.bind(new_button))
+    new_button.pressed_item.connect(_handle_button_pressed.bind(new_button))
 
     buttons.append(new_button)
     _buttons_count.append(0)
@@ -166,9 +166,9 @@ func update_labels() -> void:
                 dc_label.text = ""
                 continue
             description_label.text = item.get_item_description()
-            if item is SpellItem:
 
-                var spell_use_roll := (item as SpellItem).get_spell_use_roll(battle_state.player_selected_character)
+            if item is SpellItem:
+                var spell_use_roll: DiceRoll = (item as SpellItem).get_spell_use_roll(battle_state.current_character, battle_state.player_selected_character)
                 if spell_use_roll.difficulty_class > 1:
                     dc_label.text = "Roll: %s" % spell_use_roll.to_string()
                 else:
@@ -259,7 +259,7 @@ func _handleButtonFocus(focused_button: Control) -> void:
     index = buttons.find(focused_button)
     update_labels()
 
-func _handleButtonPressed(pressed_button: InventoryItemButtonPaint) -> void:
+func _handle_button_pressed(pressed_button: InventoryItemButtonPaint) -> void:
     for item_id in item_button_map.keys():
         if item_button_map[item_id] == pressed_button:
             item_button_pressed.emit(item_inventory.get_item(item_id))
@@ -267,7 +267,7 @@ func _handleButtonPressed(pressed_button: InventoryItemButtonPaint) -> void:
 
 func _delete_button(to_delete: InventoryItemButtonPaint) -> void:
     to_delete.mouse_entered.disconnect(_handleButtonFocus.bind(to_delete))
-    to_delete.pressed_item.disconnect(_handleButtonPressed)
+    to_delete.pressed_item.disconnect(_handle_button_pressed)
 
     var delete_index := buttons.find(to_delete)
     buttons.remove_at(delete_index)

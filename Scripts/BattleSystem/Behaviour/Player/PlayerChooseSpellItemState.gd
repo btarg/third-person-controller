@@ -49,8 +49,8 @@ func _choose_spell_item(chosen_item: BaseInventoryItem) -> void:
             battle_state.player_selected_character.get_parent().global_position))
         # TODO: draw spell range radius
         if (distance > battle_state.current_character.stats.get_stat(CharacterStatEntry.ECharacterStat.AttackRange)
-        or distance > chosen_item.spell_range):
-            print("[SPELL/ITEM] Target is out of range (distance: " + str(distance) + ", range: " + str(chosen_item.spell_range) + ")")
+        or distance > chosen_item.effective_range):
+            print("[SPELL/ITEM] Target is out of range (distance: " + str(distance) + ", range: " + str(chosen_item.effective_range) + ")")
             return
 
 
@@ -59,7 +59,10 @@ func _choose_spell_item(chosen_item: BaseInventoryItem) -> void:
         should_render_line = false
         inventory_ui.hide()
         await battle_state.message_ui.show_messages([chosen_item.item_name])
+        
         var status := chosen_item.use(battle_state.current_character, battle_state.player_selected_character)
+        
+        
         print("[SPELL/ITEM] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
         _end_targeting()
     else:

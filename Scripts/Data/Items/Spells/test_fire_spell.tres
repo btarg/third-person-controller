@@ -19,6 +19,7 @@ bonus = 0
 
 [resource]
 script = ExtResource("1_wvht2")
+area_of_effect_radius = 0.0
 spell_affinity = 1
 spell_power_rolls = Array[ExtResource("2_twpxa")]([SubResource("Resource_4pgx2"), SubResource("Resource_aivd8")])
 junction_table = Dictionary[int, float]({
@@ -32,4 +33,6 @@ item_description = "Deals moderate FIRE dmg to one enemy."
 max_stack = 999
 can_use_on_enemies = true
 can_use_on_allies = false
-spell_range = 5
+effective_range = 5
+actions_cost = 1
+mp_cost = 0

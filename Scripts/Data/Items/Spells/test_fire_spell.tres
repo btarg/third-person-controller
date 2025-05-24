@@ -20,7 +20,8 @@ bonus = 0
 [resource]
 script = ExtResource("1_wvht2")
 area_of_effect_radius = 0.0
-spell_affinity = 1
+ttl_turns = -1
+spell_element = 1
 spell_power_rolls = Array[ExtResource("2_twpxa")]([SubResource("Resource_4pgx2"), SubResource("Resource_aivd8")])
 junction_table = Dictionary[int, float]({
 0: 2.0,

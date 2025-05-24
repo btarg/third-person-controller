@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("1_bfuhv")
 area_of_effect_radius = 15.0
-spell_affinity = 6
+spell_element = 6
 modifier = ExtResource("1_htrow")
 spell_power_rolls = Array[ExtResource("2_htrow")]([])
 junction_table = Dictionary[int, float]({

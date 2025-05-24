@@ -4,6 +4,7 @@ class_name TopDownPlayerController
 @onready var player := get_tree().get_first_node_in_group("Player") as PlayerController
 @onready var spring_arm_pivot := get_child(0) as SpringArmCameraPivot
 @onready var camera := spring_arm_pivot.camera
+@onready var collision_shape := get_node("CollisionShape3D") as CollisionShape3D
 
 @export_group("Player control")
 var speed: float = 7.0
@@ -27,6 +28,8 @@ var focused_node: Node3D = player:
         moved_from_focus = false
         # zero velocity
         velocity = Vector3.ZERO
+        # Disable collisions when focusing
+        collision_shape.disabled = true
 
 # player has moved away from focused node
 var moved_from_focus: bool = false
@@ -58,6 +61,8 @@ func player_process(delta: float) -> void:
     # if we have moved set moved_from_focus
     if move_direction.length() > 0.0 and allow_moving_focus:
         moved_from_focus = true
+        # Re-enable collisions when breaking focus
+        collision_shape.disabled = false
 
     # moved_from_focus = true if we should track the focused node or position
     if not moved_from_focus:
@@ -116,10 +121,9 @@ func focus_position(target_position: Vector3) -> void:
     moved_from_focus = false
     # zero velocity
     velocity = Vector3.ZERO
+    # Disable collisions when focusing on position
+    collision_shape.disabled = true
 
-func focus_node(node: Node3D) -> void:
-    """Focus the camera on a specific node (alternative to setting focused_node property)."""
-    focused_node = node
 
 ## Called from state
 func input_update_from_battle_state(event: InputEvent) -> void:

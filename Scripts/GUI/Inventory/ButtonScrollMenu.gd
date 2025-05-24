@@ -54,6 +54,9 @@ var item_inventory: Inventory:
             return item.can_use_on(battle_state.current_character, battle_state.player_selected_character)\
             or item.item_type == BaseInventoryItem.ItemType.SPELL_USE_ANYWHERE
         )
+        
+        filtered_inventory_items.sort_custom(SpellHelper.sort_items_by_usefulness)
+
         for item_entry in filtered_inventory_items:
             # var item_entry: BaseInventoryItem = new_inventory.get_item(item_id)
             _update_inventory_item(item_entry, new_inventory.get_item_count(item_entry.item_id), true)

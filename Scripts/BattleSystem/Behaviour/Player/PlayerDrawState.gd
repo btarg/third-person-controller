@@ -53,8 +53,8 @@ func draw(target_character: BattleCharacter, current_character: BattleCharacter,
 
     # Mastery gives 2 d6 rolls for drawing instead of 1, but does not affect the draw bonus
     var rolls := 1
-    if drawn_spell.spell_affinity in current_character.mastery_elements:
-        print("[DRAW] Character has mastery for %s" % [Util.get_enum_name(BattleEnums.EAffinityElement, drawn_spell.spell_affinity)])
+    if drawn_spell.spell_element in current_character.mastery_elements:
+        print("[DRAW] Character has mastery for %s" % [Util.get_enum_name(BattleEnums.EAffinityElement, drawn_spell.spell_element)])
         rolls = MASTERY_DRAW_ROLLS
 
     print("[DRAW] Draw bonus: " + str(draw_bonus))
@@ -72,7 +72,7 @@ func draw(target_character: BattleCharacter, current_character: BattleCharacter,
             current_character.inventory.add_item(drawn_spell, drawn_amount)
             print("[DRAW] Received %s %s!" % [str(drawn_amount), drawn_spell.item_name])
             var draw_display_string := "%s drew %s %ss"
-            if current_character.mastery_elements.has(drawn_spell.spell_affinity):
+            if current_character.mastery_elements.has(drawn_spell.spell_element):
                 draw_display_string += " (Mastery)"
 
             await battle_state.message_ui.show_messages([draw_display_string % [current_character.character_name, str(drawn_amount), drawn_spell.item_name]])

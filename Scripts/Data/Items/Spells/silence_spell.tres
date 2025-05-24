@@ -19,7 +19,7 @@ apply_out_of_combat = false
 
 [resource]
 script = ExtResource("1_dwovg")
-spell_affinity = 11
+spell_element = 11
 modifier = SubResource("Resource_jp5gd")
 spell_power_rolls = Array[ExtResource("3_svi6p")]([])
 junction_table = {

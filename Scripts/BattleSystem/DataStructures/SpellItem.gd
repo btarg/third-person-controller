@@ -6,7 +6,7 @@ class_name SpellItem extends BaseInventoryItem
 @export var ttl_turns: int = -1 # -1 means sustained spell, 0 means we do the effect once and then remove the spell
 
 @export_group("Spell")
-@export var spell_affinity := BattleEnums.EAffinityElement.FIRE
+@export var spell_element := BattleEnums.EAffinityElement.FIRE
 ## The set modifier only applies if the affinity is a buff or debuff
 @export var modifier: StatModifier
 
@@ -28,7 +28,7 @@ var _roll_cache: Dictionary[BattleCharacter, DiceRoll] = {}
 func get_spell_use_roll(caster: BattleCharacter, target: BattleCharacter) -> DiceRoll:
     if use_roll:
         return use_roll
-    if spell_affinity == BattleEnums.EAffinityElement.ALMIGHTY:
+    if spell_element == BattleEnums.EAffinityElement.ALMIGHTY:
         return DiceRoll.roll(20, 1, 0) # DC 0: always hits
 
     return _roll_cache.get_or_add(target,
@@ -46,14 +46,14 @@ func get_spell_use_roll(caster: BattleCharacter, target: BattleCharacter) -> Dic
 func get_item_description() -> String:
     var description_string := ""
 
-    if spell_affinity == BattleEnums.EAffinityElement.HEAL:
+    if spell_element == BattleEnums.EAffinityElement.HEAL:
         description_string += "Restores %s HP " % [DiceRoll.get_dice_array_as_string(spell_power_rolls)]
-    elif spell_affinity == BattleEnums.EAffinityElement.MANA:
+    elif spell_element == BattleEnums.EAffinityElement.MANA:
         description_string += "Restores %s MP " % [DiceRoll.get_dice_array_as_string(spell_power_rolls)]
     elif modifier:
         description_string += "Applies " + modifier.name + " "
     else:
-        description_string += "Deals %s %s damage " % [DiceRoll.get_dice_array_as_string(spell_power_rolls), Util.get_enum_name(BattleEnums.EAffinityElement, spell_affinity)]
+        description_string += "Deals %s %s damage " % [DiceRoll.get_dice_array_as_string(spell_power_rolls), Util.get_enum_name(BattleEnums.EAffinityElement, spell_element)]
 
     if can_use_on_enemies and can_use_on_allies:
         description_string += "to any target"
@@ -78,11 +78,11 @@ func get_item_description() -> String:
 
 func get_icon_path() -> String:
     var icon_path := "res://Assets/GUI/Icons/Items/elements/"
-    icon_path += Util.get_enum_name(BattleEnums.EAffinityElement, spell_affinity).to_lower()
+    icon_path += Util.get_enum_name(BattleEnums.EAffinityElement, spell_element).to_lower()
     return icon_path + "_element.png"
 
 func get_use_sound(_status: UseStatus = UseStatus.SPELL_SUCCESS) -> AudioStream:
-    if spell_affinity == BattleEnums.EAffinityElement.HEAL:
+    if spell_element == BattleEnums.EAffinityElement.HEAL:
         return heal_sound
     return null
 
@@ -94,7 +94,7 @@ func use(user: BattleCharacter, target: BattleCharacter, update_inventory: bool 
     var dice_status := DiceRoll.DiceStatus.ROLL_SUCCESS
 
     # Almighty damage never misses, but other attacks roll to hit
-    if spell_affinity != BattleEnums.EAffinityElement.ALMIGHTY:
+    if spell_element != BattleEnums.EAffinityElement.ALMIGHTY:
         
         var spell_use_roll := get_spell_use_roll(user, target).reroll()
         print("[SPELL] Rolling %s for %s total" % [spell_use_roll.to_string(), str(spell_use_roll.total())])
@@ -111,7 +111,7 @@ func use(user: BattleCharacter, target: BattleCharacter, update_inventory: bool 
             DiceRoll.DiceStatus.ROLL_CRIT_FAIL:
                 spell_use_status = UseStatus.SPELL_CRIT_FAIL
 
-    match spell_affinity:
+    match spell_element:
         BattleEnums.EAffinityElement.HEAL:
             # spell use status is already set to success or fail
             var heal_amount := DiceRoll.roll_all(spell_power_rolls)
@@ -127,7 +127,7 @@ func use(user: BattleCharacter, target: BattleCharacter, update_inventory: bool 
                 target.stats.add_modifier(modifier)
                 print("[SPELL] %s applied %s to %s" % [user.character_name, modifier, target.character_name])
             else:
-                print("[SPELL] No modifier set for %s" % [Util.get_enum_name(BattleEnums.EAffinityElement, spell_affinity)])
+                print("[SPELL] No modifier set for %s" % [Util.get_enum_name(BattleEnums.EAffinityElement, spell_element)])
 
         # other spell affinities deal damage
         # take_damage() doesn't take a spell result, because we use it for basic attacks too
@@ -135,7 +135,7 @@ func use(user: BattleCharacter, target: BattleCharacter, update_inventory: bool 
             var attack_roll := DiceRoll.roll(20, 1, ceil(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass)))
             # TODO: attacks do damage based on an animation, not instantly
             # TODO: calculate damage more randomly
-            target.take_damage(user, spell_power_rolls, attack_roll, spell_affinity)
+            target.take_damage(user, spell_power_rolls, attack_roll, spell_element)
 
     if update_inventory:
         _update_inventory(spell_use_status)

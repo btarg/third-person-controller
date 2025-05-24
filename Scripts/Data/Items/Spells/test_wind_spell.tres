@@ -12,7 +12,7 @@ bonus = 0
 
 [resource]
 script = ExtResource("1_3k22y")
-spell_affinity = 4
+spell_element = 4
 spell_power_rolls = Array[ExtResource("2_0vsjh")]([])
 use_roll = SubResource("Resource_c3wc4")
 junction_table = {

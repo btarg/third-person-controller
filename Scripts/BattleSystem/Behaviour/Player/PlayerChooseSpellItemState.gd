@@ -31,6 +31,7 @@ func enter() -> void:
     or battle_state.selected_self()):
         should_render_line = false
     else:
+        captured_ground_position = battle_state.player_selected_character.get_parent().global_position
         line_current_character = battle_state.current_character
         line_target_character = battle_state.player_selected_character
         should_render_line = true
@@ -41,9 +42,7 @@ func enter() -> void:
     print("[SPELL/ITEM] " + str(battle_state.current_character.inventory.items.size()) + " items in inventory")
 
     # Don't move focus unless targeting none or self
-    if (battle_state.available_actions in 
-    [BattleEnums.EAvailableCombatActions.NONE,
-    BattleEnums.EAvailableCombatActions.SELF]):
+    if (battle_state.available_actions != BattleEnums.EAvailableCombatActions.GROUND):
         battle_state.top_down_player.allow_moving_focus = false
         battle_state.top_down_player.focused_node = battle_state.player_selected_character.get_parent()
 

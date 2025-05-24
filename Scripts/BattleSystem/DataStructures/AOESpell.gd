@@ -1,10 +1,12 @@
 extends Area3D
 class_name AOESpell
 
-
 var _area_of_effect_radius: float = 0.0
 var _caster: BattleCharacter = null
 var _spell_item: SpellItem = null
+
+var _ttl_turns: int = -1 # -1 means sustained spell, 0 means we do the effect once and then remove the spell (e.g. explosion)
+var _turns_left: int = 0
 
 @onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
 
@@ -16,8 +18,9 @@ func _init(spell_item: SpellItem, caster: BattleCharacter, target_position: Vect
     _caster = caster
     _spell_item = spell_item
     _target_position = target_position
-    # set the area of effect radius
     _area_of_effect_radius = spell_item.area_of_effect_radius
+    _ttl_turns = spell_item.ttl_turns
+    _turns_left = _ttl_turns if _ttl_turns > 0 else -1
 
 func _ready() -> void:
     # Connect area signals for enter/exit detection
@@ -59,15 +62,12 @@ func _enter_tree() -> void:
     
     _on_turn_started() # Apply immediately to all characters in the area
 
-    
-    
+        
 
 func apply_effect(character: BattleCharacter) -> void:
     if _spell_item.can_use_on(_caster, character, true): # Ignore costs for AOE
-        
         _spell_item.use(_caster, character, false)  # Don't consume item for AOE
         print("[AOE SPELL] %s used %s on %s" % [_caster.character_name, _spell_item.item_name, character.character_name])
-
         _has_already_entered.append(character)
 
 func _on_body_entered(body: Node3D) -> void:
@@ -115,6 +115,13 @@ func _disconnect_actions_signal(battle_character: BattleCharacter) -> void:
         battle_character.OnSpendActions.disconnect(_on_spend_actions)
 
 func _on_turn_started(_turn_character: BattleCharacter = null) -> void:
+    if _turns_left != -1:
+        _turns_left -= 1
+        if _turns_left <= 0:
+            print("[AOE SPELL] %s has expired after %d turns" % [_spell_item.item_name, _ttl_turns])
+            queue_free()  # Remove the AOE spell effect after its duration
+    
+    
     var area_overlapping_bodies := get_overlapping_bodies()
     for body in area_overlapping_bodies:
         print("[BODY FOUND] " + str(body))

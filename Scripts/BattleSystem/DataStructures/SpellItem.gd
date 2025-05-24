@@ -1,10 +1,11 @@
 class_name SpellItem extends BaseInventoryItem
 
-@export_group("Spell")
-
+@export_group("AOE")
 ## if zero, this is not an AOE spell
 @export var area_of_effect_radius: float = 0.0
+@export var ttl_turns: int = -1 # -1 means sustained spell, 0 means we do the effect once and then remove the spell
 
+@export_group("Spell")
 @export var spell_affinity := BattleEnums.EAffinityElement.FIRE
 ## The set modifier only applies if the affinity is a buff or debuff
 @export var modifier: StatModifier

@@ -12,7 +12,12 @@ func spawn_aoe_spell_effect(spell: SpellItem, caster: BattleCharacter, spawn_pos
         return false
     var aoe_spell: AOESpell = AOESpell.new(spell, caster, spawn_position)
     get_tree().get_root().add_child(aoe_spell)
-    tracked_spell_aoe_nodes.append(aoe_spell)
+
+    # we only need to track Sustain spells, so we can remove the spell when a condition is met
+    # TODO: spend one action to sustain the spell every turn (optionally) - we need a UI for this
+    if spell.ttl_turns == -1:
+        tracked_spell_aoe_nodes.append(aoe_spell)
+
     print("[AOE SPELL] Spawned AOE spell effect at %s" % spawn_position)
     return true
 

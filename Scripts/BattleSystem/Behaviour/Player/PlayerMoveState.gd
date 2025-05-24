@@ -85,8 +85,8 @@ func _state_physics_process(_delta: float) -> void:
     turn_cost_to_move = max(1, ceili(distance_travelled / battle_character.stats.get_stat(
         CharacterStatEntry.ECharacterStat.Speed)))
 
-    print("[MOVE] it will cost " + str(turn_cost_to_move) + " turns to move " + str(distance_travelled) + " units! (base speed: " +
-        str(battle_character.stats.get_stat(CharacterStatEntry.ECharacterStat.Speed)) + ")")
+    # print("[MOVE] it will cost " + str(turn_cost_to_move) + " turns to move " + str(distance_travelled) + " units! (base speed: " +
+    #     str(battle_character.stats.get_stat(CharacterStatEntry.ECharacterStat.Speed)) + ")")
 
 
 func _state_unhandled_input(event: InputEvent) -> void:

@@ -111,31 +111,30 @@ func use(user: BattleCharacter, target: BattleCharacter, update_inventory: bool 
             DiceRoll.DiceStatus.ROLL_CRIT_FAIL:
                 spell_use_status = UseStatus.SPELL_CRIT_FAIL
 
-    match spell_element:
-        BattleEnums.EAffinityElement.HEAL:
-            # spell use status is already set to success or fail
-            var heal_amount := DiceRoll.roll_all(spell_power_rolls)
-            target.heal(heal_amount, false, spell_use_status)
-        BattleEnums.EAffinityElement.MANA:
-            pass
-            # TODO: Mana restoration
-            print("Mana restoration not implemented yet!")
+    # we only apply buffs and debuffs if we are not immune to those.
+    # some enemies can be immune to debuffs, and allies could potentially be given immunity to buffs by an enemy
+    if target.get_affinity(spell_element) != BattleEnums.EAffinityType.IMMUNE:
+        match spell_element:
+            BattleEnums.EAffinityElement.HEAL:
+                target.heal(DiceRoll.roll_all(spell_power_rolls), false, spell_use_status)
+            BattleEnums.EAffinityElement.MANA:
+                target.restore_mp(DiceRoll.roll_all(spell_power_rolls), spell_use_status)
 
-        BattleEnums.EAffinityElement.BUFF,\
-        BattleEnums.EAffinityElement.DEBUFF:
-            if modifier and spell_use_status in [UseStatus.SPELL_SUCCESS, UseStatus.SPELL_CRIT_SUCCESS]:
-                target.stats.add_modifier(modifier)
-                print("[SPELL] %s applied %s to %s" % [user.character_name, modifier, target.character_name])
-            else:
-                print("[SPELL] No modifier set for %s" % [Util.get_enum_name(BattleEnums.EAffinityElement, spell_element)])
+            BattleEnums.EAffinityElement.BUFF,\
+            BattleEnums.EAffinityElement.DEBUFF:
+                if modifier and spell_use_status in [UseStatus.SPELL_SUCCESS, UseStatus.SPELL_CRIT_SUCCESS]:
+                    target.stats.add_modifier(modifier)
+                    print("[SPELL] %s applied %s to %s" % [user.character_name, modifier, target.character_name])
+                else:
+                    print("[SPELL] No modifier set for %s" % [Util.get_enum_name(BattleEnums.EAffinityElement, spell_element)])
 
         # other spell affinities deal damage
         # take_damage() doesn't take a spell result, because we use it for basic attacks too
-        _:
-            var attack_roll := DiceRoll.roll(20, 1, ceil(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass)))
-            # TODO: attacks do damage based on an animation, not instantly
-            # TODO: calculate damage more randomly
-            target.take_damage(user, spell_power_rolls, attack_roll, spell_element)
+
+    var attack_roll := DiceRoll.roll(20, 1, ceil(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass)))
+    # TODO: attacks do damage based on a separate spawned node, like a projectile
+    # TODO: calculate damage more randomly
+    target.take_damage(user, spell_power_rolls, attack_roll, spell_element)
 
     if update_inventory:
         _update_inventory(spell_use_status)

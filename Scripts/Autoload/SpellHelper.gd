@@ -10,6 +10,9 @@ func spawn_aoe_spell_effect(spell: SpellItem, caster: BattleCharacter, spawn_pos
     if spell.area_of_effect_radius == 0 or spell.item_type != BaseInventoryItem.ItemType.SPELL_USE_ANYWHERE:
         print("[AOE SPELL] Spell %s is not an AOE spell" % spell.item_name)
         return false
+
+    # TODO: AOE nodes should not be instant, they should have a node which spawns them in with animation e.g. a bomb,
+    # which upon colliding with something spawns the AOE node at its position.
     var aoe_spell: AOESpell = AOESpell.new(spell, caster, spawn_position)
     get_tree().get_root().add_child(aoe_spell)
 

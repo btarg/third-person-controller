@@ -96,7 +96,8 @@ func can_use_on(user: BattleCharacter, target: BattleCharacter, ignore_costs: bo
         return false
     if target == null and item_type != ItemType.SPELL_USE_ANYWHERE:
         return false
-    if not check_cost(user):
+
+    if not check_cost(user) and not ignore_costs:
         return false
     
     # we can only use this on ourselves 

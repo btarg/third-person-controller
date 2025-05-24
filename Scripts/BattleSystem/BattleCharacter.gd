@@ -176,6 +176,30 @@ func roll_initiative() -> int:
     initiative = DiceRoll.roll(20, 1, initiative_bonus).total()
     return initiative
 
+func restore_mp(amount: int, spell_status: BaseInventoryItem.UseStatus = BaseInventoryItem.UseStatus.SPELL_FAIL) -> void:
+    var restore_string := "[RESTORE MP] %s restored %s MP" % [character_name, str(amount)]
+    print(restore_string)
+    current_mp += amount
+    var max_mp := stats.get_stat(CharacterStatEntry.ECharacterStat.MaxMP)
+    if current_mp > max_mp:
+        # We expect MP to be an int
+        current_mp = ceili(max_mp)
+
+    var skill_result := BattleEnums.ESkillResult.SR_FAIL
+    match spell_status:
+        BaseInventoryItem.UseStatus.SPELL_SUCCESS:
+            skill_result = BattleEnums.ESkillResult.SR_SUCCESS
+        BaseInventoryItem.UseStatus.SPELL_CRIT_SUCCESS:
+            skill_result = BattleEnums.ESkillResult.SR_CRITICAL
+        BaseInventoryItem.UseStatus.SPELL_CRIT_FAIL:
+            skill_result = BattleEnums.ESkillResult.SR_FAIL
+
+    var restore_number := DamageNumber.create_damage_number(
+        amount, BattleEnums.EAffinityElement.MANA, skill_result,
+        self.get_parent(),
+        battle_state.top_down_player.camera)
+    add_child(restore_number)
+
 func heal(amount: int, from_absorb: bool = false, spell_status: BaseInventoryItem.UseStatus = BaseInventoryItem.UseStatus.SPELL_FAIL) -> void:
     var heal_string := "[HEAL] %s healed %s HP" % [character_name, str(amount)]
     if from_absorb:
@@ -220,6 +244,10 @@ func award_turns(turns: int) -> void:
     print("[ONE MORE] " + character_name + " has been awarded " + str(turns) + " turns")
     BattleSignalBus.OnTurnsAwarded.emit(self, turns)
 
+func get_affinity(element: BattleEnums.EAffinityElement) -> BattleEnums.EAffinityType:
+    # Use get_or_add to prevent null values breaking this
+    return affinities.get_or_add(element, BattleEnums.EAffinityType.UNKNOWN)
+
 ## Takes damage from an attacker and calculates the result based on various parameters.
 ## 
 ## [br][param attacker]: The BattleCharacter instance that is attacking.
@@ -241,7 +269,7 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
     var result := BattleEnums.ESkillResult.SR_SUCCESS
 
     # Use get_or_add to prevent null values breaking this
-    var affinity_type := affinities.get_or_add(damage_type, BattleEnums.EAffinityType.UNKNOWN) as BattleEnums.EAffinityType
+    var affinity_type := get_affinity(damage_type)
     var enum_string := Util.get_enum_name(BattleEnums.EAffinityElement, damage_type)
     
     # log affinities first, since the dice roll status can override the affinity type

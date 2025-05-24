@@ -44,7 +44,7 @@ func _enter_tree() -> void:
     var mesh_instance := MeshInstance3D.new()
     var sphere_mesh := SphereMesh.new()
     sphere_mesh.radius = _area_of_effect_radius
-    sphere_mesh.height = _area_of_effect_radius * 2
+    sphere_mesh.height = _area_of_effect_radius * 0.5  # a flat sphere: used for ground AOE spells
     mesh_instance.mesh = sphere_mesh
     
     # Create a semi-transparent material

@@ -14,11 +14,16 @@ var xz_focus_acceleration: float = 0.05
 
 var allow_moving_focus: bool = true
 
+# Position-based focusing
+var focused_position: Vector3
+var is_focusing_position: bool = false
+
 var focused_node: Node3D = player:
     get:
         return focused_node
     set(value):
         focused_node = value
+        is_focusing_position = false  # Clear position focus when setting node
         moved_from_focus = false
         # zero velocity
         velocity = Vector3.ZERO
@@ -33,7 +38,7 @@ var enabled: bool:
         enabled = value
         spring_arm_pivot.enabled = enabled
 
-func teleport_to_focused_node() -> void:
+func snap_to_focused_node() -> void:
     print("Teleporting to focused node " + focused_node.name)
     if focused_node:
         set_global_position(focused_node.global_position)
@@ -54,9 +59,14 @@ func player_process(delta: float) -> void:
     if move_direction.length() > 0.0 and allow_moving_focus:
         moved_from_focus = true
 
-    # moved_from_focus = true if we should track the focused node
+    # moved_from_focus = true if we should track the focused node or position
     if not moved_from_focus:
-        if focused_node and focused_node.is_inside_tree():
+        if is_focusing_position:
+            # Focus on a specific position
+            var current_position := global_transform.origin
+            global_transform.origin.x = lerp(current_position.x, focused_position.x, xz_focus_acceleration)
+            global_transform.origin.z = lerp(current_position.z, focused_position.z, xz_focus_acceleration)
+        elif focused_node and focused_node.is_inside_tree():
             # print("Staying focused on node: ", focused_node)
             # ignore Y axis since we calculate that later and regardless of focused node
             var target_position := focused_node.global_transform.origin
@@ -81,23 +91,35 @@ func player_process(delta: float) -> void:
         velocity.x = lerp(velocity.x, target_velocity.x, acceleration)
         velocity.z = lerp(velocity.z, target_velocity.z, acceleration)
     
-    # Keep the same Y level as the focused node
-    if focused_node:
+    # Keep the same Y level as the focused node or position
+    if is_focusing_position:
+        var target_y := focused_position.y
+        var current_y := global_transform.origin.y
+        var new_y: float = lerp(current_y, target_y, y_focus_acceleration)
+        global_transform.origin.y = new_y
+    elif focused_node:
         var target_y := focused_node.global_transform.origin.y
         var current_y := global_transform.origin.y
         var new_y: float = lerp(current_y, target_y, y_focus_acceleration)
         global_transform.origin.y = new_y
     else:
-        printerr("No focused node set!")
+        printerr("No focused node or position set!")
 
     move_and_slide()
     spring_arm_pivot.camera_physics_process(delta)
 
-func snap_to_focused_node() -> void:
-    if focused_node and focused_node.is_inside_tree():
-        global_transform.origin = focused_node.global_transform.origin
-    else:
-        printerr("No focused node set!")
+func focus_position(target_position: Vector3) -> void:
+    """Focus the camera on a specific Vector3 position instead of a node."""
+    print("Focusing on position: " + str(target_position))
+    focused_position = target_position
+    is_focusing_position = true
+    moved_from_focus = false
+    # zero velocity
+    velocity = Vector3.ZERO
+
+func focus_node(node: Node3D) -> void:
+    """Focus the camera on a specific node (alternative to setting focused_node property)."""
+    focused_node = node
 
 ## Called from state
 func input_update_from_battle_state(event: InputEvent) -> void:

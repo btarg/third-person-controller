@@ -52,6 +52,7 @@ var item_inventory: Inventory:
         # FIX: we get a list of items but not a copy of the inventory!
         var filtered_inventory_items := new_inventory.filtered_items(func(item: BaseInventoryItem):
             return item.can_use_on(battle_state.current_character, battle_state.player_selected_character)\
+            or item.item_type == BaseInventoryItem.ItemType.SPELL_USE_ANYWHERE
         )
         for item_entry in filtered_inventory_items:
             # var item_entry: BaseInventoryItem = new_inventory.get_item(item_id)
@@ -63,7 +64,7 @@ var item_inventory: Inventory:
 var item_button_map: Dictionary[String, InventoryItemButtonPaint] = {}
 
 signal item_button_pressed(item: BaseInventoryItem)
-
+signal item_button_hovered(item: BaseInventoryItem)
 
 func _ready() -> void:
 
@@ -76,8 +77,6 @@ func _ready() -> void:
     scroll_timer.timeout.connect(_on_scroll_timer_timeout)
     add_child(scroll_timer)
 
-func _test_button_pressed(item: BaseInventoryItem) -> void:
-    print("[TEST] Button pressed: " + item.item_name)
 
 func _update_inventory_item(item: BaseInventoryItem, item_count: int, is_new_item: bool) -> void:
     print("Updating inventory: " + item.item_name + " x" + str(item_count))
@@ -98,7 +97,7 @@ func _add_button(item: BaseInventoryItem, item_count: int) -> void:
         button_spacing = round(new_button.size.y) + button_spacing_offset
         print("New button spacing: " + str(button_spacing))
     
-    new_button.mouse_entered.connect(_handleButtonFocus.bind(new_button))
+    new_button.mouse_entered.connect(_handle_button_focus.bind(new_button))
     new_button.pressed_item.connect(_handle_button_pressed.bind(new_button))
 
     buttons.append(new_button)
@@ -252,11 +251,18 @@ func _physics_process(delta: float) -> void:
     if _current_mouse_input_cooldown < 0:
         _current_mouse_input_cooldown = 0
 
-func _handleButtonFocus(focused_button: Control) -> void:
+func _handle_button_focus(focused_button: Control) -> void:
     if _current_mouse_input_cooldown > 0:
         return
 
     index = buttons.find(focused_button)
+
+    # New signal for hovering: used for moving the camera to the target in the inventory screen
+    for id in item_button_map.keys():
+        if item_button_map[id] == focused_button:
+            item_button_hovered.emit(item_inventory.get_item(id))
+            break
+
     update_labels()
 
 func _handle_button_pressed(pressed_button: InventoryItemButtonPaint) -> void:
@@ -266,7 +272,7 @@ func _handle_button_pressed(pressed_button: InventoryItemButtonPaint) -> void:
             return
 
 func _delete_button(to_delete: InventoryItemButtonPaint) -> void:
-    to_delete.mouse_entered.disconnect(_handleButtonFocus.bind(to_delete))
+    to_delete.mouse_entered.disconnect(_handle_button_focus.bind(to_delete))
     to_delete.pressed_item.disconnect(_handle_button_pressed)
 
     var delete_index := buttons.find(to_delete)

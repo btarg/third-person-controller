@@ -32,7 +32,7 @@ var available_actions : BattleEnums.EAvailableCombatActions = BattleEnums.EAvail
     set(value):
         available_actions = value
         if value != _last_available_actions:
-            # print("Available actions changed to " + Util.get_enum_name(BattleEnums.EAvailableCombatActions, value))
+            print("Available actions changed to " + Util.get_enum_name(BattleEnums.EAvailableCombatActions, value))
             BattleSignalBus.OnAvailableActionsChanged.emit()
             _last_available_actions = value
 
@@ -394,7 +394,7 @@ func _focus_character(focus_character: BattleCharacter) -> void:
         return
     top_down_player.focused_node = focus_character.get_parent()
     if turns_played < 0:
-        top_down_player.teleport_to_focused_node()
+        top_down_player.snap_to_focused_node()
 
 func exit() -> void:
     for character in turn_order:

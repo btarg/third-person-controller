@@ -39,4 +39,4 @@ func get_affinity(character_internal_name: String, element: BattleEnums.EAffinit
     if character_internal_name as String in _logged_affinities:
         if element as BattleEnums.EAffinityElement in _logged_affinities[character_internal_name].affinity_dict:
             return _logged_affinities[character_internal_name].affinity_dict[element] as BattleEnums.EAffinityType
-    return BattleEnums.EAffinityType.UNKNOWN
+    return BattleEnums.EAffinityType.NEUTRAL

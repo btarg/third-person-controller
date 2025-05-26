@@ -22,13 +22,9 @@ func enter() -> void:
     else:
         print(battle_character.character_name + " cannot use spells")
 
-    await wait(1)
-
-    _back_to_think()
-    battle_character.spend_actions(1)
-
-func _back_to_think() -> void:
-    Transitioned.emit(self, "ThinkState")
+    for i in range(battle_character.actions_left):
+        await wait(1)
+        battle_character.spend_actions(1)
 
 func _stop_thinking() -> void:
     Transitioned.emit(self, "IdleState")

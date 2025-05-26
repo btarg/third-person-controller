@@ -7,8 +7,7 @@ var turn_order_entry := preload("res://Assets/GUI/Battle/turn_order_entry.tscn")
 
 var entries: Array[ClickableControl] = []
 
-## Key: BattleCharacter, value: TurnOrderEntry instance
-var character_by_entry: Dictionary = {}
+var character_by_entry: Dictionary[ClickableControl, BattleCharacter] = {}
 
 const max_size := 5
 
@@ -45,11 +44,12 @@ func _on_character_selected(character: BattleCharacter) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
     if entries.is_empty():
+        print("No entries in turn order, cannot handle input")
         return
 
-    if (event.is_action_pressed("ui_focus_next")
-    and battle_state.current_character.behaviour_state_machine.current_state is PlayerThinkState):
-        is_ui_active = !is_ui_active
+    # if (event.is_action_pressed("ui_focus_next")
+    # and battle_state.current_character.behaviour_state_machine.current_state is PlayerThinkState):
+    #     is_ui_active = !is_ui_active
     
     if not is_ui_active:
         return

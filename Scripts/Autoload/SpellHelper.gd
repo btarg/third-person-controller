@@ -46,21 +46,21 @@ func sort_items_by_usefulness(a: BaseInventoryItem, b: BaseInventoryItem) -> boo
         var b_spell := b as SpellItem
         var target_internal_name := battle_state.player_selected_character.character_internal_name
         
-        # Check if we know the target's affinity to these spell elements
-        var a_is_weakness := false
-        var b_is_weakness := false
+        # Get affinity priorities (WEAK=0, NEUTRAL=1, RESIST=2, IMMUNE=3, REFLECT=4, ABSORB=5)
+        var a_affinity_priority := 1
+        var b_affinity_priority := 1
         
         if AffinityLog.is_affinity_logged(target_internal_name, a_spell.spell_element):
             var a_affinity := AffinityLog.get_affinity(target_internal_name, a_spell.spell_element)
-            a_is_weakness = (a_affinity == BattleEnums.EAffinityType.WEAK)
+            a_affinity_priority = a_affinity as int
         
         if AffinityLog.is_affinity_logged(target_internal_name, b_spell.spell_element):
             var b_affinity := AffinityLog.get_affinity(target_internal_name, b_spell.spell_element)
-            b_is_weakness = (b_affinity == BattleEnums.EAffinityType.WEAK)
+            b_affinity_priority = b_affinity as int
         
-        # Prioritize spells that target known weaknesses
-        if a_is_weakness != b_is_weakness: 
-            return a_is_weakness
+        # Prioritize lower priority values (WEAK first, then NEUTRAL, etc.)
+        if a_affinity_priority != b_affinity_priority: 
+            return a_affinity_priority < b_affinity_priority
     
     if a is SpellItem and b is SpellItem:
         var a_spell := a as SpellItem

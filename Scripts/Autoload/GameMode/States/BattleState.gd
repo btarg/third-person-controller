@@ -292,7 +292,7 @@ func leave_battle(character: BattleCharacter, do_result_check: bool = true) -> v
     character.on_leave_battle()
 
     # if the current turn order index is out of bounds, reset it
-    if current_character_index >= turn_order.size():
+    if current_character_index >= turn_order.size() or current_character_index < 0:
         current_character_index = 0
 
     print(character.character_name + " left the battle")
@@ -303,9 +303,22 @@ func leave_battle(character: BattleCharacter, do_result_check: bool = true) -> v
         elif enemy_units.is_empty():
             Transitioned.emit(self, "BattleVictoryState")
 
+func _cleanup() -> void:
+    current_character = null
+    player_selected_character = null
+
+    turn_order.clear()
+    player_units.clear()
+    enemy_units.clear()
+    character_counts.clear()
+    current_character_index = 0
+
 func enter() -> void:
+    # clear all previous battle state data
+    _cleanup()
+
     # ready_next_turn() will increment this to 1
-    turns_played = -1
+    turns_played = 0
 
     for child in get_tree().get_nodes_in_group("BattleCharacter"):
         if child is BattleCharacter:
@@ -320,9 +333,7 @@ func enter() -> void:
         print("Cannot enter battle: invalid turn order (are there enough enemies?)")
         Transitioned.emit(self, "ExplorationState")
         return
-
-    # Start the first character's turn
-    current_character_index = -1
+        
     ready_next_turn()
     BattleSignalBus.OnBattleStarted.emit()
 
@@ -343,6 +354,10 @@ func ready_next_turn() -> void:
         # This character still has actions left, so don't move to the next character yet
         if current_character.actions_left > 0:
             print("[ONE MORE] %s gets %s more actions!" % [current_character.character_name, current_character.actions_left])
+            
+            # Manually reinitialize the character's think state
+            current_character.behaviour_state_machine.set_state("ThinkState")
+            
             await message_ui.show_messages(["%s gets %s more actions!" % [current_character.character_name, current_character.actions_left]])
             return
         else:
@@ -358,6 +373,7 @@ func ready_next_turn() -> void:
         current_character_index = 0
 
     current_character = turn_order[current_character_index]
+    print("Turn order: " + str(current_character_index) + " is " + current_character.character_name)
     _focus_character(current_character)
 
     # 0 turns left means the character is a new character
@@ -400,17 +416,9 @@ func exit() -> void:
     for character in turn_order:
         # clean up the character without checking win condition again
         leave_battle(character, false)
-    turn_order.clear()
-    current_character_index = 0
-
-    player_units.clear()
-    enemy_units.clear()
-    character_counts.clear()
-
+    
     top_down_player.enabled = false
-
-    player_selected_character = null
-    current_character = null
+    _cleanup()
 
     BattleSignalBus.OnBattleEnded.emit()
     print("Battle State left")

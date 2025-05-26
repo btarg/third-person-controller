@@ -62,11 +62,8 @@ func enter() -> void:
     player_think_ui.show()
     player_think_ui.set_text()
 
-    if battle_state.turn_order_ui.is_ui_active:
-        battle_state.turn_order_ui.is_ui_active = false
-
-    # battle_state.turn_order_ui.show()
-    # battle_state.turn_order_ui.focus_last_selected()
+    battle_state.turn_order_ui.is_ui_active = true
+    battle_state.turn_order_ui.focus_last_selected()
 
     print(battle_character.character_name + " is thinking about what to do")
 

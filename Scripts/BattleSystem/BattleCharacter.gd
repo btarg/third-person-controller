@@ -173,7 +173,7 @@ func roll_initiative() -> int:
         initiative_bonus = 0
 
     # make sure to set the initiative value on our character for later reference
-    initiative = DiceRoll.roll(20, 1, initiative_bonus).total()
+    initiative = DiceRoll.roll(20, 1, 1, initiative_bonus).total()
     return initiative
 
 func restore_mp(amount: int, spell_status: BaseInventoryItem.UseStatus = BaseInventoryItem.UseStatus.SPELL_FAIL) -> void:
@@ -246,7 +246,7 @@ func award_turns(turns: int) -> void:
 
 func get_affinity(element: BattleEnums.EAffinityElement) -> BattleEnums.EAffinityType:
     # Use get_or_add to prevent null values breaking this
-    return affinities.get_or_add(element, BattleEnums.EAffinityType.UNKNOWN)
+    return affinities.get_or_add(element, BattleEnums.EAffinityType.NEUTRAL)
 
 ## Takes damage from an attacker and calculates the result based on various parameters.
 ## 
@@ -273,7 +273,7 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
     var enum_string := Util.get_enum_name(BattleEnums.EAffinityElement, damage_type)
     
     # log affinities first, since the dice roll status can override the affinity type
-    if (affinity_type != BattleEnums.EAffinityType.UNKNOWN):
+    if (affinity_type != BattleEnums.EAffinityType.NEUTRAL):
         if not AffinityLog.is_affinity_logged(character_internal_name, damage_type):
             print("[AL] " + character_name + " has not logged " + enum_string)
             AffinityLog.log_affinity(character_internal_name, damage_type, affinity_type)
@@ -299,7 +299,7 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
                 affinity_type = BattleEnums.EAffinityType.RESIST
 
     #### HANDLE CRIT DAMAGE ####
-    if (affinity_type != BattleEnums.EAffinityType.UNKNOWN):
+    if (affinity_type != BattleEnums.EAffinityType.NEUTRAL):
         if (affinity_type == BattleEnums.EAffinityType.WEAK):
             # Handle down status for crits
             if down_turns == 0:

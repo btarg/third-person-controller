@@ -1,4 +1,9 @@
 extends Node
+
+class AffinityLogEntry:
+    var affinity_dict: Dictionary[BattleEnums.EAffinityElement, BattleEnums.EAffinityType] = {}
+
+
 var _logged_affinities: Dictionary[String, AffinityLogEntry] = {
         # "TestEnemy": {
         #     BattleEnums.EAffinityElement.FIRE : BattleEnums.EAffinityType.RESIST,
@@ -16,7 +21,7 @@ func is_affinity_logged(internal_name: String, element: BattleEnums.EAffinityEle
 func _print_log() -> void:
     for character_internal_name: String in _logged_affinities.keys():
         Console.print_line("[AL] %s affinities:" % character_internal_name)
-        for element: BattleEnums.EAffinityElement in _logged_affinities[character_internal_name].keys():
+        for element: BattleEnums.EAffinityElement in _logged_affinities[character_internal_name].affinity_dict.keys():
             Console.print_line("  %s: %s" % [Util.get_enum_name(BattleEnums.EAffinityElement, element), Util.get_enum_name(BattleEnums.EAffinityType, _logged_affinities[character_internal_name].affinity_dict[element])])
 
 ## Once the player has used a spell of a certain element against an enemy,

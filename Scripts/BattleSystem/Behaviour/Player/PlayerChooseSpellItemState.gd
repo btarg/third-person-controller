@@ -87,7 +87,7 @@ func _choose_spell_item(chosen_item: BaseInventoryItem) -> void:
     if battle_state.available_actions != BattleEnums.EAvailableCombatActions.SELF:
         # distance between current character and selected character
         # floor this to int to prevent bullshit
-        var distance: float = floori(battle_state.current_character.get_parent().global_position.distance_to(
+        var distance := floori(battle_state.current_character.get_parent().global_position.distance_to(
             battle_state.player_selected_character.get_parent().global_position))
         # TODO: draw spell range radius
         if (distance > battle_state.current_character.stats.get_stat(CharacterStatEntry.ECharacterStat.AttackRange)
@@ -99,7 +99,7 @@ func _choose_spell_item(chosen_item: BaseInventoryItem) -> void:
         should_render_line = false
         inventory_ui.hide()
         await battle_state.message_ui.show_messages([chosen_item.item_name])
-        var status := chosen_item.use(battle_state.current_character, battle_state.player_selected_character)
+        var status := SpellHelper.use_item_or_aoe(chosen_item, battle_state.current_character, battle_state.player_selected_character)
 
         print("[SPELL/ITEM] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
         
@@ -109,21 +109,24 @@ func _choose_spell_item(chosen_item: BaseInventoryItem) -> void:
     else:
         print("[SPELL/ITEM] Cannot use " + chosen_item.item_name + " on " + battle_state.player_selected_character.character_name)
 
+
 func _confirm_spell_at_captured_position(spell_item: SpellItem) -> void:
     print("[GROUND TARGET] Using spell at captured position: " + str(captured_ground_position))
     
-    # Use the spell at the captured position
-    var spawned := SpellHelper.spawn_aoe_spell_effect(spell_item, battle_state.current_character, captured_ground_position)
+    should_render_line = false
+    inventory_ui.hide()
+    
+    await battle_state.message_ui.show_messages([spell_item.item_name])
+    var spawned := SpellHelper.spawn_aoe(spell_item, battle_state.current_character, captured_ground_position)
     
     if not spawned:
         print("[GROUND TARGET] Failed to spawn spell effect at position: " + str(captured_ground_position))
         return
-    
+
     # Spend the action cost
     battle_character.spend_actions(spell_item.actions_cost)
-    
-    # End targeting and go back to think state
     _end_targeting()
+    
 
 func _end_targeting() -> void:
     # check if active in case the character has left the battle (ie. died)

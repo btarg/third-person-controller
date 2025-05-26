@@ -12,7 +12,8 @@ var _turns_left: int = 0
 
 var _target_position: Vector3
 
-var _has_already_entered: Array[BattleCharacter] = []
+# Keeps track of characters that have been affected
+var _has_been_affected: Array[BattleCharacter] = []
 
 func _init(spell_item: SpellItem, caster: BattleCharacter, target_position: Vector3) -> void:
     _caster = caster
@@ -68,7 +69,7 @@ func apply_effect(character: BattleCharacter) -> void:
     if _spell_item.can_use_on(_caster, character, true): # Ignore costs for AOE
         _spell_item.use(_caster, character, false)  # Don't consume item for AOE
         print("[AOE SPELL] %s used %s on %s" % [_caster.character_name, _spell_item.item_name, character.character_name])
-        _has_already_entered.append(character)
+        _has_been_affected.append(character)
 
 func _on_body_entered(body: Node3D) -> void:
     # Check if the body has a BattleCharacter component
@@ -76,7 +77,7 @@ func _on_body_entered(body: Node3D) -> void:
     var battle_character := body.get_node_or_null("BattleCharacter") as BattleCharacter
     if battle_character:
         # If character has already been affected, don't do anything
-        if battle_character in _has_already_entered:
+        if battle_character in _has_been_affected:
             return
             
         # Check if the character is currently moving (in PlayerMoveState)
@@ -106,7 +107,7 @@ func _on_body_exited(body: Node3D) -> void:
         _disconnect_actions_signal(battle_character)
         
         # Remove from already affected list so they can be affected again if they re-enter
-        _has_already_entered.erase(battle_character)
+        _has_been_affected.erase(battle_character)
 
         print("[AOE SPELL] %s exited AOE area" % battle_character.character_name)
 
@@ -126,7 +127,7 @@ func _on_turn_started(_turn_character: BattleCharacter = null) -> void:
     for body in area_overlapping_bodies:
         print("[BODY FOUND] " + str(body))
         var battle_character := body.get_node_or_null("BattleCharacter") as BattleCharacter
-        if battle_character:
+        if battle_character and battle_character:
             # Only apply effect to characters not currently moving
             var character_controller := battle_character.character_controller
             if not (character_controller and character_controller.free_movement):
@@ -138,3 +139,4 @@ func _exit_tree() -> void:
     # Clean up any connections when the spell is destroyed
     body_entered.disconnect(_on_body_entered)
     body_exited.disconnect(_on_body_exited)
+    _disconnect_actions_signal(_caster)

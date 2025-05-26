@@ -6,13 +6,31 @@ var tracked_spell_aoe_nodes: Array[AOESpell] = []
 var aoe_spell_resource: BaseInventoryItem = load("res://Scripts/Data/Items/Spells//test_aoe_spell.tres")
 @onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
 
-func spawn_aoe_spell_effect(spell: SpellItem, caster: BattleCharacter, spawn_position: Vector3) -> bool:
+
+## Calling Spellitem#use on an AOE spell will not spawn the radius, but rather apply the effect to the target character.
+## This function will handle both AOE spells and normal items/spells.
+func use_item_or_aoe(item: BaseInventoryItem, user_character: BattleCharacter, target_character: BattleCharacter, update_inventory: bool = false) -> BaseInventoryItem.UseStatus:
+    if item is SpellItem:
+        var spell_item := item as SpellItem
+        if spell_item.item_type == BaseInventoryItem.ItemType.SPELL_USE_ANYWHERE:
+            # If the spell is an AOE spell, we need to spawn it at the target position (get parent because BattleCharacter is not a 3D node by default)
+            if not spawn_aoe(spell_item, user_character, target_character.get_parent().global_position):
+                return BaseInventoryItem.UseStatus.SPELL_FAIL
+        else:
+            # Otherwise, use the spell normally
+            return spell_item.use(user_character, target_character, update_inventory)
+    # If it's not a spell, just use the item normally
+    return item.use(user_character, target_character)
+
+
+func spawn_aoe(spell: SpellItem, caster: BattleCharacter, spawn_position: Vector3) -> bool:
     if spell.area_of_effect_radius == 0 or spell.item_type != BaseInventoryItem.ItemType.SPELL_USE_ANYWHERE:
         print("[AOE SPELL] Spell %s is not an AOE spell" % spell.item_name)
         return false
 
     # TODO: AOE nodes should not be instant, they should have a node which spawns them in with animation e.g. a bomb,
     # which upon colliding with something spawns the AOE node at its position.
+    # Spawn AOE
     var aoe_spell: AOESpell = AOESpell.new(spell, caster, spawn_position)
     get_tree().get_root().add_child(aoe_spell)
 

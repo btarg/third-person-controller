@@ -71,6 +71,11 @@ func enter() -> void:
 
     player_think_ui.show()
     player_think_ui.set_text()
+    
+    # Show turn order UI when entering think state
+    if battle_state.turn_order_ui and battle_state.turn_order_ui.is_player_turn:
+        battle_state.turn_order_ui.show()
+        battle_state.turn_order_ui.focus_last_selected()
 
     print(battle_character.character_name + " is thinking about what to do")
 
@@ -91,6 +96,10 @@ func enter() -> void:
 
 func exit() -> void:
     print(battle_character.character_name + " has stopped thinking")
+    
+    # Hide turn order UI when exiting think state
+    if battle_state.turn_order_ui:
+        battle_state.turn_order_ui.hide()
     
     # If the character is still moving when exiting, cancel movement and return home
     if battle_character.character_controller and battle_character.character_controller.is_moving():

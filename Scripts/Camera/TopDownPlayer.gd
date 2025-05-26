@@ -94,13 +94,28 @@ func player_process(delta: float) -> void:
             var distance_to_target := Vector2(global_position.x - target_position.x, global_position.z - target_position.z).length()
             is_at_focus = distance_to_target < 0.1
     elif allow_moving_focus:
-        # Get the camera's forward direction
-        var camera_forward: Vector3 = camera.global_transform.basis.z.normalized()
-        var camera_right: Vector3 = camera.global_transform.basis.x.normalized()
-
-        # Calculate the movement direction based on the camera's forward and right vectors
-        var final_direction: Vector3 = (camera_right * move_direction.x) + (camera_forward * move_direction.z)
-        final_direction.y = 0 # Ensure the movement is only on the XZ plane
+        # Get the camera's transform and project vectors onto horizontal plane
+        var camera_transform := camera.global_transform
+        var camera_forward := camera_transform.basis.z
+        var camera_right := camera_transform.basis.x
+        
+        # Project forward and right vectors onto the XZ plane (remove Y component)
+        camera_forward.y = 0
+        camera_right.y = 0
+        
+        # Check if vectors are too small after projection (camera facing directly down)
+        if camera_forward.length() < 0.1 or camera_right.length() < 0.1:
+            # Fallback to world directions when camera is facing directly down
+            camera_forward = Vector3(0, 0, 1)  # World forward
+            camera_right = Vector3(1, 0, 0)   # World right
+        else:
+            # Normalize to ensure consistent speed in all directions
+            camera_forward = camera_forward.normalized()
+            camera_right = camera_right.normalized()
+        
+        # Calculate movement direction relative to camera
+        var final_direction := (camera_right * move_direction.x) + (camera_forward * move_direction.z)
+        final_direction.y = 0  # Ensure movement is only on XZ plane
 
         # Calculate the target velocity
         var target_velocity: Vector3 = final_direction * speed

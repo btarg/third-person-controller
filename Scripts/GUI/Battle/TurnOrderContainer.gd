@@ -33,12 +33,9 @@ func _ready() -> void:
     hide()
 
 func _on_turn_started(_character: BattleCharacter) -> void:
-    # Only allow turn order navigation when a player is the current character
-    if not is_player_turn:
-        hide()
-    else:
-        show()
-        focus_last_selected()
+    # Only show turn order UI when player is in think state
+    # Always hide initially - PlayerThinkState will show it when appropriate
+    hide()
 
 func _on_character_selected(character: BattleCharacter) -> void:
     for entry in entries:
@@ -115,6 +112,7 @@ func clear_entries() -> void:
     entries.clear()
     character_by_entry.clear()
     current_index = 0
+    hide()  # Ensure it's hidden when clearing entries
 
 
 func remove_entry(entry_character: BattleCharacter) -> void:

@@ -30,7 +30,7 @@ spacing_space = -4
 [sub_resource type="LabelSettings" id="LabelSettings_hexij"]
 line_spacing = -10.0
 font = SubResource("FontVariation_yx6i0")
-font_size = 64
+font_size = 56
 font_color = Color(0.831373, 0.811765, 0.745098, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_s57a0"]
@@ -84,40 +84,41 @@ offset_bottom = 40.0
 
 [node name="InfoHeader" type="Label" parent="InfoBox"]
 layout_mode = 0
-offset_left = 709.0
-offset_top = 384.0
-offset_right = 837.0
-offset_bottom = 473.0
+offset_left = 704.0
+offset_top = 389.0
+offset_right = 832.0
+offset_bottom = 478.0
 scale = Vector2(0.33, 0.33)
 text = "INFO"
 label_settings = SubResource("LabelSettings_nugb7")
 
-[node name="Exclamation" type="Sprite2D" parent="InfoBox"]
-position = Vector2(678, 440)
-scale = Vector2(0.3, 0.3)
-texture = ExtResource("4_uqhvh")
-
 [node name="InfoDescription" type="Label" parent="InfoBox"]
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 706.0
-offset_top = 414.0
-offset_right = 1658.0
-offset_bottom = 638.0
+offset_left = 704.0
+offset_top = 421.0
+offset_right = 1862.0
+offset_bottom = 766.0
 scale = Vector2(0.33, 0.33)
 text = "Heals a moderate amount of HP for a
-single target. Lorem ipsum dolor Lorem ipsum dolor Lorem ipsum dolor Lorem ipsum dolor Lorem ipsum dolor"
+single target. Lorem ipsum dolor Lorem ipsum dolor Lorem ipsum dolor Lorem ipsum dolor Lorem ipsum dolor Lorem ipsum dolor Lorem ipsum dolor Lorem ipsum dolor Lorem ipsum dolor Lorem ipsum dolor Lorem ipsum dolor"
 label_settings = SubResource("LabelSettings_hexij")
 autowrap_mode = 2
 text_overrun_behavior = 3
 
 [node name="InfoDC" type="Label" parent="InfoBox/InfoDescription"]
 layout_mode = 0
-offset_top = 224.242
-offset_right = 952.0
-offset_bottom = 312.242
+offset_left = -6.06061
+offset_top = 324.242
+offset_right = 945.939
+offset_bottom = 412.242
 text = "Roll: 1d20 vs DC15"
 label_settings = SubResource("LabelSettings_s57a0")
+
+[node name="Exclamation" type="Sprite2D" parent="InfoBox"]
+position = Vector2(672, 440)
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("4_uqhvh")
 
 [node name="ButtonScrollMenu" type="Control" parent="."]
 clip_children = 1

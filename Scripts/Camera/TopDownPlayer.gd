@@ -10,14 +10,14 @@ class_name TopDownPlayerController
 var speed: float = 7.0
 var acceleration: float = 0.1
 var deceleration: float = 0.2
+
+@export_group("Focus control")
+var allow_moving_focus: bool = true
+var focused_position: Vector3
+var is_focusing_position: bool = false
 var y_focus_acceleration: float = 0.01
 var xz_focus_acceleration: float = 0.05
 
-var allow_moving_focus: bool = true
-
-# Position-based focusing
-var focused_position: Vector3
-var is_focusing_position: bool = false
 
 var focused_node: Node3D = player:
     get:
@@ -31,8 +31,11 @@ var focused_node: Node3D = player:
         # Disable collisions when focusing
         collision_shape.disabled = true
 
-# player has moved away from focused node
+# player has manually moved, which breaks focus
 var moved_from_focus: bool = false
+
+# Flag to indicate when camera has reached its focus target
+var is_at_focus: bool = false
 
 var enabled: bool:
     get:
@@ -53,6 +56,7 @@ func player_process(delta: float) -> void:
         return
 
     var move_direction := Vector3.ZERO
+
     move_direction.x = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
     move_direction.z = Input.get_action_strength("move_backwards") - Input.get_action_strength("move_forwards")
 
@@ -71,6 +75,11 @@ func player_process(delta: float) -> void:
             var current_position := global_transform.origin
             global_transform.origin.x = lerp(current_position.x, focused_position.x, xz_focus_acceleration)
             global_transform.origin.z = lerp(current_position.z, focused_position.z, xz_focus_acceleration)
+            
+            # Check if we've reached the focused position
+            var distance_to_target := Vector2(global_position.x - focused_position.x, global_position.z - focused_position.z).length()
+            is_at_focus = distance_to_target < 0.1
+            
         elif focused_node and focused_node.is_inside_tree():
             # print("Staying focused on node: ", focused_node)
             # ignore Y axis since we calculate that later and regardless of focused node
@@ -80,6 +89,10 @@ func player_process(delta: float) -> void:
             # Lerp position to focused node
             global_transform.origin.x = lerp(current_position.x, target_position.x, xz_focus_acceleration)
             global_transform.origin.z = lerp(current_position.z, target_position.z, xz_focus_acceleration)
+            
+            # Check if we've reached the focused node
+            var distance_to_target := Vector2(global_position.x - target_position.x, global_position.z - target_position.z).length()
+            is_at_focus = distance_to_target < 0.1
     elif allow_moving_focus:
         # Get the camera's forward direction
         var camera_forward: Vector3 = camera.global_transform.basis.z.normalized()
@@ -111,6 +124,8 @@ func player_process(delta: float) -> void:
         printerr("No focused node or position set!")
 
     move_and_slide()
+    
+    
     spring_arm_pivot.camera_physics_process(delta)
 
 func focus_position(target_position: Vector3) -> void:

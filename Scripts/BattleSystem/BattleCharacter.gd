@@ -24,6 +24,7 @@ var _familiar_spells: Array[SpellItem] = []
     preload("res://Scripts/Data/Items/Spells//test_healing_spell.tres"),
     preload("res://Scripts/Data/Items/Spells//test_almighty_spell.tres")
 ]
+@export var draw_list_from_inventory: bool = true
 
 @onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
 @onready var exploration_state := get_node("/root/GameModeStateMachine/ExplorationState") as ExplorationState
@@ -79,6 +80,13 @@ var actions_left := 0
 var can_use_spells := true
 
 func _ready() -> void:
+
+    if not inventory:
+        draw_list_from_inventory = false
+    if draw_list_from_inventory and inventory:
+        # TODO: get from inventory instead of hardcoded
+        pass
+
     print("%s internal name %s" % [character_name, character_internal_name])
 
     BattleSignalBus.OnTurnStarted.connect(_on_battle_turn_started)
@@ -274,7 +282,9 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
     
     # log affinities first, since the dice roll status can override the affinity type
     if (affinity_type != BattleEnums.EAffinityType.NEUTRAL):
-        if not AffinityLog.is_affinity_logged(character_internal_name, damage_type):
+        if (not AffinityLog.is_affinity_logged(character_internal_name, damage_type)
+        and dice_status in [DiceRoll.DiceStatus.ROLL_SUCCESS, DiceRoll.DiceStatus.ROLL_CRIT_SUCCESS]):
+            
             print("[AL] " + character_name + " has not logged " + enum_string)
             AffinityLog.log_affinity(character_internal_name, damage_type, affinity_type)
         else:

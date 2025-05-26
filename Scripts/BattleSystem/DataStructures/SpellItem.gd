@@ -44,29 +44,44 @@ func get_spell_use_roll(caster: BattleCharacter, target: BattleCharacter) -> Dic
 } 
 
 func get_item_description() -> String:
-    var description_string := ""
+    var description_parts: Array[String] = []
 
+    # Damage/healing effects
     if spell_element == BattleEnums.EAffinityElement.HEAL:
-        description_string += "Restores %s HP " % [DiceRoll.get_dice_array_as_string(spell_power_rolls)]
+        description_parts.append("Restores %s HP" % [DiceRoll.get_dice_array_as_string(spell_power_rolls)])
     elif spell_element == BattleEnums.EAffinityElement.MANA:
-        description_string += "Restores %s MP " % [DiceRoll.get_dice_array_as_string(spell_power_rolls)]
-    elif modifier:
-        description_string += "Applies " + modifier.name + " "
-    else:
-        description_string += "Deals %s %s damage " % [DiceRoll.get_dice_array_as_string(spell_power_rolls), Util.get_enum_name(BattleEnums.EAffinityElement, spell_element)]
+        description_parts.append("Restores %s MP" % [DiceRoll.get_dice_array_as_string(spell_power_rolls)])
+    elif spell_element not in [BattleEnums.EAffinityElement.BUFF, BattleEnums.EAffinityElement.DEBUFF]:
+        description_parts.append("Deals %s %s damage" % [DiceRoll.get_dice_array_as_string(spell_power_rolls), Util.get_enum_name(BattleEnums.EAffinityElement, spell_element)])
 
+    # Modifier effects
+    if modifier:
+        description_parts.append("applies " + modifier.name)
+
+    var description_string := ""
+    if description_parts.size() > 1:
+        description_string = " and ".join(description_parts) + " "
+    elif description_parts.size() == 1:
+        description_string = description_parts[0] + " "
+
+    # Target specification
     if can_use_on_enemies and can_use_on_allies:
-        description_string += "to any target"
+        if item_type == ItemType.SPELL_USE_ANYWHERE and area_of_effect_radius > 0:
+            description_string += "to all targets"
+        else:
+            description_string += "to any target"
     elif can_use_on_enemies:
         description_string += "to an enemy"
     elif can_use_on_allies:
         description_string += "to an ally"
 
+    # Range specification
     if area_of_effect_radius > 0 and item_type == ItemType.SPELL_USE_ANYWHERE:
-        description_string += " within %s units" % [str(area_of_effect_radius)]
+        description_string += " within %s units" % [str(int(area_of_effect_radius))]
     else:
         description_string += " at any range"
 
+    # Modifier duration
     if modifier:
         if modifier.turn_duration == -1:
             description_string += ":\n%s indefinitely" % [modifier.description]

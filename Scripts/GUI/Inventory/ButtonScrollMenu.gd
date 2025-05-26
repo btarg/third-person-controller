@@ -110,7 +110,12 @@ func _add_button(item: BaseInventoryItem, item_count: int) -> void:
     new_button.set_item_count(item_count)
     new_button.set_item_name(item.item_name)
 
-    var tex := load(item.get_icon_path()) as Texture
+    var tex: Texture = null
+    var icon_path = item.get_icon_path()
+    if icon_path and ResourceLoader.exists(icon_path):
+        var loaded_resource = load(icon_path)
+        if loaded_resource is Texture:
+            tex = loaded_resource as Texture
     new_button.set_item_icon(tex if tex else placeholder_texture)
 
     item_button_map[item.item_id] = new_button

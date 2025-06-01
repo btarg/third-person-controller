@@ -314,6 +314,10 @@ func _cleanup() -> void:
     current_character_index = 0
 
 func enter() -> void:
+    # stop player movement
+    if player:
+        player.stop_moving()
+
     # clear all previous battle state data
     _cleanup()
 
@@ -388,7 +392,6 @@ func ready_next_turn() -> void:
     BattleSignalBus.OnTurnStarted.emit(current_character)
     turns_played += 1
 
-    # turn_order_ui.is_ui_active = true
 
 func select_character(character: BattleCharacter, focus_camera: bool = true) -> void:
     if not active or not current_character:

@@ -1,5 +1,6 @@
 class_name SpellItem extends BaseInventoryItem
 
+## TODO: allow normal items to be AOE, so we can have molotovs or grenades.
 @export_group("AOE")
 ## if zero, this is not an AOE spell
 @export var area_of_effect_radius: float = 0.0

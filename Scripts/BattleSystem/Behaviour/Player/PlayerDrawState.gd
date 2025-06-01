@@ -1,7 +1,7 @@
 extends State
 class_name PlayerDrawState
 
-@onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
+@onready var battle_state := GameModeStateMachine.get_node("BattleState") as BattleState
 @onready var battle_character := state_machine.get_parent() as BattleCharacter
 
 @onready var draw_ui := battle_state.get_node("PlayerDrawUI") as Control

@@ -119,4 +119,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.46547, 0, -0.0160208)
 [node name="TestEnemy" parent="." instance=ExtResource("7_i4kkb")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.48184, 2.38419e-07, 3.20272)
 
+[node name="TestEnemy2" parent="." instance=ExtResource("7_i4kkb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.00987, 2.38419e-07, 4.04381)
+
 [node name="FPSLabel" parent="." instance=ExtResource("9_fe2w1")]

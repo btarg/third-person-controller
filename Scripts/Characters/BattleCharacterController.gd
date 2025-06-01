@@ -9,7 +9,7 @@ class_name BattleCharacterController
 
 @onready var nav_agent : NavigationAgent3D = get_node_or_null("NavigationAgent3D")
 @onready var battle_character := $BattleCharacter as BattleCharacter
-@onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
+@onready var battle_state := GameModeStateMachine.get_node("BattleState") as BattleState
 
 @onready var character_mesh := $Mesh as Node3D
 # Used for lerping the rotation animation

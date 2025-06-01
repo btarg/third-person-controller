@@ -8,7 +8,7 @@ var _spell_item: SpellItem = null
 var _ttl_turns: int = -1 # -1 means sustained spell, 0 means we do the effect once and then remove the spell (e.g. explosion)
 var _turns_left: int = 0
 
-@onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
+@onready var battle_state := GameModeStateMachine.get_node("BattleState") as BattleState
 
 var _target_position: Vector3
 

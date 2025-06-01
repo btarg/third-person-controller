@@ -9,7 +9,7 @@ extends State
 
 # One level up is state machine, two levels up is the battle character. The inventory is on the same level
 @onready var inventory_manager := get_node("../../../Inventory") as Inventory
-@onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
+@onready var battle_state := GameModeStateMachine.get_node("BattleState") as BattleState
 
 # Camera used for raycasts
 # We get the node manually here to avoid @onready order shenanigans
@@ -75,7 +75,6 @@ func enter() -> void:
     # Show turn order UI when entering think state
     if battle_state.turn_order_ui and battle_state.turn_order_ui.is_player_turn:
         battle_state.turn_order_ui.show()
-        battle_state.turn_order_ui.focus_last_selected()
 
     print(battle_character.character_name + " is thinking about what to do")
 
@@ -196,14 +195,11 @@ func _state_physics_process(_delta: float) -> void:
         return
 
     var character := children.front() as BattleCharacter
-
     if not character:
-        battle_state.select_character(null, false)
         return
     
     if character != _last_raycast_selected_character:
         battle_state.select_character(character, false)
-        
         _last_raycast_selected_character = character
 
 func _state_process(_delta: float) -> void:
@@ -261,15 +257,10 @@ func _state_unhandled_input(event: InputEvent) -> void:
     # SPELLS AND ATTACKS
     # ==============================================================================
 
-    # Spell/item selection is available for allies and enemies, and self
+    # Spell/item selection - go directly to inventory without needing a target first
     if event.is_action_pressed("combat_spellitem"):
-        # Select self if no other character is selected before handling a button press
-        if (battle_state.player_selected_character == null
-        and battle_character):
-            battle_state.select_character(battle_character)
-        # Don't allow selecting self if moving
-        if (battle_character.character_controller.is_moving()
-        or battle_state.player_selected_character.character_controller.is_moving()):
+        # Don't allow spell selection if moving
+        if battle_character.character_controller.is_moving():
             return
 
         Transitioned.emit(self, "ChooseSpellItemState")

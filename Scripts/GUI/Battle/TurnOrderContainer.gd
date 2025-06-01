@@ -3,7 +3,7 @@ class_name TurnOrderContainer
 
 var turn_order_entry := preload("res://Assets/GUI/Battle/turn_order_entry.tscn") as PackedScene
 
-@onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
+@onready var battle_state := GameModeStateMachine.get_node("BattleState") as BattleState
 
 var entries: Array[ClickableControl] = []
 
@@ -56,10 +56,6 @@ func _input(event: InputEvent) -> void:
         _select_character_at_index(current_index, true)
         get_viewport().set_input_as_handled()
 
-func focus_last_selected() -> void:
-    if entries.size() <= 0:
-        return
-    _select_character_at_index(current_index, false)
 
 func _select_character_at_index(index: int, focus_camera: bool = false) -> void:
     if index < 0 or index >= entries.size():

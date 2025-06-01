@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://dilt8hwo0hvca"]
+[gd_scene load_steps=23 format=3 uid="uid://dilt8hwo0hvca"]
 
 [ext_resource type="Script" uid="uid://ca2i1uok8pfy1" path="res://Scripts/BattleSystem/BattleCharacter.gd" id="1_bgai8"]
 [ext_resource type="Script" uid="uid://cb4gnc2kqnx5r" path="res://Scripts/StateMachine/StateMachine.gd" id="2_iyxf5"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://dxouogvyc8hgf" path="res://Scripts/BattleSystem/DataStructures/CharacterStatEntry.gd" id="10_8eke6"]
 [ext_resource type="Script" uid="uid://b4ub5lqsx7xob" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerDeadState.gd" id="10_l7i33"]
 [ext_resource type="Script" uid="uid://b2hicrpawpocv" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerMoveState.gd" id="10_t7ot4"]
+[ext_resource type="Script" uid="uid://ugop4mhcwhot" path="res://Scripts/BattleSystem/Behaviour/Player/PlayerTargetingState.gd" id="10_y1emq"]
 
 [sub_resource type="Resource" id="Resource_5m16x"]
 script = ExtResource("10_8eke6")
@@ -89,6 +90,10 @@ script = ExtResource("9_dybv6")
 
 [node name="DeadState" type="Node" parent="StateMachine"]
 script = ExtResource("10_l7i33")
+
+[node name="PlayerTargetingState" type="Node" parent="StateMachine"]
+script = ExtResource("10_y1emq")
+metadata/_custom_type_script = "uid://ugop4mhcwhot"
 
 [node name="CharacterStats" type="Node" parent="."]
 script = ExtResource("9_pe6mx")

@@ -4,7 +4,7 @@ extends Node
 var tracked_spell_aoe_nodes: Array[AOESpell] = []
 
 var aoe_spell_resource: BaseInventoryItem = load("res://Scripts/Data/Items/Spells//test_aoe_spell.tres")
-@onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
+@onready var battle_state := GameModeStateMachine.get_node("BattleState") as BattleState
 
 
 ## Calling Spellitem#use on an AOE spell will not spawn the radius, but rather apply the effect to the target character.
@@ -12,9 +12,9 @@ var aoe_spell_resource: BaseInventoryItem = load("res://Scripts/Data/Items/Spell
 func use_item_or_aoe(item: BaseInventoryItem, user_character: BattleCharacter, target_character: BattleCharacter, update_inventory: bool = false) -> BaseInventoryItem.UseStatus:
     if item is SpellItem:
         var spell_item := item as SpellItem
-        if spell_item.item_type == BaseInventoryItem.ItemType.SPELL_USE_ANYWHERE:
+        if spell_item.item_type == BaseInventoryItem.ItemType.FIELD_SPELL_PLACE:
             # If the spell is an AOE spell, we need to spawn it at the target position (get parent because BattleCharacter is not a 3D node by default)
-            if not spawn_aoe(spell_item, user_character, target_character.get_parent().global_position):
+            if not create_area_of_effect_radius(spell_item, user_character, target_character.get_parent().global_position):
                 return BaseInventoryItem.UseStatus.SPELL_FAIL
         else:
             # Otherwise, use the spell normally
@@ -22,9 +22,9 @@ func use_item_or_aoe(item: BaseInventoryItem, user_character: BattleCharacter, t
     # If it's not a spell, just use the item normally
     return item.use(user_character, target_character)
 
-
-func spawn_aoe(spell: SpellItem, caster: BattleCharacter, spawn_position: Vector3) -> bool:
-    if spell.area_of_effect_radius == 0 or spell.item_type != BaseInventoryItem.ItemType.SPELL_USE_ANYWHERE:
+## This function should be used for spawning radius AOE spells without requiring a BattleCharacter (spawn at position)
+func create_area_of_effect_radius(spell: SpellItem, caster: BattleCharacter, spawn_position: Vector3) -> bool:
+    if spell.area_of_effect_radius == 0 or spell.item_type != BaseInventoryItem.ItemType.FIELD_SPELL_PLACE:
         print("[AOE SPELL] Spell %s is not an AOE spell" % spell.item_name)
         return false
 
@@ -49,8 +49,8 @@ func sort_items_by_usefulness(a: BaseInventoryItem, b: BaseInventoryItem) -> boo
     var b_useful := (b.can_use_on_allies and battle_state.available_actions in ally_actions) or (b.can_use_on_enemies and battle_state.available_actions == BattleEnums.EAvailableCombatActions.ENEMY)
     
     if battle_state.available_actions == BattleEnums.EAvailableCombatActions.GROUND:
-        var a_cast_anywhere := a.item_type == BaseInventoryItem.ItemType.SPELL_USE_ANYWHERE
-        var b_cast_anywhere := b.item_type == BaseInventoryItem.ItemType.SPELL_USE_ANYWHERE
+        var a_cast_anywhere := a.item_type == BaseInventoryItem.ItemType.FIELD_SPELL_PLACE
+        var b_cast_anywhere := b.item_type == BaseInventoryItem.ItemType.FIELD_SPELL_PLACE
         if a_cast_anywhere != b_cast_anywhere: return a_cast_anywhere
     
     if a_useful != b_useful: return a_useful

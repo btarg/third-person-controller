@@ -26,7 +26,7 @@ var _familiar_spells: Array[SpellItem] = []
 ]
 @export var draw_list_from_inventory: bool = true
 
-@onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
+@onready var battle_state := GameModeStateMachine.get_node("BattleState") as BattleState
 @onready var exploration_state := get_node("/root/GameModeStateMachine/ExplorationState") as ExplorationState
 @onready var behaviour_state_machine := self.get_node("StateMachine") as StateMachine
 

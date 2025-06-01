@@ -139,8 +139,7 @@ func player_process(delta: float) -> void:
         printerr("No focused node or position set!")
 
     move_and_slide()
-    
-    
+       
     spring_arm_pivot.camera_physics_process(delta)
 
 func focus_position(target_position: Vector3) -> void:
@@ -154,6 +153,8 @@ func focus_position(target_position: Vector3) -> void:
     # Disable collisions when focusing on position
     collision_shape.disabled = true
 
+func stop_moving() -> void:
+    velocity = Vector3.ZERO
 
 ## Called from state
 func input_update_from_battle_state(event: InputEvent) -> void:

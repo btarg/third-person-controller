@@ -25,12 +25,17 @@ var _default_spell_power_rolls: Array[DiceRoll] = [DiceRoll.roll(8)]
 @export var use_roll: DiceRoll
 
 var _roll_cache: Dictionary[BattleCharacter, DiceRoll] = {}
+const DEFAULT_ROLL_DC: int = 10 # default DC for spell use rolls when the character is invalid
 
 func get_spell_use_roll(caster: BattleCharacter, target: BattleCharacter) -> DiceRoll:
     if use_roll:
         return use_roll
     if spell_element == BattleEnums.EAffinityElement.ALMIGHTY:
         return DiceRoll.roll(20, 1, 0) # DC 0: always hits
+    
+    if not target:
+        return DiceRoll.roll(20, 1, DEFAULT_ROLL_DC,
+        ceil(caster.stats.get_stat(CharacterStatEntry.ECharacterStat.MagicalStrength)))
 
     return _roll_cache.get_or_add(target,
     DiceRoll.roll(20, 1, ceil(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass)),
@@ -67,7 +72,7 @@ func get_item_description() -> String:
 
     # Target specification
     if can_use_on_enemies and can_use_on_allies:
-        if item_type == ItemType.SPELL_USE_ANYWHERE and area_of_effect_radius > 0:
+        if item_type == ItemType.FIELD_SPELL_PLACE and area_of_effect_radius > 0:
             description_string += "to all targets"
         else:
             description_string += "to any target"
@@ -77,7 +82,7 @@ func get_item_description() -> String:
         description_string += "to an ally"
 
     # Range specification
-    if area_of_effect_radius > 0 and item_type == ItemType.SPELL_USE_ANYWHERE:
+    if area_of_effect_radius > 0 and item_type == ItemType.FIELD_SPELL_PLACE:
         description_string += " within %s units" % [str(int(area_of_effect_radius))]
     else:
         description_string += " at any range"

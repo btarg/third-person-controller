@@ -2,6 +2,8 @@ extends State
 class_name PlayerDrawState
 
 @onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
+@onready var battle_character := state_machine.get_parent() as BattleCharacter
+
 @onready var draw_ui := battle_state.get_node("PlayerDrawUI") as Control
 @onready var draw_label := draw_ui.get_node("Label") as RichTextLabel
 @onready var item_display_list := draw_ui.get_node("ItemList") as ItemList
@@ -51,8 +53,8 @@ func draw(target_character: BattleCharacter, current_character: BattleCharacter,
 
     # Mastery gives 2 d6 rolls for drawing instead of 1, but does not affect the draw bonus
     var rolls := 1
-    if drawn_spell.spell_affinity in current_character.mastery_elements:
-        print("[DRAW] Character has mastery for %s" % [Util.get_enum_name(BattleEnums.EAffinityElement, drawn_spell.spell_affinity)])
+    if drawn_spell.spell_element in current_character.mastery_elements:
+        print("[DRAW] Character has mastery for %s" % [Util.get_enum_name(BattleEnums.EAffinityElement, drawn_spell.spell_element)])
         rolls = MASTERY_DRAW_ROLLS
 
     print("[DRAW] Draw bonus: " + str(draw_bonus))
@@ -70,7 +72,7 @@ func draw(target_character: BattleCharacter, current_character: BattleCharacter,
             current_character.inventory.add_item(drawn_spell, drawn_amount)
             print("[DRAW] Received %s %s!" % [str(drawn_amount), drawn_spell.item_name])
             var draw_display_string := "%s drew %s %ss"
-            if current_character.mastery_elements.has(drawn_spell.spell_affinity):
+            if current_character.mastery_elements.has(drawn_spell.spell_element):
                 draw_display_string += " (Mastery)"
 
             await battle_state.message_ui.show_messages([draw_display_string % [current_character.character_name, str(drawn_amount), drawn_spell.item_name]])
@@ -85,8 +87,8 @@ func draw(target_character: BattleCharacter, current_character: BattleCharacter,
 func _end_targeting() -> void:
     if not active:
         return
-    Transitioned.emit(self, "IdleState")
-    battle_state.ready_next_turn()
+    _back_to_think()
+    battle_character.spend_actions(1)
 
 func _back_to_think() -> void:
     if active:

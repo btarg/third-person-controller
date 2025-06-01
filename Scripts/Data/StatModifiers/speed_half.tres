@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="StatModifier" load_steps=2 format=3 uid="uid://d2uax0y37khi3"]
+
+[ext_resource type="Script" uid="uid://x5gfye25jhfj" path="res://Scripts/BattleSystem/DataStructures/StatModifier.gd" id="1_1k670"]
+
+[resource]
+script = ExtResource("1_1k670")
+stat = 7
+modifier_id = "diff_terrain"
+name = "Difficult Terrain"
+description = "Halves movement speed"
+is_multiplier = true
+stat_value = 0.5
+turn_duration = -1
+can_stack = true
+stack_override = false
+apply_out_of_combat = true
+metadata/_custom_type_script = "uid://x5gfye25jhfj"

@@ -14,6 +14,7 @@ func enter() -> void:
     print(battle_character.character_name + " is dead and cannot take a turn!")
 
     _stop_thinking()
+    battle_character.actions_left = 0
     battle_character.battle_state.ready_next_turn()
 
 func _stop_thinking() -> void:

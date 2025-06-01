@@ -78,9 +78,9 @@ enum ESkillResult {
 
 enum EAffinityType {
     WEAK,
+    NEUTRAL,
     RESIST,
     IMMUNE,
     REFLECT,
-    ABSORB,
-    UNKNOWN
+    ABSORB
 }

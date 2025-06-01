@@ -31,12 +31,10 @@ var base_movement: float:
         base_movement = value
 
 @onready var home_position := global_position
-var free_movement : bool = false:
-    get:
-        return free_movement
-    set(value):
-        print("[MOVE] Free movement state changed! " + str(value))
-        free_movement = value
+
+var free_movement := false
+var movement_limited := false
+
 
 var movement_left := 0.0
 
@@ -63,12 +61,13 @@ func _ready() -> void:
 
 func update_home_position() -> void:
     home_position = global_position
-    print("[MOVE] Updated home position for " + battle_character.character_name)
+    movement_left = base_movement * battle_character.actions_left
+    print("[MOVE] %s has %s movement left" % [battle_character.character_name, str(movement_left)])
 
 func reset_movement(character: BattleCharacter) -> void:
     if character != battle_character:
         return
-    movement_left = base_movement
+    update_home_position()
     _last_successful_position = global_position
 
     if nav_agent:
@@ -126,7 +125,7 @@ func player_process(_delta: float) -> void:
     var to_position = global_transform.origin - home_position
     
     # Limit the vector's length to the maximum distance
-    if to_position.length() >= movement_left:
+    if to_position.length() >= movement_left and movement_limited:
         # Restrict the position within the maximum distance
         global_transform.origin = home_position + to_position.limit_length(movement_left)
 
@@ -243,3 +242,21 @@ func reset_to_idle() -> void:
     animator.set("parameters/ground_air_transition/transition_request", "grounded")
     var tween := create_tween()
     tween.tween_property(animator, "parameters/iwr_blend/blend_amount", -1.0, 0.25)
+
+## Returns the character to their home position when movement is canceled
+func return_to_home_position() -> void:
+    print("[MOVE] Returning %s to home position" % battle_character.character_name)
+    stop_moving()
+    
+    global_position = home_position
+    battle_state.movement_locked_in = false
+
+    # Reset movement to full amount since we're canceling movement
+    movement_left = base_movement * battle_character.actions_left
+    amount_moved = 0.0
+
+    # reset camera immediately
+    battle_state.top_down_player.snap_to_focused_node()
+    
+    # Signal that movement is finished
+    OnMovementFinished.emit()

@@ -3,6 +3,10 @@ extends Node
 var enabled := true
 var enable_on_release_build := false : set = set_enable_on_release_build
 var pause_enabled := false
+var font_size := -1:
+	set(value):
+		font_size = value
+		_update_font_size()
 
 signal console_opened
 signal console_closed
@@ -14,6 +18,7 @@ class ConsoleCommand:
 	var arguments : PackedStringArray
 	var required : int
 	var description : String
+	var hidden : bool
 	func _init(in_function : Callable, in_arguments : PackedStringArray, in_required : int = 0, in_description : String = ""):
 		function = in_function
 		arguments = in_arguments
@@ -36,19 +41,24 @@ var was_paused_already := false
 
 ## Usage: Console.add_command("command_name", <function to call>, <number of arguments or array of argument names>, <required number of arguments>, "Help description")
 func add_command(command_name : String, function : Callable, arguments = [], required: int = 0, description : String = "") -> void:
-	if arguments is int:
+	if (arguments is int):
 		# Legacy call using an argument number
 		var param_array : PackedStringArray
 		for i in range(arguments):
 			param_array.append("arg_" + str(i + 1))
 		console_commands[command_name] = ConsoleCommand.new(function, param_array, required, description)
-		
-	elif arguments is Array:
+	elif (arguments is Array):
 		# New array argument system
 		var str_args : PackedStringArray
 		for argument in arguments:
 			str_args.append(str(argument))
 		console_commands[command_name] = ConsoleCommand.new(function, str_args, required, description)
+
+
+## Adds a secret command that will not show up in the help or auto-complete.
+func add_hidden_command(command_name : String, function : Callable, arguments = [], required : int = 0) -> void:
+	add_command(command_name, function, arguments, required)
+	console_commands[command_name].hidden = true
 
 
 ## Removes a command from the console.  This should be called on a script's _exit_tree()
@@ -86,18 +96,48 @@ func _enter_tree() -> void:
 	rich_label.anchor_right = 1.0
 	rich_label.anchor_bottom = 0.5
 	rich_label.add_theme_stylebox_override("normal", style)
+	if font_size > 0:
+		rich_label.add_theme_font_size_override("normal_font_size", font_size)
+		rich_label.add_theme_font_size_override("bold_font_size", font_size)
+		rich_label.add_theme_font_size_override("bold_italics_font_size", font_size)
+		rich_label.add_theme_font_size_override("italics_font_size", font_size)
+		rich_label.add_theme_font_size_override("mono_font_size", font_size)
 	control.add_child(rich_label)
 	rich_label.append_text("Development console.\n")
 	line_edit.anchor_top = 0.5
 	line_edit.anchor_right = 1.0
 	line_edit.anchor_bottom = 0.5
 	line_edit.placeholder_text = "Enter \"help\" for instructions"
+	if font_size > 0:
+		line_edit.add_theme_font_size_override("font_size", font_size)
 	control.add_child(line_edit)
 	line_edit.text_submitted.connect(on_text_entered)
 	line_edit.text_changed.connect(on_line_edit_text_changed)
 	control.visible = false
 	process_mode = PROCESS_MODE_ALWAYS
 
+func _update_font_size():
+	for node in get_child(0).get_child(0).get_children():
+		if node is RichTextLabel:
+			if font_size > 0:
+				node.add_theme_font_size_override("normal_font_size", font_size)
+				node.add_theme_font_size_override("bold_font_size", font_size)
+				node.add_theme_font_size_override("bold_italics_font_size", font_size)
+				node.add_theme_font_size_override("italics_font_size", font_size)
+				node.add_theme_font_size_override("mono_font_size", font_size)
+			else:
+				node.remove_theme_font_size_override("normal_font_size")
+				node.remove_theme_font_size_override("bold_font_size")
+				node.remove_theme_font_size_override("bold_italics_font_size")
+				node.remove_theme_font_size_override("italics_font_size")
+				node.remove_theme_font_size_override("mono_font_size")
+		elif node is LineEdit:
+			if font_size > 0:
+				node.add_theme_font_size_override("font_size", font_size)
+			else:
+				node.remove_theme_font_size_override("font_size")
+				
+	
 
 func _exit_tree() -> void:
 	var console_history_file := FileAccess.open("user://console_history.txt", FileAccess.WRITE)
@@ -119,7 +159,13 @@ func _ready() -> void:
 	add_command("commands_list", commands_list, 0, 0, "Lists all commands and their descriptions.")
 	add_command("commands", commands, 0, 0, "Lists commands with no descriptions.")
 	add_command("calc", calculate, ["mathematical expression to evaluate"], 0, "Evaluates the math passed in for quick arithmetic.")
-
+	add_command("echo", print_line, ["string"], 1, "Prints given string to the console.")
+	add_command("echo_warning", print_warning, ["string"], 1, "Prints given string as warning to the console.")
+	add_command("echo_info", print_info, ["string"], 1, "Prints given string as info to the console.")
+	add_command("echo_error", print_error, ["string"], 1, "Prints given string as an error to the console.")
+	add_command("pause", pause, 0, 0, "Pauses node processing.")
+	add_command("unpause", unpause, 0, 0, "Unpauses node processing.")
+	add_command("exec", exec, 1, 1, "Execute a script.")
 
 func _input(event : InputEvent) -> void:
 	if (event is InputEventKey):
@@ -177,13 +223,14 @@ func _input(event : InputEvent) -> void:
 var suggestions := []
 var current_suggest := 0
 var suggesting := false
+
 func autocomplete() -> void:
-	if suggesting:
+	if (suggesting):
 		for i in range(suggestions.size()):
-			if current_suggest == i:
+			if (current_suggest == i):
 				line_edit.text = str(suggestions[i])
 				line_edit.caret_column = line_edit.text.length()
-				if current_suggest == suggestions.size() - 1:
+				if (current_suggest == suggestions.size() - 1):
 					current_suggest = 0
 				else:
 					current_suggest += 1
@@ -196,14 +243,15 @@ func autocomplete() -> void:
 			if (split_text.size() > 1):
 				var command := split_text[0]
 				var param_input := split_text[1]
-				if command_parameters.has(command):
+				if (command_parameters.has(command)):
 					for param in command_parameters[command]:
 						if (param_input in param):
 							suggestions.append(str(command, " ", param))
 		else:
 			var sorted_commands := []
 			for command in console_commands:
-				sorted_commands.append(str(command))
+				if (!console_commands[command].hidden):
+					sorted_commands.append(str(command))
 			sorted_commands.sort()
 			sorted_commands.reverse()
 			
@@ -211,7 +259,7 @@ func autocomplete() -> void:
 			for command in sorted_commands:
 				if (!line_edit.text || command.contains(line_edit.text)):
 					var index : int = command.find(line_edit.text)
-					if index <= prev_index:
+					if (index <= prev_index):
 						suggestions.push_front(command)
 					else:
 						suggestions.push_back(command)
@@ -273,7 +321,19 @@ func scroll_to_bottom() -> void:
 func print_error(text : Variant, print_godot := false) -> void:
 	if not text is String:
 		text = str(text)
-	print_line("[color=light_coral]	   ERROR:[/color] %s" % text, print_godot)
+	print_line("	   [color=light_coral]ERROR:[/color] %s" % text, print_godot)
+
+
+func print_info(text : Variant, print_godot := false) -> void:
+	if not text is String:
+		text = str(text)
+	print_line("	   [color=light_blue]INFO:[/color] %s" % text, print_godot)
+
+
+func print_warning(text : Variant, print_godot := false) -> void:
+	if not text is String:
+		text = str(text)
+	print_line("	   [color=gold]WARNING:[/color] %s" % text, print_godot)
 
 
 func print_line(text : Variant, print_godot := false) -> void:
@@ -285,7 +345,7 @@ func print_line(text : Variant, print_godot := false) -> void:
 		rich_label.append_text(text)
 		rich_label.append_text("\n")
 		if (print_godot):
-			print(text)
+			print_rich(text.dedent())
 
 
 func parse_line_input(text : String) -> PackedStringArray:
@@ -329,6 +389,8 @@ func on_text_entered(new_text : String) -> void:
 	scroll_to_bottom()
 	reset_autocomplete()
 	line_edit.clear()
+	if (line_edit.has_method(&"edit")):
+		line_edit.call_deferred(&"edit")
 	
 	if not new_text.strip_edges().is_empty():
 		add_input_history(new_text)
@@ -338,27 +400,27 @@ func on_text_entered(new_text : String) -> void:
 		
 		if console_commands.has(text_command):
 			var arguments := text_split.slice(1)
+			var console_command : ConsoleCommand = console_commands[text_command]
 			
 			# calc is a especial command that needs special treatment
-			if text_command.match("calc"):
+			if (text_command.match("calc")):
 				var expression := ""
 				for word in arguments:
 					expression += word
-				console_commands[text_command].function.callv([expression])
+				console_command.function.callv([expression])
 				return
-			
-			if arguments.size() < console_commands[text_command].required:
-				print_error("Too few arguments! Required < %d >" % console_commands[text_command].required)
+
+			if (arguments.size() < console_command.required):
+				print_error("Too few arguments! Required < %d >" % console_command.required)
 				return
-			elif arguments.size() > console_commands[text_command].arguments.size():
-				print_error("Too many arguments! < %d > Max" % console_commands[text_command].arguments.size())
-				return
+			elif (arguments.size() > console_command.arguments.size()):
+				arguments.resize(console_command.arguments.size())
 
 			# Functions fail to call if passed the incorrect number of arguments, so fill out with blank strings.
-			while (arguments.size() < console_commands[text_command].arguments.size()):
+			while (arguments.size() < console_command.arguments.size()):
 				arguments.append("")
 
-			console_commands[text_command].function.callv(arguments)
+			console_command.function.callv(arguments)
 		else:
 			console_unknown_command.emit(text_command)
 			print_error("Command not found.")
@@ -389,11 +451,17 @@ func help() -> void:
 		[color=light_green]commands[/color]: Shows a reduced list of all the currently registered commands
 		[color=light_green]commands_list[/color]: Shows a detailed list of all the currently registered commands
 		[color=light_green]delete_history[/color]: Deletes the commands history
+		[color=light_green]echo[/color]: Prints a given string to the console
+		[color=light_green]echo_error[/color]: Prints a given string as an error to the console
+		[color=light_green]echo_info[/color]: Prints a given string as info to the console
+		[color=light_green]echo_warning[/color]: Prints a given string as warning to the console
+		[color=light_green]pause[/color]: Pauses node processing
+		[color=light_green]unpause[/color]: Unpauses node processing
 		[color=light_green]quit[/color]: Quits the game
 	Controls:
 		[color=light_blue]Up[/color] and [color=light_blue]Down[/color] arrow keys to navigate commands history
 		[color=light_blue]PageUp[/color] and [color=light_blue]PageDown[/color] to scroll registry
-		[[color=light_blue]Ctr[/color] + [color=light_blue]~[/color]] to change console size between half screen and full screen
+		[[color=light_blue]Ctrl[/color] + [color=light_blue]~[/color]] to change console size between half screen and full screen
 		[color=light_blue]~[/color] or [color=light_blue]Esc[/color] key to close the console
 		[color=light_blue]Tab[/color] key to autocomplete, [color=light_blue]Tab[/color] again to cycle between matching suggestions\n\n")
 
@@ -414,7 +482,8 @@ func calculate(command : String) -> void:
 func commands() -> void:
 	var commands := []
 	for command in console_commands:
-		commands.append(str(command))
+		if (!console_commands[command].hidden):
+			commands.append(str(command))
 	commands.sort()
 	rich_label.append_text("	")
 	rich_label.append_text(str(commands) + "\n\n")
@@ -423,7 +492,8 @@ func commands() -> void:
 func commands_list() -> void:
 	var commands := []
 	for command in console_commands:
-		commands.append(str(command))
+		if (!console_commands[command].hidden):
+			commands.append(str(command))
 	commands.sort()
 	
 	for command in commands:
@@ -449,3 +519,19 @@ func set_enable_on_release_build(enable : bool):
 	if (!enable_on_release_build):
 		if (!OS.is_debug_build()):
 			disable()
+
+
+func pause() -> void:
+	get_tree().paused = true
+	
+func unpause() -> void:
+	get_tree().paused = false
+	
+func exec(filename : String) -> void:
+	var path := "user://%s.txt" % [filename]
+	var script := FileAccess.open(path, FileAccess.READ)
+	if (script):
+		while (!script.eof_reached()):
+			on_text_entered(script.get_line())
+	else:
+		print_error("File %s not found." % [path])

@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://yfkuk4d0rodi"]
 
-[ext_resource type="Script" path="res://Scripts/Camera/TopDownPlayer.gd" id="1_2afxu"]
+[ext_resource type="Script" uid="uid://ds7a1ehjojf1o" path="res://Scripts/Camera/TopDownPlayer.gd" id="1_2afxu"]
 [ext_resource type="PackedScene" uid="uid://m6ntkjjojwa0" path="res://Scenes/Camera/top_down_player_pivot.tscn" id="2_cwmnp"]
 [ext_resource type="Curve" uid="uid://ch35oxe57h1jf" path="res://Assets/Data/pivot_camera_curve.tres" id="3_7fagh"]
 

@@ -2,7 +2,8 @@ class_name BaseInventoryItem
 extends Resource
 
 enum ItemType {
-    SPELL,
+    SPELL, ## A spell that can be used on another character
+    SPELL_USE_ANYWHERE, ## Allows the item to be used on a position in the world, instead of a character target
     WEAPON,
     ARMOR,
     CONSUMABLE_HP,
@@ -36,7 +37,12 @@ var item_id : String = "default_item_id":
 @export var can_use_on_allies: bool = true
 
 ## How far away a target can be to use this item (does not apply to self)
-@export var spell_range: int = 5
+@export var effective_range: int = 5
+
+@export_group("Cost")
+@export var actions_cost: int = 1
+@export var mp_cost: int = 0
+
 
 var inventory: Inventory = null
 
@@ -71,27 +77,41 @@ func get_use_sound() -> AudioStream:
         _:
             return null
 
-func can_use_on(user: BattleCharacter, target: BattleCharacter) -> bool:
-    if user == null or target == null:
+func check_cost(user: BattleCharacter) -> bool:
+    if user == null:
         return false
-   
-    # Allow self-use if the item cannot be used on allies or enemies
-    if not can_use_on_allies and not can_use_on_enemies:
-        return (user.character.type == BattleEnums.ECharacterType.PLAYER
-        and user == target)
-    
-    if (target.character_type in 
-    [BattleEnums.ECharacterType.PLAYER,
-    BattleEnums.ECharacterType.FRIENDLY]):
-        return can_use_on_allies
-    elif target.character_type == BattleEnums.ECharacterType.ENEMY:
-        return can_use_on_enemies
 
-    return false
+    if user.actions_left < actions_cost:
+        print("%s does not have enough actions left to use %s" % [user.character_name, item_name])
+        return false
+
+    if user.current_mp < mp_cost:
+        print("%s does not have enough MP to use %s" % [user.character_name, item_name])
+        return false
+
+    return true
+
+func can_use_on(user: BattleCharacter, target: BattleCharacter, ignore_costs: bool = false) -> bool:
+    if user == null:
+        return false
+    if target == null and item_type != ItemType.SPELL_USE_ANYWHERE:
+        return false
+
+    if not check_cost(user) and not ignore_costs:
+        return false
+    
+    # we can only use this on ourselves 
+    if (user == target
+    and not can_use_on_allies
+    and not can_use_on_enemies):
+        return true
+    
+    var same_side := (user.character_type in [BattleEnums.ECharacterType.FRIENDLY, BattleEnums.ECharacterType.PLAYER]) == \
+                    (target.character_type in [BattleEnums.ECharacterType.FRIENDLY, BattleEnums.ECharacterType.PLAYER])
+    
+    return can_use_on_allies if same_side else can_use_on_enemies
 
 func _update_inventory(status: UseStatus) -> void:
-    if not inventory:
-        return
     inventory.on_item_used(self, status)
 
 func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:

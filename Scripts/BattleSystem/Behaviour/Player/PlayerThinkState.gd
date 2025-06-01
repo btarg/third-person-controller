@@ -5,7 +5,7 @@ extends State
 # @onready var exploration_player := get_tree().get_nodes_in_group("Player").front() as PlayerController
 
 @onready var battle_character := state_machine.get_parent() as BattleCharacter
-@onready var radius_visual := get_node("/root/RadiusVisual") as CSGMesh3D
+@onready var radius_visual := get_node("/root/RadiusVisual") as MeshInstance3D
 
 # One level up is state machine, two levels up is the battle character. The inventory is on the same level
 @onready var inventory_manager := get_node("../../../Inventory") as Inventory
@@ -18,6 +18,10 @@ extends State
 
 var _last_raycast_selected_character: BattleCharacter
 var _has_already_chosen_action := false
+var _raycast_paused := false
+
+var _last_raycast_position := Vector3.ZERO
+var _last_available_actions := BattleEnums.EAvailableCombatActions.NONE
 
 func _ready() -> void:
     player_think_ui.hide()
@@ -25,8 +29,19 @@ func _ready() -> void:
 
     BattleSignalBus.OnTurnStarted.connect(_on_turn_started)
     BattleSignalBus.OnBattleEnded.connect(_cleanup_visuals)
+    BattleSignalBus.OnCharacterSelected.connect(_on_character_selected_from_ui)
 
     _cleanup_visuals()
+
+func _on_character_selected_from_ui(_character: BattleCharacter) -> void:
+    # Check if this selection came from turn order UI navigation
+    if battle_state.turn_order_ui.visible and battle_state.turn_order_ui.is_player_turn:
+        # Pause raycasting to prevent immediate override
+        _raycast_paused = true
+        # Store current raycast position instead of mouse position
+        var ray_result := Util.raycast_from_center_or_mouse(top_down_camera, [battle_state.top_down_player.get_rid()])
+        if ray_result and ray_result.has("position"):
+            _last_raycast_position = ray_result.position
 
 
 func _cleanup_visuals() -> void:
@@ -35,19 +50,16 @@ func _cleanup_visuals() -> void:
 
 func _on_leave_battle() -> void:
     if active:
+        _cleanup_visuals()
         Transitioned.emit(self, "IdleState")
     else:
         exit()
 
 func _on_turn_started(turn_character: BattleCharacter) -> void:
     if turn_character != battle_character:
+        _cleanup_visuals()
         return # not our turn
-
-    if battle_character.character_controller:
-        _process_radius_visual()
-        battle_character.character_controller.update_home_position()
-    else:
-        print("No character controller found")
+    
 
 func enter() -> void:
     _has_already_chosen_action = false
@@ -59,12 +71,11 @@ func enter() -> void:
 
     player_think_ui.show()
     player_think_ui.set_text()
-
-    if battle_state.turn_order_ui.is_ui_active:
-        battle_state.turn_order_ui.is_ui_active = false
-
-    # battle_state.turn_order_ui.show()
-    # battle_state.turn_order_ui.focus_last_selected()
+    
+    # Show turn order UI when entering think state
+    if battle_state.turn_order_ui and battle_state.turn_order_ui.is_player_turn:
+        battle_state.turn_order_ui.show()
+        battle_state.turn_order_ui.focus_last_selected()
 
     print(battle_character.character_name + " is thinking about what to do")
 
@@ -76,12 +87,25 @@ func enter() -> void:
 
     battle_state.top_down_player.allow_moving_focus = true
 
+    if battle_character.character_controller:
+        _process_radius_visual()
+        battle_character.character_controller.update_home_position()
+    else:
+        print("No character controller found")
+
 
 func exit() -> void:
     print(battle_character.character_name + " has stopped thinking")
+    
+    # Hide turn order UI when exiting think state
+    if battle_state.turn_order_ui:
+        battle_state.turn_order_ui.hide()
+    
+    # If the character is still moving when exiting, cancel movement and return home
+    if battle_character.character_controller and battle_character.character_controller.is_moving():
+        battle_character.character_controller.return_to_home_position()
+    
     player_think_ui.hide()
-    battle_state.turn_order_ui.hide()
-    battle_state.turn_order_ui.is_ui_active = false
 
 
 func _process_radius_visual() -> void:
@@ -92,7 +116,7 @@ func _process_radius_visual() -> void:
         radius_visual.visible = false
         return
 
-    print("Processing radius visual: " + battle_character.character_name)
+    # print("Processing radius visual: " + battle_character.character_name)
     radius_visual.global_position = battle_character.character_controller.global_position
     radius_visual.global_position.y += 0.01 # prevent Z-fighting
     
@@ -117,9 +141,34 @@ func _process_radius_visual() -> void:
 # ==============================================================================
 
 func _state_physics_process(_delta: float) -> void:
+   
+    # what the fuck is this
+    if not battle_state.top_down_player.moved_from_focus:
+        if (not battle_state.top_down_player.is_at_focus
+        or battle_state.available_actions == BattleEnums.EAvailableCombatActions.NONE):
+            _raycast_paused = true
+    else:
+        _raycast_paused = false
 
-    if (battle_state.available_actions == BattleEnums.EAvailableCombatActions.NONE
-    or battle_state.turn_order_ui.is_ui_active):
+    # Check if raycasting should resume based on raycast position changes
+    if _raycast_paused:
+        # Get current raycast position for comparison
+        var current_ray_result := Util.raycast_from_center_or_mouse(top_down_camera, [battle_state.top_down_player.get_rid()])
+        var current_raycast_pos := Vector3.ZERO
+        if current_ray_result and current_ray_result.has("position"):
+            current_raycast_pos = current_ray_result.position
+        
+        # Check if raycast position has moved significantly (works for both mouse and controller)
+        var raycast_moved := current_raycast_pos.distance_to(_last_raycast_position) > 1.0
+        var actions_changed := battle_state.available_actions != _last_available_actions
+        
+        if raycast_moved or actions_changed:
+            if battle_state.top_down_player.is_at_focus:
+                _raycast_paused = false
+                _last_available_actions = battle_state.available_actions
+                _last_raycast_position = current_raycast_pos
+
+    if _raycast_paused:
         return
 
     var ray_result := Util.raycast_from_center_or_mouse(top_down_camera, [battle_state.top_down_player.get_rid()])
@@ -157,17 +206,20 @@ func _state_physics_process(_delta: float) -> void:
         
         _last_raycast_selected_character = character
 
-func _state_process(_delta: float) -> void: pass
+func _state_process(_delta: float) -> void:
+    # Update the radius visual to show movement range
+    _process_radius_visual()
 
 func _on_movement_finished() -> void:
     # Disconnect ourselves to prevent multiple connections
-    battle_state.current_character.character_controller.OnMovementFinished.disconnect(_on_movement_finished)
+    if battle_state.current_character.character_controller.OnMovementFinished.is_connected(_on_movement_finished):
+        battle_state.current_character.character_controller.OnMovementFinished.disconnect(_on_movement_finished)
 
     battle_state.select_character(battle_state.current_character)
     player_think_ui.set_text()
+    _process_radius_visual()
 
 func _state_unhandled_input(event: InputEvent) -> void:
-
     if ((not battle_state.player_selected_character)
     or battle_state.available_actions == BattleEnums.EAvailableCombatActions.NONE):
         return
@@ -247,13 +299,13 @@ func process_action(chosen_action: BattleEnums.EPlayerCombatAction) -> void:
         BattleEnums.EPlayerCombatAction.CA_ATTACK:
             var attack := await _process_basic_attack(battle_state.current_character, target_character)
             if attack != BattleEnums.ESkillResult.SR_OUT_OF_RANGE:
-                battle_state.ready_next_turn()
+                battle_character.spend_actions(1)
         BattleEnums.EPlayerCombatAction.CA_DRAW:
             Transitioned.emit(self, "DrawState")
             
         _:
             print("Invalid action")
-            battle_state.ready_next_turn()
+            battle_character.spend_actions(1)
 
     
 
@@ -281,7 +333,6 @@ func _process_basic_attack(attacker: BattleCharacter, target: BattleCharacter) -
 
     var phys_str := ceili(attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.PhysicalStrength))
 
-    # TODO: use an actual damage roll
     var damage_roll := DiceRoll.roll(20, 1, phys_str)
 
     var result := target.take_damage(attacker, [damage_roll], attack_roll, attacker.basic_attack_element)

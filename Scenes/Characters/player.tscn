@@ -1,13 +1,13 @@
 [gd_scene load_steps=18 format=3 uid="uid://cr2ersq7g6q6f"]
 
-[ext_resource type="Script" path="res://Scripts/Characters/Player.gd" id="1_hn6di"]
-[ext_resource type="Script" path="res://Scripts/Characters/SpringArmPivot.gd" id="2_f8ihf"]
+[ext_resource type="Script" uid="uid://dno7sl2ana8cp" path="res://Scripts/Characters/Player.gd" id="1_hn6di"]
+[ext_resource type="Script" uid="uid://berih7gl84huw" path="res://Scripts/Characters/SpringArmPivot.gd" id="2_f8ihf"]
 [ext_resource type="PackedScene" uid="uid://duh7eiq3alssk" path="res://Assets/Models/Characters/Y Bot.fbx" id="2_ndt0q"]
 [ext_resource type="AnimationLibrary" uid="uid://2c87hdkwp40d" path="res://Assets/Models/Characters/player_locomotion_library.res" id="4_6ccjh"]
 [ext_resource type="Curve" uid="uid://ch35oxe57h1jf" path="res://Assets/Data/pivot_camera_curve.tres" id="4_q26jy"]
 [ext_resource type="PackedScene" uid="uid://dilt8hwo0hvca" path="res://Scripts/Characters/player_battle_character.tscn" id="5_xaof6"]
 [ext_resource type="PackedScene" uid="uid://cclit0nmwr0cn" path="res://Assets/GUI/3d/target_line_renderer.tscn" id="7_pggr3"]
-[ext_resource type="Script" path="res://Scripts/GUI/Inventory/InventoryManager.gd" id="12_dpkcw"]
+[ext_resource type="Script" uid="uid://3ddie3cwu05n" path="res://Scripts/GUI/Inventory/InventoryManager.gd" id="12_dpkcw"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_4egpj"]
 size = Vector3(0.6, 1.7, 0.6)
@@ -54,7 +54,7 @@ nodes/iwr_blend/position = Vector2(420, 160)
 nodes/output/position = Vector2(880, 180)
 node_connections = [&"ground_air_transition", 0, &"iwr_blend", &"ground_air_transition", 1, &"Air", &"iwr_blend", 0, &"Idle", &"iwr_blend", 1, &"Walk", &"iwr_blend", 2, &"Run", &"output", 0, &"ground_air_transition"]
 
-[sub_resource type="ImmediateMesh" id="ImmediateMesh_xkqen"]
+[sub_resource type="ImmediateMesh" id="ImmediateMesh_gdgf0"]
 
 [node name="Player" type="CharacterBody3D" groups=["Player"]]
 process_mode = 1
@@ -105,7 +105,7 @@ margin = 0.2
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 root_node = NodePath("../Mesh")
 libraries = {
-"player_locomotion_library": ExtResource("4_6ccjh")
+&"player_locomotion_library": ExtResource("4_6ccjh")
 }
 
 [node name="AnimationTree" type="AnimationTree" parent="."]
@@ -126,4 +126,4 @@ script = ExtResource("12_dpkcw")
 [node name="LineRenderer3D" parent="." instance=ExtResource("7_pggr3")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 material_override = null
-mesh = SubResource("ImmediateMesh_xkqen")
+mesh = SubResource("ImmediateMesh_gdgf0")

@@ -22,13 +22,18 @@ func enter() -> void:
     else:
         print(battle_character.character_name + " cannot use spells")
 
-    await wait(1)
-
-    _stop_thinking()
-    battle_character.battle_state.ready_next_turn()
+    _process_actions()
 
 func _stop_thinking() -> void:
     Transitioned.emit(self, "IdleState")
+
+func _process_actions() -> void:
+    # Process one action at a time to avoid state machine lockup
+    if battle_character.actions_left > 0:
+        await wait(1)
+        battle_character.spend_actions(1)
+        # Don't recursively call _process_actions here - the spend_actions will trigger ready_next_turn
+        # which will either give us another turn or move to the next character
 
 func exit() -> void:
     print(battle_character.character_name + " has stopped thinking")

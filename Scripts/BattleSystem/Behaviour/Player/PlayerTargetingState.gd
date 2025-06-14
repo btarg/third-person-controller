@@ -1,5 +1,4 @@
-extends State
-class_name PlayerTargetingState
+class_name PlayerTargetingState extends State
 
 @onready var battle_state := GameModeStateMachine.get_node("BattleState") as BattleState
 @onready var battle_character := state_machine.get_parent() as BattleCharacter
@@ -22,6 +21,18 @@ var captured_ground_position := Vector3.ZERO
 # autoload a spell area indicator so we use the same one everywhere for indicators
 @onready var spell_area_indicator: Node3D
 
+# Line rendering constants and variables
+const CURVE_SEGMENTS := 20
+const CURVE_HEIGHT_OFFSET := 5.0
+const CURVE_TARGET_HEIGHT_OFFSET := 0.1
+
+var line_current_character: BattleCharacter
+var line_target_character: BattleCharacter
+var _current_line_renderer: LineRenderer3D
+var material_override := preload("res://addons/LineRenderer/demo/target_line_renderer.tres") as Material
+var should_render_line: bool = false
+var _current_segment := 0
+
 func _ready() -> void:
 
     spell_area_indicator = SpellArea.new(
@@ -36,6 +47,8 @@ func _ready() -> void:
     spell_area_indicator.visible = false
 
     battle_character.OnLeaveBattle.connect(_on_leave_battle)
+    # Connect to character selection signal
+    BattleSignalBus.OnCharacterSelected.connect(_on_character_selected)
     
 
 func _on_leave_battle() -> void:
@@ -43,6 +56,84 @@ func _on_leave_battle() -> void:
         # Hide spell area indicator when leaving battle
         spell_area_indicator.visible = false
         Transitioned.emit(self, "IdleState")
+
+func _on_character_selected(character: BattleCharacter) -> void:
+    if not active:
+        return
+        
+    # Only show line for direct targeting spells (not AOE field spells)
+    var is_direct_targeting := not (selected_spell_item is SpellItem 
+        and (selected_spell_item as SpellItem).item_type == BaseInventoryItem.ItemType.FIELD_SPELL)
+    
+    if is_direct_targeting and selected_spell_item and is_valid_target(character):
+        _setup_line_rendering(character)
+    else:
+        _clear_line_rendering()
+
+func _setup_line_rendering(target_character: BattleCharacter) -> void:
+    _clear_line_rendering()
+    
+    line_current_character = battle_character
+    line_target_character = target_character
+    
+    # Get line renderer from current character
+    var renderer := line_current_character.get_node_or_null("../LineRenderer3D") as LineRenderer3D
+    if renderer:
+        renderer.material_override = material_override
+        _current_line_renderer = renderer
+        _current_segment = 0
+        should_render_line = true
+    else:
+        print("No line renderer found on current character")
+
+func _clear_line_rendering() -> void:
+    should_render_line = false
+    _current_segment = 0
+    line_current_character = null
+    line_target_character = null
+
+    if _current_line_renderer:
+        _current_line_renderer.remove_line()
+        _current_line_renderer = null
+
+func cleanup_line_renderers() -> void:
+    _clear_line_rendering()
+
+func _update_line_rendering() -> void:
+    if not should_render_line:
+        return
+    if not line_current_character or not line_target_character:
+        return
+
+    # draw a line between the player and the selected character
+    # the line renderer is placed on top of the player character
+    var current_character_pos := _current_line_renderer.global_position
+    current_character_pos.y += CURVE_TARGET_HEIGHT_OFFSET
+    # if the target has a line renderer use that as the end pos since it will also be on their head
+    var target_line_renderer := line_target_character.get_parent().get_node_or_null("LineRenderer3D")
+    var target_character_pos: Vector3 = target_line_renderer.global_position if target_line_renderer\
+    else line_target_character.get_parent().global_position
+
+    # place end of the line on top of target's head
+    target_character_pos.y += CURVE_TARGET_HEIGHT_OFFSET
+    
+    var middle := current_character_pos.lerp(target_character_pos, 0.5)
+    middle.y += CURVE_HEIGHT_OFFSET
+
+    # use quadratic bezier to create a curve and add the curve to the line renderer
+    var segments := CURVE_SEGMENTS
+    var points: Array[Vector3] = []
+    for i in range(_current_segment + 1):
+        var t := float(i) / float(segments)
+        points.append(Util._quadratic_bezier(current_character_pos, middle, target_character_pos, t))
+
+    _current_line_renderer.points = points
+
+    # Increment the current segment to animate the line building
+    if _current_segment < segments:
+        _current_segment += 1
+    # Don't set should_render_line to false when animation completes
+    # Let the targeting state control when to hide the line
 
 func enter() -> void:
     print("[TARGETING] Entering targeting state")
@@ -85,6 +176,10 @@ func enter() -> void:
     
     # Enable camera movement for targeting
     battle_state.top_down_player.allow_moving_focus = true
+    
+    # Enable input for turn order UI when in targeting state
+    if battle_state.turn_order_ui:
+        battle_state.turn_order_ui.input_allowed = true
 
 func _setup_character_targeting() -> void:
     # Default to self-targeting if the item can be used on allies
@@ -187,6 +282,9 @@ func _capture_ground_position() -> void:
         print("[GROUND CAPTURE] Used fallback position: " + str(captured_ground_position))
 
 func _state_physics_process(_delta: float) -> void:
+    # Handle line rendering animation
+    _update_line_rendering()
+    
     # Don't process anything if spell has been used
     if _spell_used:
         return
@@ -214,22 +312,33 @@ func _state_physics_process(_delta: float) -> void:
         # Handle character targeting
         _handle_character_raycast(ray_result)
 
+
+
 func _perform_raycast() -> Dictionary:
     return Util.raycast_from_center_or_mouse(top_down_camera, [battle_state.top_down_player.get_rid()])
 
 func _handle_character_raycast(ray_result: Dictionary) -> void:
     if not ray_result.has("collider"):
+        # Don't clear line rendering when hovering over ground - keep last valid target
+        _last_raycast_selected_character = null
         return
 
     var collider := ray_result.collider as Node3D
     var children := collider.find_children("BattleCharacter")
     
     if children.is_empty():
+        # Don't clear line rendering when hovering over ground - keep last valid target
         _last_raycast_selected_character = null
         return
 
     var character := children.front() as BattleCharacter
-    if not character or not is_valid_target(character) or character == _last_raycast_selected_character:
+    if not character or not is_valid_target(character):
+        # Only update last raycast character for invalid characters
+        if character != _last_raycast_selected_character:
+            _last_raycast_selected_character = null
+        return
+    
+    if character == _last_raycast_selected_character:
         return
     
     print("[TARGETING] Selecting character: " + character.character_name)
@@ -237,19 +346,9 @@ func _handle_character_raycast(ray_result: Dictionary) -> void:
     _last_raycast_selected_character = character
 
 func is_valid_target(character: BattleCharacter) -> bool:
-    if not selected_spell_item or not character:
-        return false
-    
-    # Check if the spell/item can be used on this character type
-    var same_side := (battle_character.character_type in [BattleEnums.ECharacterType.FRIENDLY, BattleEnums.ECharacterType.PLAYER]) == \
-                    (character.character_type in [BattleEnums.ECharacterType.FRIENDLY, BattleEnums.ECharacterType.PLAYER])
-    
-    if same_side:
-        return selected_spell_item.can_use_on_allies
-    else:
-        return selected_spell_item.can_use_on_enemies
+    return selected_spell_item.can_use_on(battle_character, character)
 
-func _state_input(event: InputEvent) -> void:
+func _state_unhandled_input(event: InputEvent) -> void:
     # Don't process any input if spell has been used
     if _spell_used:
         return
@@ -365,6 +464,13 @@ func exit() -> void:
     
     # Hide spell area indicator when exiting
     spell_area_indicator.visible = false
+    
+    # Clear line rendering when exiting
+    _clear_line_rendering()
+    
+    # Disable input for turn order UI when exiting targeting state
+    if battle_state.turn_order_ui:
+        battle_state.turn_order_ui.input_allowed = false
     
     # Hide the targeting UI when exiting
     if player_think_ui:

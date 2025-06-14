@@ -94,7 +94,7 @@ func check_cost(user: BattleCharacter) -> bool:
     return true
 
 func can_use_on(user: BattleCharacter, target: BattleCharacter, ignore_costs: bool = false) -> bool:
-    if user == null:
+    if not user:
         return false
     if target == null and item_type != ItemType.FIELD_SPELL:
         return false

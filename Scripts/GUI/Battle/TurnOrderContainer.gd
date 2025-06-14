@@ -23,6 +23,8 @@ var is_player_turn: bool = false:
     set(value):
         is_player_turn = value
 
+var input_allowed: bool = false
+
 func _ready() -> void:
     BattleSignalBus.OnCharacterJoinedBattle.connect(add_entry)
     BattleSignalBus.OnRevive.connect(add_entry)
@@ -30,12 +32,13 @@ func _ready() -> void:
     BattleSignalBus.OnBattleEnded.connect(clear_entries)
     BattleSignalBus.OnDeath.connect(remove_entry)
     BattleSignalBus.OnTurnStarted.connect(_on_turn_started)
+    BattleSignalBus.OnBattleStarted.connect(show)
     hide()
 
 func _on_turn_started(_character: BattleCharacter) -> void:
-    # Only show turn order UI when player is in think state
-    # Always hide initially - PlayerThinkState will show it when appropriate
-    hide()
+    # Turn order UI stays visible throughout battle
+    # Input allowance is controlled by individual states
+    pass
 
 func _on_character_selected(character: BattleCharacter) -> void:
     for entry in entries:
@@ -44,7 +47,7 @@ func _on_character_selected(character: BattleCharacter) -> void:
             break
 
 func _input(event: InputEvent) -> void:
-    if entries.is_empty() or not visible or not is_player_turn:
+    if entries.is_empty() or not visible or not is_player_turn or not input_allowed:
         return
 
     if event.is_action_pressed("arrow_left"):
@@ -108,7 +111,8 @@ func clear_entries() -> void:
     entries.clear()
     character_by_entry.clear()
     current_index = 0
-    hide()  # Ensure it's hidden when clearing entries
+    input_allowed = false
+    hide()  # Hide when clearing entries (battle ended)
 
 
 func remove_entry(entry_character: BattleCharacter) -> void:

@@ -22,9 +22,7 @@ func _init(spell_item: SpellItem, p_caster: BattleCharacter, spawn_position: Vec
     
     # Store spawn position for later use in direction calculation
     _target_spawn_position = spawn_position
-    
-    # Position the spell area (will be adjusted in _setup_area_positioning)
-    global_position = spawn_position
+
 
 func _ready() -> void:
     # Call parent _ready first to set up mesh and visuals

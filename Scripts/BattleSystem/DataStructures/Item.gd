@@ -3,10 +3,7 @@ extends Resource
 
 enum ItemType {
     BATTLE_SPELL, ## A spell that can be used on another character
-    FIELD_SPELL_PLACE, ## Allows the spell to be used on a position in the world, instead of a character target
-    FIELD_SPELL_CONE, ## A spell that can be used in a cone area
-    FIELD_SPELL_LINE, ## A spell that can be used in a line area
-    FIELD_SPELL_RADIUS, ## A spell that can be used in a radius area
+    FIELD_SPELL, ## Allows the spell to be used on a position in the world, area shape determined by area_type
     
     # Other item types
     WEAPON,
@@ -99,7 +96,7 @@ func check_cost(user: BattleCharacter) -> bool:
 func can_use_on(user: BattleCharacter, target: BattleCharacter, ignore_costs: bool = false) -> bool:
     if user == null:
         return false
-    if target == null and item_type != ItemType.FIELD_SPELL_PLACE:
+    if target == null and item_type != ItemType.FIELD_SPELL:
         return false
 
     if not check_cost(user) and not ignore_costs:

@@ -1,10 +1,26 @@
 class_name SpellItem extends BaseInventoryItem
 
 ## TODO: allow normal items to be AOE, so we can have molotovs or grenades.
+## It might be better to combine everything into SpellItem and just change
+## the visuals for non-spell items, but have them act the same as spells anyway.
 @export_group("AOE")
-## if zero, this is not an AOE spell
+enum TargetType {
+    NONE,
+    FIXED_AIM_FROM_CHAR,  ## Aim the AOE from the player
+    FREE_SELECT   ## Aim the AOE from the mouse cursor position
+}
+@export var target_type: TargetType = TargetType.NONE
+@export var area_type := AreaUtils.SpellAreaType.CIRCLE
+## Radius also acts as the length for line and cone area types
 @export var area_of_effect_radius: float = 0.0
-@export var ttl_turns: int = -1 # -1 means sustained spell, 0 means we do the effect once and then remove the spell
+## only applies to line area type
+@export var line_width: float = 0.0
+## only applies to cone area type
+@export var cone_angle_degrees: float = 60.0
+
+## Time to live in turns: -1 means sustained spell, 0 means we do the effect once and then remove the spell
+@export var ttl_turns: int = -1 
+
 
 @export_group("Spell")
 @export var spell_element := BattleEnums.EAffinityElement.FIRE
@@ -72,7 +88,7 @@ func get_item_description() -> String:
 
     # Target specification
     if can_use_on_enemies and can_use_on_allies:
-        if item_type == ItemType.FIELD_SPELL_PLACE and area_of_effect_radius > 0:
+        if item_type == ItemType.FIELD_SPELL and area_of_effect_radius > 0:
             description_string += "to all targets"
         else:
             description_string += "to any target"
@@ -82,7 +98,7 @@ func get_item_description() -> String:
         description_string += "to an ally"
 
     # Range specification
-    if area_of_effect_radius > 0 and item_type == ItemType.FIELD_SPELL_PLACE:
+    if area_of_effect_radius > 0 and item_type == ItemType.FIELD_SPELL:
         description_string += " within %s units" % [str(int(area_of_effect_radius))]
     else:
         description_string += " at any range"

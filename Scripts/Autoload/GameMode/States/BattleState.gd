@@ -390,6 +390,7 @@ func ready_next_turn() -> void:
         select_character(current_character)
 
     BattleSignalBus.OnTurnStarted.emit(current_character)
+    print("[BATTLE STATE] New turn started for %s" % current_character.character_name)
     turns_played += 1
 
 

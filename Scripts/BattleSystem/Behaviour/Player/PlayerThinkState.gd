@@ -5,7 +5,7 @@ extends State
 # @onready var exploration_player := get_tree().get_nodes_in_group("Player").front() as PlayerController
 
 @onready var battle_character := state_machine.get_parent() as BattleCharacter
-@onready var radius_visual := get_node("/root/RadiusVisual") as MeshInstance3D
+@onready var radius_visual := MovementRadiusVisual as MeshInstance3D
 
 # One level up is state machine, two levels up is the battle character. The inventory is on the same level
 @onready var inventory_manager := get_node("../../../Inventory") as Inventory
@@ -126,17 +126,10 @@ func _process_radius_visual() -> void:
 
 
 # ==============================================================================
-# PLAN FOR THINK STATE
-# Step 1: shoot a raycast from either the middle of the camera every frame
-# when we are using a controller, or from the click pos when clicking mouse
+# THINK STATE
 #
-# Step 2: if the raycast hits a character, show context actions
-# e.g. if it's an enemy, show the options to attack, draw, or use a spell
-#
-# Step 3: if the raycast hits the ground, show the options to move
-#
-# Step 4: if the player selects an action, transition to the appropriate state
-# for the UI to be displayed, e.g. display the inventory when casting a spell
+# This is where we handle raycasting for selecting characters and
+# determining available actions based on the raycasted character.
 # ==============================================================================
 
 func _state_physics_process(_delta: float) -> void:

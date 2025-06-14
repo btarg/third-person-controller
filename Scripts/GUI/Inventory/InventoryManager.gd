@@ -24,10 +24,12 @@ var wind_spell: BaseInventoryItem = load("res://Scripts/Data/Items/Spells//test_
 var silence_spell: BaseInventoryItem = load("res://Scripts/Data/Items/Spells//silence_spell.tres")
 
 var aoe_spell: BaseInventoryItem = load("res://Scripts/Data/Items/Spells//test_aoe_spell.tres")
+var aoe_spell_2: BaseInventoryItem = load("res://Scripts/Data/Items/Spells//test_cone_spell.tres")
 
 func _ready() -> void:
 
     add_item(aoe_spell, 15)
+    add_item(aoe_spell_2, 15)
     add_item(heal_spell, 15)
     add_item(fire_spell, 15)
     add_item(ice_spell, 15)

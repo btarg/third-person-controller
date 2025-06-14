@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="SpellItem" load_steps=4 format=3 uid="uid://bvkeciuw1e2eg"]
+
+[ext_resource type="Resource" uid="uid://d2uax0y37khi3" path="res://Scripts/Data/StatModifiers/speed_half.tres" id="1_jvcli"]
+[ext_resource type="Script" uid="uid://cwyovt5hobip" path="res://Scripts/BattleSystem/DataStructures/SpellItem.gd" id="2_puh6m"]
+[ext_resource type="Script" uid="uid://dymhc7pcpegip" path="res://Scripts/BattleSystem/DataStructures/DiceRoll.gd" id="3_l36m0"]
+
+[resource]
+script = ExtResource("2_puh6m")
+target_type = 2
+area_type = 1
+area_of_effect_radius = 30.0
+line_width = 0.0
+cone_angle_degrees = 60.0
+ttl_turns = -1
+spell_element = 2
+modifier = ExtResource("1_jvcli")
+spell_power_rolls = Array[ExtResource("3_l36m0")]([])
+junction_table = Dictionary[int, float]({
+2: 1.0,
+3: 1.0
+})
+item_type = 1
+item_name = "Cone of Frost"
+item_description = "Area of Effect"
+max_stack = 999
+can_use_on_enemies = true
+can_use_on_allies = true
+effective_range = 5
+actions_cost = 1
+mp_cost = 0
+metadata/_custom_type_script = "uid://cwyovt5hobip"

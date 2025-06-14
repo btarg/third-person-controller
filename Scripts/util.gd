@@ -27,10 +27,9 @@ static func raycast_from_center_or_mouse(cam: Camera3D, exclude: Array[RID] = []
     var raycast_start_pos := (viewport.get_mouse_position() if not ControllerHelper.is_using_controller
     else viewport_center)
 
-    # BUG: using a separate thread for 3d physics will cause a crash
+    # NOTE: using a separate thread for 3d physics will cause a crash
     # due to the space not being accessible
     var space := cam.get_world_3d().direct_space_state
-
 
     var ray_query := PhysicsRayQueryParameters3D.new()
     ray_query.from = cam.project_ray_origin(raycast_start_pos)
@@ -63,3 +62,29 @@ static func get_letter(index: int) -> String:
         else:
             return str(index - alphabet.length() + 1)
     return ""
+
+static func project_to_ground(node: Node3D, ground_layer_mask: int = 1, y_offset: float = 0.001) -> Vector3:
+    # Cast ray downward from the node's position to find ground
+    var space_state: PhysicsDirectSpaceState3D = node.get_world_3d().direct_space_state
+    var elevated_pos := node.global_position
+    var from := elevated_pos
+    var to := elevated_pos + Vector3(0.0, -1000.0, 0.0)  # Ray downward
+    
+    var query := PhysicsRayQueryParameters3D.create(from, to)
+    query.collision_mask = ground_layer_mask
+    query.collide_with_areas = false
+    query.collide_with_bodies = true
+    
+    query.exclude = [node.get_rid()]  # Exclude the node itself to avoid self-collision
+
+    var result: Dictionary = space_state.intersect_ray(query)
+    
+    if result:
+        var ground_pos = result.position + Vector3(0.0, y_offset, 0.0)
+        # Only project if there's significant height difference
+        if elevated_pos.y - ground_pos.y > 2.0:  # 2 unit threshold
+            # Return the projected ground position
+            return ground_pos
+    
+    # Return original position if no ground found or insufficient height difference
+    return elevated_pos

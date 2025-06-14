@@ -19,11 +19,29 @@ var captured_ground_position := Vector3.ZERO
 
 @onready var player_think_ui := battle_state.get_node("PlayerThinkUI") as PlayerThinkUI
 
+# autoload a spell area indicator so we use the same one everywhere for indicators
+@onready var spell_area_indicator: Node3D
+
 func _ready() -> void:
+
+    spell_area_indicator = SpellArea.new(
+        battle_character, 
+        AreaUtils.SpellAreaType.CIRCLE, 
+        5.0, 
+        60.0, 
+        2.0, 
+        Vector3.FORWARD
+    )
+    add_child(spell_area_indicator)
+    spell_area_indicator.visible = false
+
     battle_character.OnLeaveBattle.connect(_on_leave_battle)
+    
 
 func _on_leave_battle() -> void:
     if active:
+        # Hide spell area indicator when leaving battle
+        spell_area_indicator.visible = false
         Transitioned.emit(self, "IdleState")
 
 func enter() -> void:
@@ -31,6 +49,9 @@ func enter() -> void:
     
     # Reset spell used flag
     _spell_used = false
+    
+    # Hide spell area indicator initially
+    spell_area_indicator.visible = false
     
     # Get the selected spell from the previous state
     selected_spell_item = spell_selection_state.selected_spell_item
@@ -43,13 +64,14 @@ func enter() -> void:
     
     # Show the UI for targeting mode
     player_think_ui.show()
-    
+
+
     # Check spell type and set up targeting accordingly
-    if selected_spell_item is SpellItem:
-        var spell_item := selected_spell_item as SpellItem
-        if spell_item.item_type == BaseInventoryItem.ItemType.FIELD_SPELL_PLACE:
+    if selected_spell_item:
+        if selected_spell_item.item_type == BaseInventoryItem.ItemType.FIELD_SPELL:
             # Ground targeting spell - start in ground mode
             battle_state.available_actions = BattleEnums.EAvailableCombatActions.GROUND
+            _setup_aoe_indicator()
             _capture_ground_position()
         else:
             # Character targeting spell - determine valid targets
@@ -82,12 +104,82 @@ func _setup_character_targeting() -> void:
         print("[TARGETING] Item can't target anyone!")
         _back_to_think()
 
+func _setup_aoe_indicator() -> void:
+    # Set up the spell area indicator for AOE spells
+    if not spell_area_indicator:
+        return
+    
+    # Configure the spell area indicator based on the spell
+    spell_area_indicator.caster = battle_character
+    
+    match selected_spell_item.area_type:
+        AreaUtils.SpellAreaType.CIRCLE:
+            _start_circle_cast()
+        AreaUtils.SpellAreaType.CONE:
+            _start_cone_cast()
+        AreaUtils.SpellAreaType.LINE:
+            _start_line_cast()
+    
+    print("[TARGETING] AOE indicator set up for %s" % selected_spell_item.item_name)
+
+func _start_circle_cast() -> void:
+    spell_area_indicator.area_type = AreaUtils.SpellAreaType.CIRCLE
+    spell_area_indicator.radius = selected_spell_item.area_of_effect_radius
+    spell_area_indicator.caster = battle_character
+    
+    # Set appropriate colors for targeting
+    spell_area_indicator.set_area_colors(Color.GREEN * 0.3, Color.WHITE, Color.GREEN)
+    
+    # Update shader parameters and show
+    spell_area_indicator.update_shader_params()
+    spell_area_indicator.visible = true
+    
+    print("[CIRCLE CAST] Started circle casting with radius: %s" % selected_spell_item.area_of_effect_radius)
+
+func _start_cone_cast() -> void:
+    spell_area_indicator.area_type = AreaUtils.SpellAreaType.CONE
+    spell_area_indicator.radius = selected_spell_item.area_of_effect_radius
+    spell_area_indicator.cone_angle_degrees = selected_spell_item.cone_angle_degrees
+    spell_area_indicator.caster = battle_character
+    
+    # Position at caster's ground level
+    var ground_pos := Util.project_to_ground(battle_character.get_parent(), 1, 0.002)
+    spell_area_indicator.global_position = ground_pos
+    
+    # Set appropriate colors for targeting
+    spell_area_indicator.set_area_colors(Color.GREEN * 0.3, Color.WHITE, Color.GREEN)
+    
+    # Update shader parameters and show
+    spell_area_indicator.update_shader_params()
+    spell_area_indicator.visible = true
+    
+    print("[CONE CAST] Started cone casting with radius: %s, angle: %s" % [selected_spell_item.area_of_effect_radius, selected_spell_item.cone_angle_degrees])
+
+func _start_line_cast() -> void:
+    spell_area_indicator.area_type = AreaUtils.SpellAreaType.LINE
+    spell_area_indicator.radius = selected_spell_item.area_of_effect_radius  # radius represents length for lines
+    spell_area_indicator.line_width = selected_spell_item.line_width
+    spell_area_indicator.caster = battle_character
+    
+    # Position at caster's ground level
+    var ground_pos := Util.project_to_ground(battle_character.get_parent(), 1, 0.002)
+    spell_area_indicator.global_position = ground_pos
+    
+    # Set appropriate colors for targeting
+    spell_area_indicator.set_area_colors(Color.GREEN * 0.3, Color.WHITE, Color.GREEN)
+    
+    # Update shader parameters and show
+    spell_area_indicator.update_shader_params()
+    spell_area_indicator.visible = true
+    
+    print("[LINE CAST] Started line casting with length: %s, width: %s" % [selected_spell_item.area_of_effect_radius, selected_spell_item.line_width])
+
 func _capture_ground_position() -> void:
     # Get the ground position from the current raycast when entering the state
     var result := Util.raycast_from_center_or_mouse(top_down_camera)
     
     if result and result.has("position"):
-        captured_ground_position = result.position
+        captured_ground_position = (result.position as Vector3) + Vector3(0.0, 0.0025, 0.0)  # add an offset to prevent z-fighting
         print("[GROUND CAPTURE] Captured ground position: " + str(captured_ground_position))
     else:
         # Fallback to a position in front of the caster
@@ -104,12 +196,19 @@ func _state_physics_process(_delta: float) -> void:
     
     # Check if this is a place anywhere spell
     var is_place_anywhere := (selected_spell_item is SpellItem 
-        and (selected_spell_item as SpellItem).item_type != BaseInventoryItem.ItemType.BATTLE_SPELL)
+        and (selected_spell_item as SpellItem).item_type == BaseInventoryItem.ItemType.FIELD_SPELL)
 
     if is_place_anywhere:
+        # Update spell area indicator if it's visible
+        _update_spell_targeting()
+        
         # Update ground position for place anywhere spells
         if ray_result.has("position"):
             captured_ground_position = ray_result.position
+            # Update AOE indicator position if it's visible and it's a circle type
+            if (spell_area_indicator and spell_area_indicator.visible 
+            and spell_area_indicator.area_type == AreaUtils.SpellAreaType.CIRCLE):
+                spell_area_indicator.global_position = captured_ground_position
         battle_state.select_character(null, false)
     else:
         # Handle character targeting
@@ -179,7 +278,7 @@ func _use_selected_spell_item() -> void:
     
     # Check if it's a ground-targeting spell
     if (selected_spell_item is SpellItem 
-    and (selected_spell_item as SpellItem).item_type != BaseInventoryItem.ItemType.BATTLE_SPELL):
+    and (selected_spell_item as SpellItem).item_type == BaseInventoryItem.ItemType.FIELD_SPELL):
         _use_field_spell()
     else:
         _use_character_targeting_spell()
@@ -264,9 +363,38 @@ func exit() -> void:
     # Reset selected spell
     selected_spell_item = null
     
+    # Hide spell area indicator when exiting
+    spell_area_indicator.visible = false
+    
     # Hide the targeting UI when exiting
     if player_think_ui:
         player_think_ui.hide()
 
 func _state_process(_delta: float) -> void: pass
-func _state_unhandled_input(_event: InputEvent) -> void: pass
+
+func _get_mouse_world_position() -> Vector3:
+    # Use existing utility function with fallback
+    var result := Util.raycast_from_center_or_mouse(top_down_camera, [battle_state.top_down_player.get_rid()])
+    
+    if result and result.has("position"):
+        return result.position + Vector3(0.0, 0.001, 0.0)
+    else:
+        # Fallback to a position in front of the caster
+        return battle_character.get_parent().global_position + Vector3.FORWARD * 5.0
+
+func _update_spell_targeting() -> void:
+    if not spell_area_indicator or not spell_area_indicator.visible:
+        return
+        
+    var mouse_world_pos := _get_mouse_world_position()
+    
+    match spell_area_indicator.area_type:
+        AreaUtils.SpellAreaType.CIRCLE:
+            # For circles, update position to mouse position
+            spell_area_indicator.global_position = mouse_world_pos
+        AreaUtils.SpellAreaType.CONE:
+            # For cones, update direction from caster to mouse position
+            spell_area_indicator.update_fixed_target(mouse_world_pos)
+        AreaUtils.SpellAreaType.LINE:
+            # For lines, update direction from caster to mouse position
+            spell_area_indicator.update_fixed_target(mouse_world_pos)

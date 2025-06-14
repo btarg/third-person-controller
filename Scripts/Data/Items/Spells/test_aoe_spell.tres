@@ -6,7 +6,12 @@
 
 [resource]
 script = ExtResource("1_bfuhv")
+target_type = 2
+area_type = 0
 area_of_effect_radius = 15.0
+line_width = 0.0
+cone_angle_degrees = 60.0
+ttl_turns = -1
 spell_element = 6
 modifier = ExtResource("1_htrow")
 spell_power_rolls = Array[ExtResource("2_htrow")]([])

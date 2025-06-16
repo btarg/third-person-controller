@@ -53,7 +53,7 @@ func _ready() -> void:
     _apply_effect_to_nodes_in_area(true)
 
 func _physics_process(_delta: float) -> void:
-    var current_nodes := get_nodes_in_area()
+    var current_nodes: Array[Node3D] = get_nodes_in_area()
     var current_characters: Array[BattleCharacter] = []
     
     # Convert nodes to BattleCharacters for easier tracking
@@ -186,7 +186,7 @@ func _apply_effect_to_character(character: BattleCharacter) -> void:
         _has_been_affected.append(character)
 
 func _apply_effect_to_nodes_in_area(exclude_caster_from_directional_spells: bool = false) -> void:
-    var nodes_in_area := get_nodes_in_area()
+    var nodes_in_area: Array[Node3D] = get_nodes_in_area()
     for node in nodes_in_area:
         var battle_character := node.get_node_or_null("BattleCharacter") as BattleCharacter
         if battle_character:

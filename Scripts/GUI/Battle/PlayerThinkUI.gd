@@ -45,7 +45,12 @@ func set_text() -> void:
             # Get the targeting state to check the selected spell
             var targeting_state := current_state as PlayerTargetingState
             if targeting_state and targeting_state.selected_spell_item:
-                var can_confirm_target := targeting_state.is_valid_target(battle_state.player_selected_character)
+                
+                # Always assume valid target for field spells
+                var can_confirm_target := targeting_state.is_valid_target(battle_state.player_selected_character)\
+                if battle_state.player_selected_character else targeting_state.selected_spell_item.item_type == BaseInventoryItem.ItemType.FIELD_SPELL
+                
+
                 if can_confirm_target:
                     final_text += ControllerHelper.get_button_glyph_img_embed("combat_select_target", IMG_SIZE) + " Confirm target\n"
                 

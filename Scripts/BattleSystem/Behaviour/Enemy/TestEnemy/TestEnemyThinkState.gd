@@ -8,9 +8,13 @@ class DecisionContext:
     var in_attack_range: bool
     var in_spell_range: bool
     var aggression: float
+    var ally_needs_healing: bool
+    var most_injured_ally: BattleCharacter
+    var ally_health_ratio: float
     
     func _init(p_health_ratio: float, p_mana_ratio: float, p_player_health_ratio: float, 
-               p_distance: float, p_in_attack_range: bool, p_in_spell_range: bool, p_aggression: float):
+               p_distance: float, p_in_attack_range: bool, p_in_spell_range: bool, p_aggression: float,
+               p_ally_needs_healing: bool = false, p_most_injured_ally: BattleCharacter = null, p_ally_health_ratio: float = 1.0):
         health_ratio = p_health_ratio
         mana_ratio = p_mana_ratio
         player_health_ratio = p_player_health_ratio
@@ -18,6 +22,9 @@ class DecisionContext:
         in_attack_range = p_in_attack_range
         in_spell_range = p_in_spell_range
         aggression = p_aggression
+        ally_needs_healing = p_ally_needs_healing
+        most_injured_ally = p_most_injured_ally
+        ally_health_ratio = p_ally_health_ratio
 
 # Configuration - expose these in editor for easy balancing
 @export_group("Behavior Weights")
@@ -33,11 +40,20 @@ class DecisionContext:
 @export var low_health_threshold: float = 0.4
 @export var good_health_threshold: float = 0.6
 
+@export_group("Aggression Settings")
+@export var base_aggression: float = 0.5
+@export var min_aggression: float = 0.1
+@export var max_aggression: float = 1.0
+
+var current_aggression: float = 0.5
+var last_player_hp_ratio: float = 1.0
+var last_damage_dealt: int = 0
+
 var best_damage_spell: SpellItem = null
 var best_heal_spell: SpellItem = null
 var best_spell_to_cast: SpellItem = null
 
-@onready var battle_character := get_owner().get_node("BattleCharacter") as BattleCharacter
+@onready var battle_character := state_machine.get_owner().get_node("BattleCharacter") as BattleCharacter
 var last_decision_time: float = 0.0
 var current_action: String = ""
 
@@ -45,13 +61,22 @@ var available_actions: Array[ActionData] = []
 
 # TODO: replace this with an array so we can have multiple targets (e.g. for AOE spells)
 var target_character: BattleCharacter = null
+var ally_target_character: BattleCharacter = null
 
 func _ready() -> void:
+    battle_character.OnLeaveBattle.connect(_on_leave_battle)
+    current_aggression = base_aggression
     _initialize_actions()
-    _select_best_spells()
+    _connect_aggression_signals()
+
+func _on_leave_battle() -> void:
+    if active:
+        # stop thinking
+        Transitioned.emit(self, "IdleState")
 
 func enter() -> void:
     _make_decision()
+    _aggression_check()
 
 # TODO: multi-targeting logic for spells and items
 # Before we can make decisions, we need to pick player(s) as target(s).
@@ -74,7 +99,6 @@ func _initialize_actions() -> void:
         _can_execute_attack,
         -0.1 # decrease aggression slightly for attack action
     ))
-    
     # Cast spell action
     available_actions.append(ActionData.new(
         "cast_spell",
@@ -82,6 +106,16 @@ func _initialize_actions() -> void:
         _execute_cast_spell,
         _can_execute_cast_spell,
         -0.2
+    ))
+    
+    # Heal ally action
+    # TODO: also allow buffing allies
+    available_actions.append(ActionData.new(
+        "heal_ally",
+        _calculate_heal_ally_weight,
+        _execute_heal_ally,
+        _can_execute_heal_ally,
+        0.0
     ))
     
     # Defend action
@@ -121,7 +155,7 @@ func _initialize_actions() -> void:
 
 func _make_decision() -> void:
     var context := _get_context()
-    _precalculate_best_spell_to_cast(context)
+    _update_spell_selection(context)
     var chosen_action := _select_best_action(context)
     
     if not chosen_action:
@@ -145,74 +179,125 @@ func _get_context() -> DecisionContext:
     var attack_range: float = battle_character.stats.get_stat(CharacterStatEntry.ECharacterStat.AttackRange)
     var spell_range: float = _get_best_spell_range()
 
-    # TODO: choose a player to attack before grabbing their HP
-    var current_player_hp := battle_character.battle_state.current_character.current_hp
-    var current_player_max_hp: float = max(0.0,
-    battle_character.battle_state.current_character.stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP))
+    # Find closest player as target
+    # NOTE: this should never be null, since there will always be at least one player in the battle.
+    target_character = _find_closest_player()
 
-    # find closest player to our node
-    var players := get_tree().get_nodes_in_group("Player")
+    # Find most injured ally for healing decisions
+    ally_target_character = _find_most_injured_ally()
 
-    assert(players.size() > 0, "No players found in the scene!")
+    var current_player_hp := target_character.current_hp
+    var current_player_max_hp: float = max(0.0, target_character.stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP))
 
-    players.sort_custom(
-        func(a, b):
-            return a.global_position.distance_to(b.global_position)
-    )
-    
-    target_character = players[0].get_node("BattleCharacter") as BattleCharacter
-
-    
     var health_ratio := current_hp / max_hp
     var mana_ratio := current_mp / max_mp
     var player_health_ratio := current_player_hp / current_player_max_hp
-    
     var distance: float = battle_character.get_parent().global_position.distance_to(
         target_character.get_parent().global_position)
 
     var in_attack_range: bool = distance <= attack_range
     var in_spell_range: bool = distance <= spell_range
 
+    # Check if we can reach allies with heal spells
+    var ally_in_heal_range := false
+    if ally_target_character and best_heal_spell:
+        var ally_distance: float = battle_character.get_parent().global_position.distance_to(
+            ally_target_character.get_parent().global_position)
+        ally_in_heal_range = ally_distance <= best_heal_spell.effective_range
+
+    # Extend spell range check to include ally healing range
+    in_spell_range = in_spell_range or ally_in_heal_range    # Ally healing context
+    var ally_needs_healing := false
+    var ally_health_ratio := 1.0
+    
+    if ally_target_character:
+        var ally_current_hp := ally_target_character.current_hp
+        var ally_max_hp: float = max(0.0, ally_target_character.stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP))
+        ally_health_ratio = ally_current_hp / ally_max_hp
+        ally_needs_healing = ally_health_ratio < low_health_threshold
+
     print("=== %s Decision Context ===" % battle_character.character_name)
     print("HP: %d/%d (%.1f%%)" % [current_hp, max_hp, current_hp / max_hp * 100])
     print("MP: %d/%d (%.1f%%)" % [current_mp, max_mp, current_mp / max_mp * 100])
     print("Actions Left: %d" % battle_character.actions_left)
-    
+    print("Aggression: %.2f" % current_aggression)
     
     if best_damage_spell:
-        print("Best damage spell: %s (MP: %d, Range: %.1f)" % [best_damage_spell.item_name, best_damage_spell.mp_cost, best_damage_spell.effective_range])
+        print("Best damage spell: %s (MP: %d, Range: %.1f, Actions: %d)" % [best_damage_spell.item_name, best_damage_spell.mp_cost, best_damage_spell.effective_range, best_damage_spell.actions_cost])
     if best_heal_spell:
-        print("Best heal spell: %s (MP: %d, Range: %.1f)" % [best_heal_spell.item_name, best_heal_spell.mp_cost, best_heal_spell.effective_range])
-    
+        print("Best heal spell: %s (MP: %d, Range: %.1f, Actions: %d)" % [best_heal_spell.item_name, best_heal_spell.mp_cost, best_heal_spell.effective_range, best_heal_spell.actions_cost])
 
     print("Distance to target: %.1f" % distance)
     print("In attack range: %s | In spell range: %s" % [in_attack_range, in_spell_range])
+    
+    if ally_target_character:
+        print("Most injured ally: %s (%.1f%% HP)" % [ally_target_character.character_name, ally_health_ratio * 100])
+
+    print("=============================")
 
     return DecisionContext.new(
         health_ratio,
         mana_ratio,
-        player_health_ratio,
-        distance,
-        distance <= attack_range,
-        distance <= spell_range,
-        1.0
+        player_health_ratio,        distance,
+        in_attack_range,
+        in_spell_range,
+        current_aggression,
+        ally_needs_healing,
+        ally_target_character,
+        ally_health_ratio
     )
 
-func _precalculate_best_spell_to_cast(context: DecisionContext) -> void:
-    # Reset the best spell to cast
-    best_spell_to_cast = null
+func _update_spell_selection(context: DecisionContext) -> void:
+    # First, select best available spells from inventory
+    if battle_character and battle_character.inventory:
+        var available_spells: Array[SpellItem] = []
+        for item in battle_character.inventory.get_all_items():
+            if item is SpellItem:
+                available_spells.append(item as SpellItem)
+        
+        # Reset previous selections
+        best_damage_spell = null
+        best_heal_spell = null
+          # Find best damage and heal spells based on efficiency, not just raw power
+        var best_damage_efficiency := 0.0
+        var best_heal_efficiency := 0.0
+        
+        for spell in available_spells:
+            var max_power := _get_max_dice_total(spell.spell_power_rolls)
+            var efficiency: float = _calculate_spell_efficiency(spell, max_power, context.aggression)
+            
+            if spell.spell_element == BattleEnums.EAffinityElement.HEAL:
+                if efficiency > best_heal_efficiency:
+                    best_heal_efficiency = efficiency
+                    best_heal_spell = spell
+            elif spell.spell_element not in [BattleEnums.EAffinityElement.BUFF, BattleEnums.EAffinityElement.DEBUFF]:
+                if efficiency > best_damage_efficiency:
+                    best_damage_efficiency = efficiency
+                    best_damage_spell = spell
     
-    # If no spells are available, return early
+    # Then, choose which spell to cast based on context
+    best_spell_to_cast = null
     if not best_damage_spell and not best_heal_spell:
         return
     
-    # Choose damage spell if targeting enemy, heal spell if low health
-    if context.health_ratio < low_health_threshold and best_heal_spell:
+    # Choose heal spell if we or an ally need healing
+    if (context.health_ratio < low_health_threshold or context.ally_needs_healing) and best_heal_spell:
         best_spell_to_cast = best_heal_spell
     elif best_damage_spell:
         best_spell_to_cast = best_damage_spell
     elif best_heal_spell:
         best_spell_to_cast = best_heal_spell
+
+    if best_spell_to_cast:
+        Console.print("[%s AI] Best spell to cast: %s (MP: %d, Range: %.1f, Actions: %d)" % [
+            battle_character.character_name,
+            best_spell_to_cast.item_name,
+            best_spell_to_cast.mp_cost,
+            best_spell_to_cast.effective_range,
+            best_spell_to_cast.actions_cost
+        ])
+    else:
+        Console.print("No spells available to cast!")
 
 func _select_best_action(context: DecisionContext) -> ActionData:
     var valid_actions: Array[ActionData] = []
@@ -309,6 +394,31 @@ func _calculate_heal_weight(context: DecisionContext) -> float:
     
     return weight
 
+func _calculate_heal_ally_weight(context: DecisionContext) -> float:
+    var weight := base_heal_weight
+    
+    # No ally to heal
+    if not context.ally_needs_healing or not context.most_injured_ally:
+        return 0.0
+    
+    # Prioritize ally healing based on how badly they need it
+    if context.ally_health_ratio < critical_health_threshold:
+        weight *= 4.0  # Very high priority
+    elif context.ally_health_ratio < low_health_threshold:
+        weight *= 2.5
+    else:
+        weight *= 0.1  # Low priority if ally is in good health
+    
+    # If we're also low on health, reduce ally healing priority slightly
+    if context.health_ratio < low_health_threshold:
+        weight *= 0.7
+    
+    # Don't heal allies when player is very vulnerable (finish them instead)
+    if context.player_health_ratio < critical_health_threshold:
+        weight *= 0.2
+    
+    return weight
+
 
 ## Move weight should be calculated based on distance to player
 ## and whether the enemy is in attack range or not.
@@ -324,33 +434,16 @@ func _calculate_move_weight(context: DecisionContext) -> float:
     
     # High priority to move if we're not in any useful range
     if not context.in_attack_range and not context.in_spell_range:
-        weight *= 2.0
-    
-    # Lower priority if we can already do useful actions
-    if context.in_attack_range or context.in_spell_range:
+        weight *= 3.0  # Increased multiplier since this means we have no other actions
+    else:
+        # Lower priority if we can already do useful actions
         weight *= 0.3
     
-    # Check if we have no other viable actions
-    var has_viable_actions := false
-    
-    # Can we attack?
-    if context.in_attack_range:
-        has_viable_actions = true
-    
-    # Can we cast spells? (Only if we actually have spells available)
-    if (battle_character.can_use_spells 
-        and context.in_spell_range
-        and (best_damage_spell or best_heal_spell)):
-        has_viable_actions = true
-    
-    # If no spells are available at all, increase movement priority
+    # If no spells are available at all, increase movement priority slightly
     if not best_damage_spell and not best_heal_spell:
-        weight *= 1.5
+        weight *= 1.2
     
-    # If no viable actions, moving becomes essential
-    if not has_viable_actions:
-        weight *= 3.0
-    
+    # Healthy enemies are more aggressive about moving
     if context.health_ratio > good_health_threshold:
         weight *= context.aggression
     
@@ -399,11 +492,22 @@ func _can_execute_cast_spell(context: DecisionContext) -> bool:
     if not battle_character.can_use_spells:
         return false
     
-    if not context.in_spell_range:
-        return false
-    
     # Check if we have any spell to cast (precalculated)
     if not best_spell_to_cast:
+        return false
+    
+    # Determine target and range based on spell type
+    var target_distance: float
+    if best_spell_to_cast.spell_element == BattleEnums.EAffinityElement.HEAL and context.ally_needs_healing and context.most_injured_ally:
+        # Healing spell targeting ally
+        target_distance = battle_character.get_parent().global_position.distance_to(
+            context.most_injured_ally.get_parent().global_position)
+    else:
+        # Damage spell or self-heal targeting player or self
+        target_distance = context.distance
+    
+    # Check if target is in range
+    if target_distance > best_spell_to_cast.effective_range:
         return false
     
     # Final check: can we afford this spell?
@@ -416,6 +520,29 @@ func _can_execute_defend(_context: DecisionContext) -> bool:
 func _can_execute_heal(_context: DecisionContext) -> bool:
     return true  # Could add checks for healing items/abilities
 
+func _can_execute_heal_ally(context: DecisionContext) -> bool:
+    # Must have a heal spell and valid ally target
+    if not best_heal_spell:
+        return false
+    
+    if not context.most_injured_ally or not context.ally_needs_healing:
+        return false
+    
+    # Check if we have enough resources
+    if not battle_character.can_use_spells:
+        return false
+    
+    if battle_character.current_mp < best_heal_spell.mp_cost:
+        return false
+    
+    if battle_character.actions_left < best_heal_spell.actions_cost:
+        return false
+      # Check if ally is in range
+    var ally_distance: float = battle_character.get_parent().global_position.distance_to(
+        context.most_injured_ally.get_parent().global_position)
+    
+    return ally_distance <= best_heal_spell.effective_range
+
 func _can_execute_move_towards_player(context: DecisionContext) -> bool:
     return not (context.in_attack_range or context.in_spell_range)
 
@@ -427,8 +554,8 @@ func _can_execute_use_item(_context: DecisionContext) -> bool:
 
 # Execution functions
 func _execute_attack() -> void:
-    print("Executing attack!")
-    # TODO: implement actual attack logic against selected target
+    # this function spends an action and performs a basic attack
+    SpellHelper.process_basic_attack(battle_character, target_character)
 
 func _execute_cast_spell() -> void:
     if not best_spell_to_cast:
@@ -444,6 +571,15 @@ func _execute_cast_spell() -> void:
     else:
         print("Enemy casting damage spell on player target")
         # TODO: cast damage spell on player target
+
+func _execute_heal_ally() -> void:
+    if not best_heal_spell or not ally_target_character:
+        print("ERROR: No heal spell or ally target available!")
+        return
+    
+    print("Enemy casting heal spell on ally: " + ally_target_character.character_name)
+    # TODO: cast heal spell on ally target
+    # SpellHelper.use_item_or_aoe(best_heal_spell, battle_character, ally_target_character, false)
 
 func _execute_defend() -> void:
     print("Executing defend!")
@@ -466,37 +602,6 @@ func exit() -> void:
     print("Enemy Think State Exited")
     current_action = ""
 
-func _select_best_spells() -> void:
-    # Select best damage and healing spells from available spells
-    if not battle_character or not battle_character.inventory:
-        return
-        
-    var available_spells: Array[SpellItem] = []
-    for item in battle_character.inventory.get_all_items():
-        if item is SpellItem:
-            available_spells.append(item as SpellItem)
-      # Reset previous selections
-    best_damage_spell = null
-    best_heal_spell = null
-    
-    # Find best damage spell (highest maximum potential damage)
-    var best_damage_potential := 0.0
-    for spell in available_spells:
-        if spell.spell_element not in [BattleEnums.EAffinityElement.HEAL, BattleEnums.EAffinityElement.BUFF, BattleEnums.EAffinityElement.DEBUFF]:
-            var max_damage := _get_max_dice_total(spell.spell_power_rolls)
-            if max_damage > best_damage_potential:
-                best_damage_potential = max_damage
-                best_damage_spell = spell
-    
-    # Find best healing spell (highest maximum potential healing)
-    var best_heal_potential := 0.0
-    for spell in available_spells:
-        if spell.spell_element == BattleEnums.EAffinityElement.HEAL:
-            var max_heal := _get_max_dice_total(spell.spell_power_rolls)
-            if max_heal > best_heal_potential:
-                best_heal_potential = max_heal
-                best_heal_spell = spell
-
 func _get_best_spell_range() -> float:
     var max_range := 0.0
     
@@ -514,3 +619,147 @@ func _get_max_dice_total(dice_rolls: Array[DiceRoll]) -> int:
     for dice_roll in dice_rolls:
         total_max += dice_roll.max_possible()
     return total_max
+
+func _calculate_spell_efficiency(spell: SpellItem, max_power: int, aggression: float) -> float:
+    if max_power <= 0:
+        return 0.0
+    
+    # Base efficiency is damage/healing per action point
+    var action_efficiency: float = float(max_power) / max(1, spell.actions_cost)
+    
+    # MP efficiency - how much damage/healing per MP spent
+    var mp_efficiency: float = float(max_power) / max(1, spell.mp_cost)
+    
+    # At low aggression, heavily weight resource conservation
+    # At high aggression, prioritize raw power more
+    var efficiency_weight_actions: float = lerp(0.7, 0.3, aggression)  # Low aggression = prioritize action conservation
+    var efficiency_weight_mp: float = lerp(0.5, 0.2, aggression)      # Low aggression = prioritize MP conservation
+    var efficiency_weight_power: float = lerp(0.3, 0.7, aggression)   # High aggression = prioritize raw power
+    
+    # Combined efficiency score
+    var total_efficiency: float = (action_efficiency * efficiency_weight_actions) + \
+                           (mp_efficiency * efficiency_weight_mp) + \
+                           (max_power * efficiency_weight_power)
+    
+    print("[SPELL EFFICIENCY] %s: Power=%d, Actions=%d, MP=%d, Aggression=%.1f, Efficiency=%.2f" % [
+        spell.item_name, max_power, spell.actions_cost, spell.mp_cost, aggression, total_efficiency])
+    
+    return total_efficiency
+
+func _find_closest_player() -> BattleCharacter:
+    var players := get_tree().get_nodes_in_group("Player")
+    if players.is_empty():
+        return battle_character.battle_state.current_character
+    
+    var enemy_pos: Vector3 = battle_character.get_parent().global_position
+    var closest_player: Node = null
+    var closest_distance := INF
+    
+    for player in players:
+        var distance := enemy_pos.distance_to((player as Node3D).global_position)
+        if distance < closest_distance:
+            closest_distance = distance
+            closest_player = player
+    
+    return closest_player.get_node("BattleCharacter") as BattleCharacter
+
+func _find_most_injured_ally() -> BattleCharacter:
+    var all_enemies := get_tree().get_nodes_in_group("BattleCharacter")
+    var most_injured_ally: BattleCharacter = null
+    var lowest_health_ratio := 1.0
+    
+    for node in all_enemies:
+        var battle_char := node as BattleCharacter
+        if not battle_char:
+            continue
+        
+        # Skip ourselves and non-enemies
+        if battle_char == battle_character or battle_char.character_type != BattleEnums.ECharacterType.ENEMY:
+            continue
+        
+        var current_hp := battle_char.current_hp
+        var max_hp := battle_char.stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP)
+        
+        if max_hp <= 0:
+            continue
+        
+        var health_ratio := current_hp / max_hp
+        
+        if health_ratio < lowest_health_ratio:
+            lowest_health_ratio = health_ratio
+            most_injured_ally = battle_char
+    
+    return most_injured_ally
+
+func _connect_aggression_signals() -> void:
+    # Connect to battle signals to track events that affect aggression
+    BattleSignalBus.OnDeath.connect(_on_character_death)
+    BattleSignalBus.OnTakeDamage.connect(_on_character_take_damage)
+    BattleSignalBus.OnSkillResult.connect(_on_skill_result)
+
+func _on_character_death(character: BattleCharacter) -> void:
+    # Significantly increase aggression when an ally dies
+    if character.character_type == BattleEnums.ECharacterType.ENEMY and character != battle_character:
+        _modify_aggression(0.4, "Ally %s was killed!" % character.character_name)
+
+func _on_character_take_damage(character: BattleCharacter, damage: int) -> void:
+    # Track damage dealt to players to monitor effectiveness
+    if character.character_type == BattleEnums.ECharacterType.PLAYER:
+        last_damage_dealt = damage
+
+func _on_skill_result(attacker: BattleCharacter, target: BattleCharacter, result: BattleEnums.ESkillResult, _damage: int) -> void:
+    # Only react to our own attacks
+    if attacker != battle_character:
+        return
+    
+    # Only care about player targets
+    if target.character_type != BattleEnums.ECharacterType.PLAYER:
+        return
+    
+    # Increase aggression when attacks are nullified, reflected, or absorbed
+    match result:
+        BattleEnums.ESkillResult.SR_REFLECTED:
+            _modify_aggression(0.25, "Player reflected our attack!")
+        BattleEnums.ESkillResult.SR_ABSORBED:
+            _modify_aggression(0.2, "Player absorbed our attack!")
+        BattleEnums.ESkillResult.SR_IMMUNE:
+            _modify_aggression(0.15, "Player is immune to our damage!")
+        BattleEnums.ESkillResult.SR_RESISTED:
+            _modify_aggression(0.1, "Player resisted our attack!")
+        BattleEnums.ESkillResult.SR_FAIL:
+            _modify_aggression(0.05, "Our attack failed!")
+
+func _aggression_check() -> void:
+    # Get current player health ratio for comparison
+    var current_player_hp := target_character.current_hp if target_character else 0
+    var max_player_hp: float = target_character.stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP) if target_character else 1.0
+    var current_player_hp_ratio: float = current_player_hp / max(1.0, max_player_hp)
+    
+    # Check if player is on low HP and we're close enough to kill
+    if current_player_hp_ratio < critical_health_threshold:
+        var distance: float = battle_character.get_parent().global_position.distance_to(target_character.get_parent().global_position)
+        var attack_range := battle_character.stats.get_stat(CharacterStatEntry.ECharacterStat.AttackRange)
+        if distance <= attack_range:
+            _modify_aggression(0.15, "Player is critically injured and in range!")
+    
+    # Check if player health didn't decrease much despite our attacks
+    var hp_change: float = last_player_hp_ratio - current_player_hp_ratio
+    if last_damage_dealt > 0 and hp_change < 0.05:  # Less than 5% HP change despite dealing damage
+        _modify_aggression(0.1, "Player is resilient to our attacks!")
+    
+    # Update tracking variables
+    last_player_hp_ratio = current_player_hp_ratio
+    last_damage_dealt = 0
+
+func _modify_aggression(change: float, reason: String = "") -> void:
+    var old_aggression := current_aggression
+    current_aggression = clamp(current_aggression + change, min_aggression, max_aggression)
+    
+    if abs(change) > 0.001:  # Only log significant changes
+        print("[AGGRESSION] %s: %.2f -> %.2f (%+.2f) - %s" % [
+            battle_character.character_name, 
+            old_aggression, 
+            current_aggression, 
+            change, 
+            reason
+        ])

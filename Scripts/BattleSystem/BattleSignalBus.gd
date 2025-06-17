@@ -23,10 +23,12 @@ signal OnDeath(character: BattleCharacter)
 @warning_ignore("UNUSED_SIGNAL")
 signal OnTakeDamage(character: BattleCharacter, amount: int)
 @warning_ignore("UNUSED_SIGNAL")
+signal OnSkillResult(attacker: BattleCharacter, target: BattleCharacter, result: BattleEnums.ESkillResult, damage: int)
+@warning_ignore("UNUSED_SIGNAL")
 signal OnDowned(character: BattleCharacter, turns: int)
 @warning_ignore("UNUSED_SIGNAL")
 signal OnDownRecovery(character: BattleCharacter)
 @warning_ignore("UNUSED_SIGNAL")
 signal OnTurnsAwarded(character: BattleCharacter, turns: int)
 @warning_ignore("UNUSED_SIGNAL")
-signal OnAvailableActionsChanged
+signal OnAvailableCombatChoicesChanged

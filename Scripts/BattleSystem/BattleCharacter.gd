@@ -110,7 +110,7 @@ func spend_actions(actions: int) -> void:
     OnSpendActions.emit(self)
 
 func _on_inventory_updated(resource: BaseInventoryItem, _count: int, is_new_item: bool) -> void:
-    print("[INVENTORY] " + character_name + " has updated their inventory")
+    # print("[INVENTORY] " + character_name + " has updated their inventory")
     
     if not is_new_item:
         return
@@ -397,6 +397,7 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
             return BattleEnums.ESkillResult.SR_DEATH
 
     BattleSignalBus.OnTakeDamage.emit(self, damage)
+    BattleSignalBus.OnSkillResult.emit(attacker, self, result, damage)
     var damage_number := DamageNumber.create_damage_number(damage, damage_type, result, self.get_parent(), battle_state.top_down_player.camera)
     add_child(damage_number)
     print("[DAMAGE] %s did %s damage to %s (%s)" % [attacker.character_name, damage, character_name, Util.get_enum_name(BattleEnums.ESkillResult, result)])

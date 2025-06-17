@@ -3693,7 +3693,7 @@ metadata/_custom_type_script = "uid://dxouogvyc8hgf"
 [sub_resource type="BoxShape3D" id="BoxShape3D_t84g8"]
 size = Vector3(0.664993, 1.66133, 0.850566)
 
-[sub_resource type="ImmediateMesh" id="ImmediateMesh_knmti"]
+[sub_resource type="ImmediateMesh" id="ImmediateMesh_tyeyk"]
 
 [node name="TestEnemy" type="CharacterBody3D"]
 collision_layer = 2
@@ -4210,4 +4210,4 @@ shape = SubResource("BoxShape3D_t84g8")
 [node name="LineRenderer3D" parent="." instance=ExtResource("11_h7rtx")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 material_override = null
-mesh = SubResource("ImmediateMesh_knmti")
+mesh = SubResource("ImmediateMesh_tyeyk")

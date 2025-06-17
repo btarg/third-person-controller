@@ -3,11 +3,38 @@ extends Node
 var tracked_spell_aoe_nodes: Array = []
 @onready var battle_state := GameModeStateMachine.get_node("BattleState") as BattleState
 
+func process_basic_attack(attacker: BattleCharacter, target: BattleCharacter) -> BattleEnums.ESkillResult:
+    var attacker_position: Vector3 = attacker.get_parent().global_position
+    var target_position: Vector3= target.get_parent().global_position
+
+    var distance: float = attacker_position.distance_to(target_position)
+    var attack_range := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.AttackRange)
+    if distance > attack_range:
+        print("[ATTACK] Target out of range!")
+        return BattleEnums.ESkillResult.SR_OUT_OF_RANGE
+
+    await battle_state.message_ui.show_messages(["Attack"])
+
+    print("%s attacks %s with %s!" % [attacker.character_name, target.character_name, 
+        Util.get_enum_name(BattleEnums.EAffinityElement, attacker.basic_attack_element)])
+    
+    var AC := ceili(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass))
+    var luck := ceili(attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.Luck))
+
+
+    var attack_roll := DiceRoll.roll(20, 1, AC, luck) # use luck as bonus
+
+    var phys_str := ceili(attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.PhysicalStrength))
+
+    var damage_roll := DiceRoll.roll(20, 1, phys_str)
+
+    var result := target.take_damage(attacker, [damage_roll], attack_roll, attacker.basic_attack_element)
+    print("[ATTACK] Result: " + Util.get_enum_name(BattleEnums.ESkillResult, result))
+    return result
 
 ## Calling Spellitem#use on an AOE spell will not spawn the radius, but rather apply the effect to the target character.
 ## This function will handle both AOE spells and normal items/spells.
 
-## TODO: replace with spawning the SpellAreas
 func use_item_or_aoe(item: BaseInventoryItem, user_character: BattleCharacter, target_character: BattleCharacter, update_inventory: bool = false) -> BaseInventoryItem.UseStatus:
     if item is SpellItem:
         var spell_item := item as SpellItem

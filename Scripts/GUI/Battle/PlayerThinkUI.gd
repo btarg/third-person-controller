@@ -10,7 +10,7 @@ const IMG_SIZE: int = 48
 func _ready() -> void:
     crosshair.visible = false
     ControllerHelper.OnInputDeviceChanged.connect(set_text)
-    BattleSignalBus.OnAvailableActionsChanged.connect(set_text)
+    BattleSignalBus.OnAvailableCombatChoicesChanged.connect(set_text)
     label.bbcode_enabled = true
     
     set_text()

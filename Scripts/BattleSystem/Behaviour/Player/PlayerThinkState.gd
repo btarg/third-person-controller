@@ -282,7 +282,7 @@ func process_action(chosen_action: BattleEnums.EPlayerCombatAction) -> void:
         return
     match chosen_action:
         BattleEnums.EPlayerCombatAction.CA_ATTACK:
-            var attack := await _process_basic_attack(battle_state.current_character, target_character)
+            var attack := await SpellHelper.process_basic_attack(battle_state.current_character, target_character)
             if attack != BattleEnums.ESkillResult.SR_OUT_OF_RANGE:
                 battle_character.spend_actions(1)
         BattleEnums.EPlayerCombatAction.CA_DRAW:
@@ -292,36 +292,5 @@ func process_action(chosen_action: BattleEnums.EPlayerCombatAction) -> void:
             print("Invalid action")
             battle_character.spend_actions(1)
 
-    
-
-
-func _process_basic_attack(attacker: BattleCharacter, target: BattleCharacter) -> BattleEnums.ESkillResult:
-    var attacker_position: Vector3 = attacker.get_parent().global_position
-    var target_position: Vector3= target.get_parent().global_position
-
-    var distance: float = attacker_position.distance_to(target_position)
-    var attack_range := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.AttackRange)
-    if distance > attack_range:
-        print("[ATTACK] Target out of range!")
-        return BattleEnums.ESkillResult.SR_OUT_OF_RANGE
-
-    await battle_state.message_ui.show_messages(["Attack"])
-
-    print("%s attacks %s with %s!" % [attacker.character_name, target.character_name, 
-        Util.get_enum_name(BattleEnums.EAffinityElement, attacker.basic_attack_element)])
-    
-    var AC := ceili(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass))
-    var luck := ceili(attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.Luck))
-
-
-    var attack_roll := DiceRoll.roll(20, 1, AC, luck) # use luck as bonus
-
-    var phys_str := ceili(attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.PhysicalStrength))
-
-    var damage_roll := DiceRoll.roll(20, 1, phys_str)
-
-    var result := target.take_damage(attacker, [damage_roll], attack_roll, attacker.basic_attack_element)
-    print("[ATTACK] Result: " + Util.get_enum_name(BattleEnums.ESkillResult, result))
-    return result
 
 func _state_input(_event: InputEvent) -> void: pass

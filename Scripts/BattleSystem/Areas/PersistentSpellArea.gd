@@ -180,10 +180,20 @@ func _setup_area_positioning() -> void:
             print("[PERSISTENT SPELL AREA] Line direction set to: %s" % aim_direction)
 
 func _apply_effect_to_character(character: BattleCharacter) -> void:
+    if not caster:
+        print("[PERSISTENT SPELL AREA] ERROR: Caster is null when trying to apply effect!")
+        return
+    
+    if not _spell_item:
+        print("[PERSISTENT SPELL AREA] ERROR: Spell item is null when trying to apply effect!")
+        return
+    
     if _spell_item.can_use_on(caster, character, true): # Ignore costs for AOE
         _spell_item.use(caster, character, false)  # Don't consume item for AOE
         print("[PERSISTENT SPELL AREA] %s used %s on %s" % [caster.character_name, _spell_item.item_name, character.character_name])
         _has_been_affected.append(character)
+    else:
+        print("[PERSISTENT SPELL AREA] %s cannot use %s on %s" % [caster.character_name, _spell_item.item_name, character.character_name])
 
 func _apply_effect_to_nodes_in_area(exclude_caster_from_directional_spells: bool = false) -> void:
     var nodes_in_area: Array[Node3D] = get_nodes_in_area()

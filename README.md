@@ -14,6 +14,7 @@
 
 - [ ] Magic: Implement MP costs for spells
 - [ ] Magic: Implement Affinity Points or other system for levelling affinities
-- [ ] Magic: Implement [Mastery](https://btarg.github.io/requiem-vault/Players/Concepts/Mechanics/Magic/Mastery)
+- [ ] Affinities: Implement [Mastery](https://btarg.github.io/requiem-vault/Players/Concepts/Mechanics/Magic/Mastery)
+- [ ] Affinities: Implement [Scanning](https://btarg.github.io/requiem-vault/Players/Concepts/Mechanics/Elements-and-Affinities/Scanning)
 - [ ] Levelling: Implement levelling up with shared XP pool and Hoard system
 - [ ] Battle mechanics: Implement [Knockdown rolls](https://btarg.github.io/requiem-vault/Players/Concepts/Mechanics/Critical-Hits-and-Knockdowns)

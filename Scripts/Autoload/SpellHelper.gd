@@ -3,6 +3,8 @@ extends Node
 var tracked_spell_aoe_nodes: Array = []
 @onready var battle_state := GameModeStateMachine.get_node("BattleState") as BattleState
 
+const MASTERY_DRAW_ROLLS := 2
+
 func process_basic_attack(attacker: BattleCharacter, target: BattleCharacter) -> BattleEnums.ESkillResult:
     var attacker_position: Vector3 = attacker.get_parent().global_position
     var target_position: Vector3= target.get_parent().global_position
@@ -34,7 +36,6 @@ func process_basic_attack(attacker: BattleCharacter, target: BattleCharacter) ->
 
 ## Calling Spellitem#use on an AOE spell will not spawn the radius, but rather apply the effect to the target character.
 ## This function will handle both AOE spells and normal items/spells.
-
 func use_item_or_aoe(item: BaseInventoryItem, user_character: BattleCharacter, target_character: BattleCharacter, update_inventory: bool = false) -> BaseInventoryItem.UseStatus:
     if item is SpellItem:
         var spell_item := item as SpellItem
@@ -68,13 +69,49 @@ func create_area_of_effect_radius(spell: SpellItem, caster: BattleCharacter, spa
     print("[AOE SPELL] Spawned AOE spell effect at %s" % spawn_position)
     return true
 
-func hide_spell_area_indicator() -> void:
-    # This function is called from BattleState to ensure spell indicators are hidden when exiting battle
-    # Clean up any persistent spell areas that might be left over
-    for spell_area in tracked_spell_aoe_nodes:
-        if is_instance_valid(spell_area):
-            spell_area.queue_free()
-    tracked_spell_aoe_nodes.clear()
+func draw_spell(target_character: BattleCharacter, current_character: BattleCharacter, selected_spell_index: int = 0, cast_immediately: bool = false) -> void:
+
+    if selected_spell_index < 0 or selected_spell_index >= target_character.draw_list.size():
+        return
+
+    var drawn_spell := target_character.draw_list[selected_spell_index] as SpellItem
+
+    print("[DRAW] Drawn spell: " + drawn_spell.item_name)
+
+    var draw_bonus_d4s := ceili(current_character.stats.get_stat(CharacterStatEntry.ECharacterStat.Luck))
+    var draw_bonus := DiceRoll.roll(4, draw_bonus_d4s).total()
+
+    # Mastery gives 2 d6 rolls for drawing instead of 1, but does not affect the draw_spell bonus
+    var rolls := 1
+    if drawn_spell.spell_element in current_character.mastery_elements:
+        print("[DRAW] Character has mastery for %s" % [Util.get_enum_name(BattleEnums.EAffinityElement, drawn_spell.spell_element)])
+        rolls = MASTERY_DRAW_ROLLS
+
+    print("[DRAW] Draw bonus: " + str(draw_bonus))
+    var drawn_amount := DiceRoll.roll(6, rolls, draw_bonus).total()
+    print("[DRAW] Drawn amount: " + str(drawn_amount))
+    
+
+    if cast_immediately:
+        await battle_state.message_ui.show_messages([drawn_spell.item_name])
+        var status := drawn_spell.use(current_character, target_character, false)
+        print("[DRAW] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
+    else:
+        
+        if current_character.inventory:
+            current_character.inventory.add_item(drawn_spell, drawn_amount)
+            print("[DRAW] Received %s %s!" % [str(drawn_amount), drawn_spell.item_name])
+            var draw_display_string := "%s drew %s %ss"
+            if current_character.mastery_elements.has(drawn_spell.spell_element):
+                draw_display_string += " (Mastery)"
+
+            await battle_state.message_ui.show_messages([draw_display_string % [current_character.character_name, str(drawn_amount), drawn_spell.item_name]])
+        else:
+            print("[DRAW] Character has no inventory")
+
+    if not current_character.is_spell_familiar(drawn_spell):
+        current_character.add_familiar_spell(drawn_spell)
+
 
 # Sort based on available actions. Used in the inventory UI to prioritize items that the player probably wants to use based on current context.
 func sort_items_by_usefulness(a: BaseInventoryItem, b: BaseInventoryItem) -> bool:

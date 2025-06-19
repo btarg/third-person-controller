@@ -1,5 +1,4 @@
-class_name ActionData extends RefCounted
-
+class_name AIActionData extends RefCounted
 
 var name: String
 var weight_calculator: Callable

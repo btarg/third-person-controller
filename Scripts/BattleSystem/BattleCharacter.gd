@@ -379,16 +379,19 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
         and attacker.basic_attack_element == damage_type):
             damage = 0
             result = BattleEnums.ESkillResult.SR_FAIL
-        else:
-            var attacker_strength := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.PhysicalStrength)\
-                    if damage_type == BattleEnums.EAffinityElement.PHYS else\
-                            attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.MagicalStrength)
+
+        # COMMENTED OUT: Strength is only added to the attack roll now, not the damage roll
+
+        # else:
+        #     var attacker_strength := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.PhysicalStrength)\
+        #             if damage_type == BattleEnums.EAffinityElement.PHYS else\
+        #                     attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.MagicalStrength)
             
-            print("[Attack] Original Damage: " + str(damage))
-            print(attacker.character_name + " has strength: " + str(attacker_strength))
-            # UPDATE: strength now adds to damage instead of multiplying (rounded up)
-            damage = ceil(damage + attacker_strength)
-            print("[Attack] Damage with strength: " + str(damage))
+        #     print("[Attack] Original Damage: " + str(damage))
+        #     print(attacker.character_name + " has strength: " + str(attacker_strength))
+        #     # UPDATE: strength now adds to damage instead of multiplying (rounded up)
+        #     damage = ceil(damage + attacker_strength)
+        #     print("[Attack] Damage with strength: " + str(damage))
     
     if damage > 0:
         current_hp -= damage

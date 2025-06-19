@@ -25,9 +25,7 @@ func process_basic_attack(attacker: BattleCharacter, target: BattleCharacter) ->
 
 
     var attack_roll := DiceRoll.roll(20, 1, AC, luck) # use luck as bonus
-
     var phys_str := ceili(attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.PhysicalStrength))
-
     var damage_roll := DiceRoll.roll(20, 1, phys_str)
 
     var result := target.take_damage(attacker, [damage_roll], attack_roll, attacker.basic_attack_element)

@@ -143,3 +143,9 @@ static func roll_all(array: Array[DiceRoll], reroll_all: bool = true) -> int:
     for i in range(array.size()):
         return_total += array[i].total() if not reroll_all else array[i].reroll().total()
     return return_total
+
+static func max_possible_all(dice_rolls: Array[DiceRoll]) -> int:
+    var total_max := 0
+    for dice_roll in dice_rolls:
+        total_max += dice_roll.max_possible()
+    return total_max

@@ -1,30 +1,11 @@
+## TODO: Most of this class needs to be moved to a generic Enemy Think State,
+# where only stuff specific to this enemy is here.
+# Helper functions should be moved to separate utility classes where appropriate too.
+
+
+
 class_name TestEnemyThinkState extends State
 
-class DecisionContext:
-    var health_ratio: float
-    var mana_ratio: float
-    var player_health_ratio: float
-    var distance: float
-    var in_attack_range: bool
-    var in_spell_range: bool
-    var aggression: float
-    var ally_needs_healing: bool
-    var most_injured_ally: BattleCharacter
-    var ally_health_ratio: float
-    
-    func _init(p_health_ratio: float, p_mana_ratio: float, p_player_health_ratio: float, 
-               p_distance: float, p_in_attack_range: bool, p_in_spell_range: bool, p_aggression: float,
-               p_ally_needs_healing: bool = false, p_most_injured_ally: BattleCharacter = null, p_ally_health_ratio: float = 1.0):
-        health_ratio = p_health_ratio
-        mana_ratio = p_mana_ratio
-        player_health_ratio = p_player_health_ratio
-        distance = p_distance
-        in_attack_range = p_in_attack_range
-        in_spell_range = p_in_spell_range
-        aggression = p_aggression
-        ally_needs_healing = p_ally_needs_healing
-        most_injured_ally = p_most_injured_ally
-        ally_health_ratio = p_ally_health_ratio
 
 # Configuration - expose these in editor for easy balancing
 @export_group("Behavior Weights")
@@ -54,10 +35,8 @@ var best_heal_spell: SpellItem = null
 var best_spell_to_cast: SpellItem = null
 
 @onready var battle_character := state_machine.get_owner().get_node("BattleCharacter") as BattleCharacter
-var last_decision_time: float = 0.0
-var current_action: String = ""
 
-var available_actions: Array[ActionData] = []
+var available_actions: Array[AIActionData] = []
 
 # TODO: replace this with an array so we can have multiple targets (e.g. for AOE spells)
 var target_character: BattleCharacter = null
@@ -92,7 +71,7 @@ func _initialize_actions() -> void:
     available_actions.clear()
     
     # Attack action
-    available_actions.append(ActionData.new(
+    available_actions.append(AIActionData.new(
         "attack",
         _calculate_attack_weight,
         _execute_attack,
@@ -100,7 +79,7 @@ func _initialize_actions() -> void:
         -0.1 # decrease aggression slightly for attack action
     ))
     # Cast spell action
-    available_actions.append(ActionData.new(
+    available_actions.append(AIActionData.new(
         "cast_spell",
         _calculate_spell_weight,
         _execute_cast_spell,
@@ -110,7 +89,7 @@ func _initialize_actions() -> void:
     
     # Heal ally action
     # TODO: also allow buffing allies
-    available_actions.append(ActionData.new(
+    available_actions.append(AIActionData.new(
         "heal_ally",
         _calculate_heal_ally_weight,
         _execute_heal_ally,
@@ -119,7 +98,7 @@ func _initialize_actions() -> void:
     ))
     
     # Defend action
-    available_actions.append(ActionData.new(
+    available_actions.append(AIActionData.new(
         "defend",
         _calculate_defend_weight,
         _execute_defend,
@@ -128,7 +107,7 @@ func _initialize_actions() -> void:
     ))
     
     # Move towards player action
-    available_actions.append(ActionData.new(
+    available_actions.append(AIActionData.new(
         "move_towards_player",
         _calculate_move_weight,
         _execute_move_towards_player,
@@ -136,7 +115,7 @@ func _initialize_actions() -> void:
     ))
     
     # Draw spell action
-    available_actions.append(ActionData.new(
+    available_actions.append(AIActionData.new(
         "draw_spell",
         _calculate_draw_spell_weight,
         _execute_draw_spell,
@@ -145,7 +124,7 @@ func _initialize_actions() -> void:
     ))
     
     # Use item action
-    available_actions.append(ActionData.new(
+    available_actions.append(AIActionData.new(
         "use_item",
         _calculate_item_weight,
         _execute_use_item,
@@ -163,14 +142,13 @@ func _make_decision() -> void:
         return
 
     chosen_action.execute()
-    current_action = chosen_action.name
     print("%s executed action: %s" % [battle_character.character_name, chosen_action.name])
     
     await get_tree().create_timer(1.0).timeout
-    battle_character.spend_actions(3)
 
-
-func _get_context() -> DecisionContext:
+## TODO: this can be moved to a generic Enemy Think State
+## as the context is not specific to any enemy.
+func _get_context() -> AIDecisionContext:
     var current_hp := battle_character.current_hp
     var max_hp: float = max(0.0, battle_character.stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP))
     var current_mp := battle_character.current_mp
@@ -235,7 +213,7 @@ func _get_context() -> DecisionContext:
 
     print("=============================")
 
-    return DecisionContext.new(
+    return AIDecisionContext.new(
         health_ratio,
         mana_ratio,
         player_health_ratio,        distance,
@@ -247,7 +225,7 @@ func _get_context() -> DecisionContext:
         ally_health_ratio
     )
 
-func _update_spell_selection(context: DecisionContext) -> void:
+func _update_spell_selection(context: AIDecisionContext) -> void:
     # First, select best available spells from inventory
     if battle_character and battle_character.inventory:
         var available_spells: Array[SpellItem] = []
@@ -263,7 +241,7 @@ func _update_spell_selection(context: DecisionContext) -> void:
         var best_heal_efficiency := 0.0
         
         for spell in available_spells:
-            var max_power := _get_max_dice_total(spell.spell_power_rolls)
+            var max_power := DiceRoll.max_possible_all(spell.spell_power_rolls)
             var efficiency: float = _calculate_spell_efficiency(spell, max_power, context.aggression)
             
             if spell.spell_element == BattleEnums.EAffinityElement.HEAL:
@@ -299,8 +277,8 @@ func _update_spell_selection(context: DecisionContext) -> void:
     else:
         Console.print("No spells available to cast!")
 
-func _select_best_action(context: DecisionContext) -> ActionData:
-    var valid_actions: Array[ActionData] = []
+func _select_best_action(context: AIDecisionContext) -> AIActionData:
+    var valid_actions: Array[AIActionData] = []
     
     # Filter actions that can be executed and calculate their weights
     for action in available_actions:
@@ -330,7 +308,7 @@ func _select_best_action(context: DecisionContext) -> ActionData:
     return valid_actions[0]  # Fallback
 
 # Weight calculation functions
-func _calculate_attack_weight(context: DecisionContext) -> float:
+func _calculate_attack_weight(context: AIDecisionContext) -> float:
     var weight := base_attack_weight
     weight *= context.aggression
     
@@ -342,7 +320,7 @@ func _calculate_attack_weight(context: DecisionContext) -> float:
     
     return weight
 
-func _calculate_spell_weight(context: DecisionContext) -> float:
+func _calculate_spell_weight(context: AIDecisionContext) -> float:
     # If no spells are available, return 0 to disable spell casting
     if not best_damage_spell and not best_heal_spell:
         return 0.0
@@ -358,7 +336,7 @@ func _calculate_spell_weight(context: DecisionContext) -> float:
     
     return weight
 
-func _calculate_defend_weight(context: DecisionContext) -> float:
+func _calculate_defend_weight(context: AIDecisionContext) -> float:
     var weight := base_defend_weight
     
     # Only defend when at low health
@@ -379,7 +357,7 @@ func _calculate_defend_weight(context: DecisionContext) -> float:
     weight /= context.aggression
     return weight
 
-func _calculate_heal_weight(context: DecisionContext) -> float:
+func _calculate_heal_weight(context: AIDecisionContext) -> float:
     var weight := base_heal_weight
     
     if context.health_ratio < critical_health_threshold:
@@ -394,7 +372,7 @@ func _calculate_heal_weight(context: DecisionContext) -> float:
     
     return weight
 
-func _calculate_heal_ally_weight(context: DecisionContext) -> float:
+func _calculate_heal_ally_weight(context: AIDecisionContext) -> float:
     var weight := base_heal_weight
     
     # No ally to heal
@@ -429,7 +407,7 @@ func _calculate_heal_ally_weight(context: DecisionContext) -> float:
 # 4. The player is not in draw range
 # 5. All other actions require too much MP or Actions to execute
 
-func _calculate_move_weight(context: DecisionContext) -> float:
+func _calculate_move_weight(context: AIDecisionContext) -> float:
     var weight := base_move_weight
     
     # High priority to move if we're not in any useful range
@@ -449,7 +427,7 @@ func _calculate_move_weight(context: DecisionContext) -> float:
     
     return weight
 
-func _calculate_draw_spell_weight(_context: DecisionContext) -> float:
+func _calculate_draw_spell_weight(_context: AIDecisionContext) -> float:
     return 0.1 # TODO: implement draw spell weight calculation :
         # If we don't have any appropriate spells and the player is in draw range,
         # we should consider drawing a spell.
@@ -457,7 +435,7 @@ func _calculate_draw_spell_weight(_context: DecisionContext) -> float:
         # Higher aggression means we are more likely to Cast instead of Stock once we have drawn a spell,
         # But we will still prefer a regular attack if we are in attack range.
 
-func _calculate_item_weight(context: DecisionContext) -> float:
+func _calculate_item_weight(context: AIDecisionContext) -> float:
     var weight := 0.3
     
     # Prioritize items when low on health (for healing items)
@@ -473,11 +451,9 @@ func _calculate_item_weight(context: DecisionContext) -> float:
     return weight
 
 # Can execute functions
-func _can_execute_attack(context: DecisionContext) -> bool:
+func _can_execute_attack(context: AIDecisionContext) -> bool:
     return context.in_attack_range
 
-
-## TODO: can execute cast spell
 # To check if we can cast a spell, we need to check:
 # 1. If the enemy can use spells
 # 2. If the enemy is in range to cast the spell
@@ -488,7 +464,7 @@ func _can_execute_attack(context: DecisionContext) -> bool:
 # on the map (within range) to cast the spell to hit multiple targets.
 # i can probably cheat this by just selecting the location of the player with
 # the lowest HP, as that is the most likely "primary" target for the spell.
-func _can_execute_cast_spell(context: DecisionContext) -> bool:
+func _can_execute_cast_spell(context: AIDecisionContext) -> bool:
     if not battle_character.can_use_spells:
         return false
     
@@ -514,13 +490,13 @@ func _can_execute_cast_spell(context: DecisionContext) -> bool:
     return (battle_character.current_mp >= best_spell_to_cast.mp_cost 
             and battle_character.actions_left >= best_spell_to_cast.actions_cost)
 
-func _can_execute_defend(_context: DecisionContext) -> bool:
+func _can_execute_defend(_context: AIDecisionContext) -> bool:
     return true
 
-func _can_execute_heal(_context: DecisionContext) -> bool:
+func _can_execute_heal(_context: AIDecisionContext) -> bool:
     return true  # Could add checks for healing items/abilities
 
-func _can_execute_heal_ally(context: DecisionContext) -> bool:
+func _can_execute_heal_ally(context: AIDecisionContext) -> bool:
     # Must have a heal spell and valid ally target
     if not best_heal_spell:
         return false
@@ -543,19 +519,19 @@ func _can_execute_heal_ally(context: DecisionContext) -> bool:
     
     return ally_distance <= best_heal_spell.effective_range
 
-func _can_execute_move_towards_player(context: DecisionContext) -> bool:
+func _can_execute_move_towards_player(context: AIDecisionContext) -> bool:
     return not (context.in_attack_range or context.in_spell_range)
 
-func _can_execute_draw_spell(context: DecisionContext) -> bool:
+func _can_execute_draw_spell(context: AIDecisionContext) -> bool:
     return context.mana_ratio < 0.8  # Don't draw spells if mana is high
 
-func _can_execute_use_item(_context: DecisionContext) -> bool:
+func _can_execute_use_item(_context: AIDecisionContext) -> bool:
     return true  # Could add inventory checks
 
-# Execution functions
+
 func _execute_attack() -> void:
-    # this function spends an action and performs a basic attack
     SpellHelper.process_basic_attack(battle_character, target_character)
+    battle_character.spend_actions(1)
 
 func _execute_cast_spell() -> void:
     if not best_spell_to_cast:
@@ -572,35 +548,40 @@ func _execute_cast_spell() -> void:
         print("Enemy casting damage spell on player target")
         # TODO: cast damage spell on player target
 
+    # TODO: we should factor in the spell's action cost when picking it earlier on.
+    battle_character.spend_actions(best_spell_to_cast.actions_cost)
+
 func _execute_heal_ally() -> void:
     if not best_heal_spell or not ally_target_character:
         print("ERROR: No heal spell or ally target available!")
         return
     
     print("Enemy casting heal spell on ally: " + ally_target_character.character_name)
-    # TODO: cast heal spell on ally target
-    # SpellHelper.use_item_or_aoe(best_heal_spell, battle_character, ally_target_character, false)
+    # Cast heal spell on ally target (enemies don't have an inventory yet, this is TODO)
+    SpellHelper.use_item_or_aoe(best_heal_spell, battle_character, ally_target_character, false)
 
 func _execute_defend() -> void:
     print("Executing defend!")
     # TODO: implement defend logic (increase armor class or reduce incoming damage)
-
+    battle_character.spend_actions(1)  # Example: just spend 1 action for now
 
 func _execute_move_towards_player() -> void:
     print("Executing move towards player!")
     # TODO: implement movement logic towards the closest player
+    battle_character.spend_actions(1)  # Example: just spend 1 action for now
 
 func _execute_draw_spell() -> void:
     print("Executing draw spell!")
     # TODO: implement spell drawing logic from draw_list
+    battle_character.spend_actions(1)  # Example: just spend 1 action for now
 
 func _execute_use_item() -> void:
     print("Executing use item!")
     # TODO: implement item usage logic from inventory
+    battle_character.spend_actions(1)  # Example: just spend 1 action for now
 
 func exit() -> void:
     print("Enemy Think State Exited")
-    current_action = ""
 
 func _get_best_spell_range() -> float:
     var max_range := 0.0
@@ -614,11 +595,6 @@ func _get_best_spell_range() -> float:
     # This ensures the enemy will prioritize other actions like moving or defending
     return max_range
 
-func _get_max_dice_total(dice_rolls: Array[DiceRoll]) -> int:
-    var total_max := 0
-    for dice_roll in dice_rolls:
-        total_max += dice_roll.max_possible()
-    return total_max
 
 func _calculate_spell_efficiency(spell: SpellItem, max_power: int, aggression: float) -> float:
     if max_power <= 0:

@@ -147,8 +147,9 @@ func _disconnect_actions_signal(battle_character: BattleCharacter) -> void:
 func _setup_area_positioning() -> void:
     match _spell_item.area_type:
         AreaUtils.SpellAreaType.CIRCLE:
-            # Circles don't need direction, just position
-            pass
+            # Position circle at the target spawn position
+            global_position = _target_spawn_position
+            print("[PERSISTENT SPELL AREA] Circle positioned at: %s" % global_position)
         AreaUtils.SpellAreaType.CONE:
             # Position cone at caster's ground level
             var caster_ground_pos := Util.project_to_ground(caster.get_parent(), 1, 0.002)

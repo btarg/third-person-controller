@@ -170,11 +170,11 @@ func _get_context() -> AIDecisionContext:
     var health_ratio := current_hp / max_hp
     var mana_ratio := current_mp / max_mp
     var player_health_ratio := current_player_hp / current_player_max_hp
-    var distance: float = battle_character.get_parent().global_position.distance_to(
+    var distance_to_target: float = battle_character.get_parent().global_position.distance_to(
         target_character.get_parent().global_position)
 
-    var in_attack_range: bool = distance <= attack_range
-    var in_spell_range: bool = distance <= spell_range
+    var in_attack_range: bool = distance_to_target <= attack_range
+    var in_spell_range: bool = distance_to_target <= spell_range
 
     # Check if we can reach allies with heal spells
     var ally_in_heal_range := false
@@ -205,7 +205,7 @@ func _get_context() -> AIDecisionContext:
     if best_heal_spell:
         print("Best heal spell: %s (MP: %d, Range: %.1f, Actions: %d)" % [best_heal_spell.item_name, best_heal_spell.mp_cost, best_heal_spell.effective_range, best_heal_spell.actions_cost])
 
-    print("Distance to target: %.1f" % distance)
+    print("Distance to target: %.1f" % distance_to_target)
     print("In attack range: %s | In spell range: %s" % [in_attack_range, in_spell_range])
     
     if ally_target_character:
@@ -216,7 +216,8 @@ func _get_context() -> AIDecisionContext:
     return AIDecisionContext.new(
         health_ratio,
         mana_ratio,
-        player_health_ratio,        distance,
+        player_health_ratio,
+        distance_to_target,
         in_attack_range,
         in_spell_range,
         current_aggression,
@@ -227,11 +228,15 @@ func _get_context() -> AIDecisionContext:
 
 func _update_spell_selection(context: AIDecisionContext) -> void:
     # First, select best available spells from inventory
+
+    # TODO: items also have a count, which we should consider
+    # when selecting spells.
     if battle_character and battle_character.inventory:
         var available_spells: Array[SpellItem] = []
-        for item in battle_character.inventory.get_all_items():
-            if item is SpellItem:
-                available_spells.append(item as SpellItem)
+        for item_dict in battle_character.inventory.items.values():
+            var res_item := item_dict["resource"] as SpellItem
+            if res_item:
+                available_spells.append(res_item)
         
         # Reset previous selections
         best_damage_spell = null
@@ -267,7 +272,7 @@ func _update_spell_selection(context: AIDecisionContext) -> void:
         best_spell_to_cast = best_heal_spell
 
     if best_spell_to_cast:
-        Console.print("[%s AI] Best spell to cast: %s (MP: %d, Range: %.1f, Actions: %d)" % [
+        print("[%s AI] Best spell to cast: %s (MP: %d, Range: %.1f, Actions: %d)" % [
             battle_character.character_name,
             best_spell_to_cast.item_name,
             best_spell_to_cast.mp_cost,
@@ -275,7 +280,7 @@ func _update_spell_selection(context: AIDecisionContext) -> void:
             best_spell_to_cast.actions_cost
         ])
     else:
-        Console.print("No spells available to cast!")
+        print("[%s AI] No spells available to cast!" % battle_character.character_name)
 
 func _select_best_action(context: AIDecisionContext) -> AIActionData:
     var valid_actions: Array[AIActionData] = []
@@ -480,7 +485,7 @@ func _can_execute_cast_spell(context: AIDecisionContext) -> bool:
             context.most_injured_ally.get_parent().global_position)
     else:
         # Damage spell or self-heal targeting player or self
-        target_distance = context.distance
+        target_distance = context.distance_to_target
     
     # Check if target is in range
     if target_distance > best_spell_to_cast.effective_range:

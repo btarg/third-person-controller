@@ -4,7 +4,7 @@ class_name AIDecisionContext extends RefCounted
 var health_ratio: float
 var mana_ratio: float
 var player_health_ratio: float
-var distance: float
+var distance_to_target: float
 var in_attack_range: bool
 var in_spell_range: bool
 var aggression: float
@@ -18,7 +18,7 @@ func _init(p_health_ratio: float, p_mana_ratio: float, p_player_health_ratio: fl
     health_ratio = p_health_ratio
     mana_ratio = p_mana_ratio
     player_health_ratio = p_player_health_ratio
-    distance = p_distance
+    distance_to_target = p_distance
     in_attack_range = p_in_attack_range
     in_spell_range = p_in_spell_range
     aggression = p_aggression

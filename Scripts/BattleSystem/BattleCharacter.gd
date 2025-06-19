@@ -27,7 +27,6 @@ var _familiar_spells: Array[SpellItem] = []
 @export var draw_list_from_inventory: bool = true
 
 @onready var battle_state := GameModeStateMachine.get_node("BattleState") as BattleState
-@onready var exploration_state := get_node("/root/GameModeStateMachine/ExplorationState") as ExplorationState
 @onready var behaviour_state_machine := self.get_node("StateMachine") as StateMachine
 
 @onready var stats := $CharacterStats as CharacterStats
@@ -438,15 +437,13 @@ func _on_death(attacker: BattleCharacter) -> void:
 func _calculate_crit_damage(attacker: BattleCharacter, damage: int) -> int:
     var crit_multiplier := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.AttackCritMultiplier)
     var calculated_damage := ceili(damage * crit_multiplier)
-    print("[CRIT] Crit multiplier: " + str(crit_multiplier))
-    print("[CRIT] Calculated damage: " + str(calculated_damage))
+    print("[CRIT] %s: %s -> %s (mult: %s)" % [attacker.character_name, str(damage), str(calculated_damage), str(crit_multiplier)])
     return calculated_damage
     
 func _calculate_resist_damage(initial_damage: int, element: BattleEnums.EAffinityElement) -> int:
-    # use defense stat to reduce damage
+    # Use defense stat to reduce damage (flat value)
     var defense := stats.get_stat(CharacterStatEntry.ECharacterStat.PhysicalDefense)\
     if element == BattleEnums.EAffinityElement.PHYS else stats.get_stat(CharacterStatEntry.ECharacterStat.Spirit)
-    # Updated: no longer use defense as a percentage since it would be OP with the new levelling system
     var calculated_damage := ceili(initial_damage - defense)
     print("[RESIST] Defense: " + str(defense))
     print("[RESIST] Calculated damage: %s (original: %s)" % [str(calculated_damage), initial_damage])

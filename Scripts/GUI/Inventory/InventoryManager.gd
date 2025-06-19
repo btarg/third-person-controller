@@ -1,6 +1,7 @@
 extends Node
 class_name Inventory
 ## Value is a dictionary with keys "resource" and "count"
+# TODO: replace this with a single dictionary, as the item_id is now based on the resource path (item id as key, resource as value)
 var items: Dictionary[String, Dictionary] = {}
 ## Dictionary of item_id as key and a modifier id as value
 var linked_modifiers: Dictionary[String, String] = {}

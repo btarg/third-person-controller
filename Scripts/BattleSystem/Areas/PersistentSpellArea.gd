@@ -11,6 +11,8 @@ var _characters_in_area: Array[BattleCharacter] = []
 # Track characters who have spent actions while in this area (prevents re-triggering on movement cancel)
 var _has_been_affected: Array[BattleCharacter] = []
 
+var _times_triggered: int = 0
+
 @onready var battle_state := GameModeStateMachine.get_node("BattleState") as BattleState
 
 func _init(spell_item: SpellItem, p_caster: BattleCharacter, spawn_position: Vector3) -> void:
@@ -46,11 +48,6 @@ func _ready() -> void:
     set_area_colors(Color.RED * 0.3, Color.RED, Color.RED)
     visible = true
     
-    print("[PERSISTENT SPELL AREA] %s cast %s at %s (visible: %s)" % [caster.character_name, _spell_item.item_name, global_position, visible])
-    
-    # Apply effect immediately to all characters in the area
-    # this will exclude the caster
-    _apply_effect_to_nodes_in_area(true)
 
 func _physics_process(_delta: float) -> void:
     var current_nodes: Array[Node3D] = get_nodes_in_area()
@@ -104,6 +101,12 @@ func _on_character_entered(battle_character: BattleCharacter) -> void:
         print("[PERSISTENT SPELL AREA] %s already affected at this position, skipping" % battle_character.character_name)
         return
     
+    if _times_triggered == 0:
+        # For cone and line spells, exclude the caster since they emanate from the caster
+        if (area_type in [AreaUtils.SpellAreaType.CONE, AreaUtils.SpellAreaType.LINE] 
+        and caster and battle_character == caster):
+            return
+
     # Check if the character is currently moving (in PlayerMoveState)
     var character_controller := battle_character.character_controller
     if character_controller and character_controller.free_movement:
@@ -193,10 +196,14 @@ func _apply_effect_to_character(character: BattleCharacter) -> void:
         _spell_item.use(caster, character, false)  # Don't consume item for AOE
         print("[PERSISTENT SPELL AREA] %s used %s on %s" % [caster.character_name, _spell_item.item_name, character.character_name])
         _has_been_affected.append(character)
+
+        _times_triggered += 1
+
     else:
         print("[PERSISTENT SPELL AREA] %s cannot use %s on %s" % [caster.character_name, _spell_item.item_name, character.character_name])
 
-func _apply_effect_to_nodes_in_area(exclude_caster_from_directional_spells: bool = false) -> void:
+
+func _apply_effect_to_nodes_in_area() -> void:
     var nodes_in_area: Array[Node3D] = get_nodes_in_area()
     for node in nodes_in_area:
         var battle_character := node.get_node_or_null("BattleCharacter") as BattleCharacter
@@ -204,11 +211,6 @@ func _apply_effect_to_nodes_in_area(exclude_caster_from_directional_spells: bool
             # Only apply effect to characters not currently moving
             var character_controller := battle_character.character_controller
             if character_controller and character_controller.free_movement:
-                continue
-
-            # For cone and line spells, exclude the caster since they emanate from the caster
-            if (area_type in [AreaUtils.SpellAreaType.CONE, AreaUtils.SpellAreaType.LINE] 
-            and caster and battle_character == caster and exclude_caster_from_directional_spells):
                 continue
 
             print("[PERSISTENT SPELL AREA] %s is in AOE area, applying effect" % battle_character.character_name)

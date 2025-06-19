@@ -133,18 +133,32 @@ func _initialize_actions() -> void:
     ))
 
 func _make_decision() -> void:
+    # Safety check - ensure we have a valid battle character and actions left
+    if not battle_character or not battle_character.character_active:
+        print("[ERROR] %s trying to think when not active, transitioning to idle" % battle_character.character_name)
+        Transitioned.emit(self, "IdleState")
+        return
+    
+    if battle_character.actions_left <= 0:
+        print("[ERROR] %s has no actions left, transitioning to idle" % battle_character.character_name)
+        Transitioned.emit(self, "IdleState")
+        return
+    
     var context := _get_context()
     _update_spell_selection(context)
     var chosen_action := _select_best_action(context)
     
     if not chosen_action:
-        print("Something went VERY wrong, no action selected!")
+        print("[CRITICAL ERROR] %s failed to select any action!" % battle_character.character_name)
+        _debug_action_selection_failure(context)
+        
+        # Fallback: spend one action and transition to idle to prevent infinite loops
+        print("[FALLBACK] %s spending 1 action as emergency fallback" % battle_character.character_name)
+        battle_character.spend_actions(1)
         return
 
     chosen_action.execute()
     print("%s executed action: %s" % [battle_character.character_name, chosen_action.name])
-    
-    await get_tree().create_timer(1.0).timeout
 
 ## TODO: this can be moved to a generic Enemy Think State
 ## as the context is not specific to any enemy.
@@ -236,7 +250,12 @@ func _update_spell_selection(context: AIDecisionContext) -> void:
         for item_dict in battle_character.inventory.items.values():
             var res_item := item_dict["resource"] as SpellItem
             if res_item:
-                available_spells.append(res_item)
+                # Filter out spells that cost more actions than we have
+                if res_item.actions_cost <= battle_character.actions_left:
+                    available_spells.append(res_item)
+                else:
+                    print("[SPELL FILTER] %s costs %d actions but only have %d - skipping" % [
+                        res_item.item_name, res_item.actions_cost, battle_character.actions_left])
         
         # Reset previous selections
         best_damage_spell = null
@@ -293,13 +312,18 @@ func _select_best_action(context: AIDecisionContext) -> AIActionData:
                 valid_actions.append(action)
     
     if valid_actions.is_empty():
-        print("No valid actions available!")
+        print("[ERROR] No valid actions available!")
         return null
+    
     # Weighted random selection
     var total_weight := 0.0
     for action in valid_actions:
         total_weight += action.current_weight
     
+    if total_weight <= 0.0:
+        print("[ERROR] Total weight is zero or negative: %.2f" % total_weight)
+        # Fallback: just pick the first valid action
+        return valid_actions[0]
     
     var random_value := randf() * total_weight
     var current_weight := 0.0
@@ -310,7 +334,9 @@ func _select_best_action(context: AIDecisionContext) -> AIActionData:
             print("Selected action: %s (weight: %.2f)" % [action.name, action.current_weight])
             return action
     
-    return valid_actions[0]  # Fallback
+    # Final fallback
+    print("[WARNING] Weight selection failed, using first valid action")
+    return valid_actions[0]
 
 # Weight calculation functions
 func _calculate_attack_weight(context: AIDecisionContext) -> float:
@@ -457,6 +483,9 @@ func _calculate_item_weight(context: AIDecisionContext) -> float:
 
 # Can execute functions
 func _can_execute_attack(context: AIDecisionContext) -> bool:
+    # Check if we have at least 1 action (attacks cost 1 action)
+    if battle_character.actions_left < 1:
+        return false
     return context.in_attack_range
 
 # To check if we can cast a spell, we need to check:
@@ -496,7 +525,8 @@ func _can_execute_cast_spell(context: AIDecisionContext) -> bool:
             and battle_character.actions_left >= best_spell_to_cast.actions_cost)
 
 func _can_execute_defend(_context: AIDecisionContext) -> bool:
-    return true
+    # Defend costs 1 action
+    return battle_character.actions_left >= 1
 
 func _can_execute_heal(_context: AIDecisionContext) -> bool:
     return true  # Could add checks for healing items/abilities
@@ -525,12 +555,21 @@ func _can_execute_heal_ally(context: AIDecisionContext) -> bool:
     return ally_distance <= best_heal_spell.effective_range
 
 func _can_execute_move_towards_player(context: AIDecisionContext) -> bool:
+    # Check if we have at least 1 action (movement costs 1 action)
+    if battle_character.actions_left < 1:
+        return false
     return not (context.in_attack_range or context.in_spell_range)
 
 func _can_execute_draw_spell(context: AIDecisionContext) -> bool:
+    # Check if we have at least 1 action (drawing costs 1 action)
+    if battle_character.actions_left < 1:
+        return false
     return context.mana_ratio < 0.8  # Don't draw spells if mana is high
 
 func _can_execute_use_item(_context: AIDecisionContext) -> bool:
+    # Check if we have at least 1 action (item usage typically costs 1 action)
+    if battle_character.actions_left < 1:
+        return false
     return true  # Could add inventory checks
 
 
@@ -744,3 +783,34 @@ func _modify_aggression(change: float, reason: String = "") -> void:
             change, 
             reason
         ])
+
+func _debug_action_selection_failure(context: AIDecisionContext) -> void:
+    print("=== DEBUG: Action Selection Failure ===")
+    print("Available actions count: %d" % available_actions.size())
+    print("Actions left: %d" % battle_character.actions_left)
+    print("Current MP: %d" % battle_character.current_mp)
+    print("Can use spells: %s" % battle_character.can_use_spells)
+    
+    print("\nAction evaluation breakdown:")
+    for action in available_actions:
+        var can_exec := action.can_execute(context)
+        var weight := 0.0
+        if can_exec:
+            weight = action.calculate_weight(context)
+        
+        print("  %s: can_execute=%s, weight=%.2f" % [action.name, can_exec, weight])
+        
+        # Additional debug info for specific actions
+        match action.name:
+            "cast_spell":
+                print("    - best_spell_to_cast: %s" % ("null" if not best_spell_to_cast else best_spell_to_cast.item_name))
+                if best_spell_to_cast:
+                    print("    - spell MP cost: %d (have: %d)" % [best_spell_to_cast.mp_cost, battle_character.current_mp])
+                    print("    - spell action cost: %d (have: %d)" % [best_spell_to_cast.actions_cost, battle_character.actions_left])
+            "attack":
+                print("    - in_attack_range: %s" % context.in_attack_range)
+                print("    - distance_to_target: %.1f" % context.distance_to_target)
+            "move_towards_player":
+                print("    - in_attack_range: %s, in_spell_range: %s" % [context.in_attack_range, context.in_spell_range])
+    
+    print("=======================================")

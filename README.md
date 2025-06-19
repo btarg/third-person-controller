@@ -18,3 +18,4 @@
 - [ ] Affinities: Implement [Scanning](https://btarg.github.io/requiem-vault/Players/Concepts/Mechanics/Elements-and-Affinities/Scanning)
 - [ ] Levelling: Implement levelling up with shared XP pool and Hoard system
 - [ ] Battle mechanics: Implement [Knockdown rolls](https://btarg.github.io/requiem-vault/Players/Concepts/Mechanics/Critical-Hits-and-Knockdowns)
+- [ ] Battle mechanics: Implement [Saving Throws](https://btarg.github.io/requiem-vault/Players/Concepts/Mechanics/Saving-Throws)

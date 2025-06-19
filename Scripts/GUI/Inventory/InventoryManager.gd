@@ -28,6 +28,8 @@ var aoe_spell_2: BaseInventoryItem = load("res://Scripts/Data/Items/Spells//test
 
 func _ready() -> void:
 
+    print("InventoryManager ready")
+
     add_item(aoe_spell, 15)
     add_item(aoe_spell_2, 15)
     add_item(heal_spell, 15)
@@ -134,6 +136,7 @@ func on_item_used(item: BaseInventoryItem, status: BaseInventoryItem.UseStatus) 
             print("SIGNAL: Item used: " + item.item_name)
 
     item_used.emit(item, status)
+
     remove_item(item, 1)
 
 func _generate_stat_modifier(spell_item: SpellItem, stat: CharacterStatEntry.ECharacterStat, value: float) -> StatModifier:
@@ -154,6 +157,11 @@ func _generate_stat_modifier(spell_item: SpellItem, stat: CharacterStatEntry.ECh
 
 func add_item(item: BaseInventoryItem, count: int = 1) -> void:    
     var is_new_item: bool = false
+    var original_path := item.resource_path.get_file().trim_suffix('.tres') # Get the original resource path without the .tres extension
+    
+    item = item.duplicate() # duplicate to prevent setting properties of the original resource
+    item.item_id = original_path # restore the original resource path after duplication   
+
     if items.has(item.item_id):
         var current_count := items[item.item_id]["count"] as int
         var new_count := current_count + count
@@ -169,6 +177,7 @@ func add_item(item: BaseInventoryItem, count: int = 1) -> void:
         is_new_item = true
 
     var total := items[item.item_id]["count"] as int
+    print("[Inventory] Added %s of item %s (%s) - new count: %s" % [count, item.item_name, item.item_id, total])
     inventory_updated.emit(item, total, is_new_item)
     
     if item is SpellItem:
@@ -237,6 +246,7 @@ func remove_item(item: Variant, count: int) -> void:
         items[item_id]["count"] = new_count
 
     _update_junction_modifiers(item_resource, new_count)
+    print("[Inventory] Removed %s of item %s (%s) - new count: %s" % [count, item_resource.item_name, item_id, new_count])
     inventory_updated.emit(item_resource, new_count, false)
 
 

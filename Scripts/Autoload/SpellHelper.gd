@@ -5,9 +5,23 @@ var tracked_spell_aoe_nodes: Array = []
 
 const MASTERY_DRAW_ROLLS := 2
 
+func _ready() -> void:
+    Console.add_command("add_item", _add_item_command, ["item_id", "amount"], 2, "Adds an item to the current character's inventory. Usage: add_item <item_id> <amount>")
+
+func _add_item_command(item_id:String, amount:String) -> void:
+    print("[ADD_ITEM] Adding item %s with amount %s" % [item_id, amount])
+    if not battle_state.current_character:
+        return
+    
+    var item: BaseInventoryItem = load("res://Scripts/Data/Items/%s.tres" % item_id)
+    if not item:
+        print("[ADD_ITEM] Item %s not found!" % item_id)
+        return
+    battle_state.current_character.inventory.add_item(item, int(amount))
+
 func process_basic_attack(attacker: BattleCharacter, target: BattleCharacter) -> BattleEnums.ESkillResult:
     var attacker_position: Vector3 = attacker.get_parent().global_position
-    var target_position: Vector3= target.get_parent().global_position
+    var target_position: Vector3 = target.get_parent().global_position
 
     var distance: float = attacker_position.distance_to(target_position)
     var attack_range := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.AttackRange)
@@ -34,7 +48,7 @@ func process_basic_attack(attacker: BattleCharacter, target: BattleCharacter) ->
 
 ## Calling Spellitem#use on an AOE spell will not spawn the radius, but rather apply the effect to the target character.
 ## This function will handle both AOE spells and normal items/spells.
-func use_item_or_aoe(item: BaseInventoryItem, user_character: BattleCharacter, target_character: BattleCharacter, update_inventory: bool = false) -> BaseInventoryItem.UseStatus:
+func use_item_or_aoe(item: BaseInventoryItem, user_character: BattleCharacter, target_character: BattleCharacter, update_inventory: bool = true) -> BaseInventoryItem.UseStatus:
     if item is SpellItem:
         var spell_item := item as SpellItem
         if spell_item.item_type == BaseInventoryItem.ItemType.FIELD_SPELL:
@@ -42,12 +56,15 @@ func use_item_or_aoe(item: BaseInventoryItem, user_character: BattleCharacter, t
             if not create_area_of_effect_radius(spell_item, user_character, target_character.get_parent().global_position):
                 return BaseInventoryItem.UseStatus.SPELL_FAIL
             else:
+                # For AOE spells, we still need to update inventory to consume the item
+                if update_inventory:
+                    spell_item._update_inventory(BaseInventoryItem.UseStatus.SPELL_SUCCESS)
                 return BaseInventoryItem.UseStatus.SPELL_SUCCESS
         else:
             # Otherwise, use the spell normally
             return spell_item.use(user_character, target_character, update_inventory)
     # If it's not a spell, just use the item normally
-    return item.use(user_character, target_character)
+    return item.use(user_character, target_character, update_inventory)
 
 ## This function should be used for spawning radius AOE spells without requiring a BattleCharacter (spawn at position)
 func create_area_of_effect_radius(spell: SpellItem, caster: BattleCharacter, spawn_position: Vector3) -> bool:

@@ -6,6 +6,7 @@ enum ItemType {
     FIELD_SPELL, ## Allows the spell to be used on a position in the world, area shape determined by area_type
     
     # Other item types
+    SKILL, ## A skill that can be used in battle
     WEAPON,
     ARMOR,
     CONSUMABLE_HP,
@@ -27,12 +28,12 @@ enum UseStatus {
 ## item_type should be SPELL for a SpellItem
 @export var item_type: ItemType = ItemType.WEAPON
 
-var item_id : String = "default_item_id":
-    get:
-        return resource_path.get_file().trim_suffix('.tres')
+var item_id := "default_item_id"
 
 @export var item_name: String = "???"
 @export var item_description: String = "Test Description"
+## If this item has no count, it can be used infinitely (e.g. skills)
+@export var has_count := true
 @export var max_stack: int = 999
 
 @export var can_use_on_enemies: bool = true
@@ -114,9 +115,10 @@ func can_use_on(user: BattleCharacter, target: BattleCharacter, ignore_costs: bo
     return can_use_on_allies if same_side else can_use_on_enemies
 
 func _update_inventory(status: UseStatus) -> void:
-    inventory.on_item_used(self, status)
+    if inventory and has_count:
+        inventory.on_item_used(self, status)
 
-func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
+func use(user: BattleCharacter, target: BattleCharacter, update_inventory: bool = true) -> UseStatus:
     var status: UseStatus
 
     match item_type:
@@ -130,6 +132,7 @@ func use(user: BattleCharacter, target: BattleCharacter) -> UseStatus:
             print("Item cannot be consumed: %s" % item_name)
             status = UseStatus.CANNOT_USE
     
-    _update_inventory(status)
+    if update_inventory:
+        _update_inventory(status)
     
     return status

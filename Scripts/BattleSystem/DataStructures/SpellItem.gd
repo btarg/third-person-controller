@@ -78,7 +78,7 @@ func get_item_description() -> String:
 
     # Modifier effects
     if modifier:
-        description_parts.append("applies " + modifier.name)
+        description_parts.append("Applies " + modifier.name)
 
     var description_string := ""
     if description_parts.size() > 1:

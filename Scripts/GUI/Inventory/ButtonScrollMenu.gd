@@ -124,7 +124,10 @@ func _add_button(item: BaseInventoryItem, item_count: int) -> void:
 func _update_count_label(item: BaseInventoryItem) -> void:
     var button = item_button_map.get(item.item_id)
     if button:
-        button.set_item_count(item_inventory.get_item_count(item.item_id))
+        if item.has_count:
+            button.set_item_count(item_inventory.get_item_count(item.item_id))
+        else:
+            button.set_item_count(0)  
 
 func _remove_item_button(item: BaseInventoryItem) -> void:
     var button = item_button_map.get(item.item_id)

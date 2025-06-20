@@ -19,7 +19,11 @@ bonus = 0
 
 [resource]
 script = ExtResource("1_ea2fr")
+target_type = 0
+area_type = 0
 area_of_effect_radius = 0.0
+line_width = 0.0
+cone_angle_degrees = 60.0
 ttl_turns = -1
 spell_element = 7
 spell_power_rolls = Array[ExtResource("2_ql46u")]([SubResource("Resource_c0nmr")])

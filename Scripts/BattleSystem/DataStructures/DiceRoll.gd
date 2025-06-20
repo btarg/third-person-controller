@@ -13,11 +13,16 @@ enum DiceStatus {
 @export_range(1, 10) var num_rolls: int = 1
 ## If set to 1, the total will never be able to critically fail.
 ## See [url]https://2e.aonprd.com/Rules.aspx?ID=2284[/url]
-@export_range(1, 100) var difficulty_class: int = 0
+@export_range(0, 100) var difficulty_class: int = 0
 @export var bonus: int = 0
 
 var _current_status: DiceStatus = DiceStatus.ROLL_SUCCESS
 var _total_rolled: int = 0
+
+func _ready() -> void:
+    assert(die_sides > 0, "Die sides must be positive")
+    assert(num_rolls > 0, "Number of rolls must be positive")
+    assert(difficulty_class >= 0, "DC cannot be negative")
 
 ## Gets the current total of the dice roll, without rerolling.
 func total() -> int:
@@ -25,6 +30,10 @@ func total() -> int:
 
 func flat_total() -> int:
     return _total_rolled - bonus
+
+## Returns the maximum possible total this dice roll could achieve (used for comparing against other rolls).
+func max_possible() -> int:
+    return (num_rolls * die_sides) + bonus
 
 ## Rerolls the total and returns the DiceRoll object.
 ## This will change the status returned by [method get_status()].
@@ -134,3 +143,9 @@ static func roll_all(array: Array[DiceRoll], reroll_all: bool = true) -> int:
     for i in range(array.size()):
         return_total += array[i].total() if not reroll_all else array[i].reroll().total()
     return return_total
+
+static func max_possible_all(dice_rolls: Array[DiceRoll]) -> int:
+    var total_max := 0
+    for dice_roll in dice_rolls:
+        total_max += dice_roll.max_possible()
+    return total_max

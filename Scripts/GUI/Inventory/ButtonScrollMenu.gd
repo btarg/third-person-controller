@@ -34,7 +34,7 @@ var button_spacing: int = -1
 @onready var description_label := %InfoDescription as Label
 @onready var dc_label := description_label.get_node("InfoDC") as Label
 
-@onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
+@onready var battle_state := GameModeStateMachine.get_node("BattleState") as BattleState
 
 var item_inventory: Inventory:
     get:
@@ -50,11 +50,7 @@ var item_inventory: Inventory:
             delete_all_buttons()
 
         # FIX: we get a list of items but not a copy of the inventory!
-        var filtered_inventory_items := new_inventory.filtered_items(func(item: BaseInventoryItem):
-            return item.can_use_on(battle_state.current_character, battle_state.player_selected_character)\
-            or item.item_type == BaseInventoryItem.ItemType.SPELL_USE_ANYWHERE
-        )
-        
+        var filtered_inventory_items := new_inventory.get_items()
         filtered_inventory_items.sort_custom(SpellHelper.sort_items_by_usefulness)
 
         for item_entry in filtered_inventory_items:
@@ -125,7 +121,10 @@ func _add_button(item: BaseInventoryItem, item_count: int) -> void:
 func _update_count_label(item: BaseInventoryItem) -> void:
     var button = item_button_map.get(item.item_id)
     if button:
-        button.set_item_count(item_inventory.get_item_count(item.item_id))
+        if item.has_count:
+            button.set_item_count(item_inventory.get_item_count(item.item_id))
+        else:
+            button.set_item_count(0)  
 
 func _remove_item_button(item: BaseInventoryItem) -> void:
     var button = item_button_map.get(item.item_id)
@@ -208,9 +207,9 @@ func _unhandled_input(event: InputEvent) -> void:
             scroll_timer.stop()
         scroll_timer.wait_time = SCROLL_INTERVAL
         scroll_timer.start()
-    elif Input.is_action_just_pressed("ui_left"):
+    elif Input.is_action_just_pressed("arrow_left"):
         update_index(0, false, false)
-    elif Input.is_action_just_pressed("ui_right"):
+    elif Input.is_action_just_pressed("arrow_right"):
         update_index(buttons.size() - 1, false, false)
 
     elif event is InputEventMouseButton:

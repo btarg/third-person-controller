@@ -32,8 +32,7 @@ var available_actions : BattleEnums.EAvailableCombatActions = BattleEnums.EAvail
     set(value):
         available_actions = value
         if value != _last_available_actions:
-            # print("Available actions changed to " + Util.get_enum_name(BattleEnums.EAvailableCombatActions, value))
-            BattleSignalBus.OnAvailableActionsChanged.emit()
+            BattleSignalBus.OnAvailableCombatChoicesChanged.emit()
             _last_available_actions = value
 
 ## The BattleCharacter which the player has targeted
@@ -390,6 +389,7 @@ func ready_next_turn() -> void:
         select_character(current_character)
 
     BattleSignalBus.OnTurnStarted.emit(current_character)
+    print("[BATTLE STATE] New turn started for %s" % current_character.character_name)
     turns_played += 1
 
 

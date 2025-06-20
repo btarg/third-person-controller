@@ -1,46 +1,132 @@
 extends Node
-# class_name SpellHelper
 
-var tracked_spell_aoe_nodes: Array[AOESpell] = []
+var tracked_spell_aoe_nodes: Array = []
+@onready var battle_state := GameModeStateMachine.get_node("BattleState") as BattleState
 
-var aoe_spell_resource: BaseInventoryItem = load("res://Scripts/Data/Items/Spells//test_aoe_spell.tres")
-@onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
+const MASTERY_DRAW_ROLLS := 2
 
+func _ready() -> void:
+    Console.add_command("add_item", _add_item_command, ["item_id", "amount"], 2, "Adds an item to the current character's inventory. Usage: add_item <item_id> <amount>")
+
+func _add_item_command(item_id:String, amount:String) -> void:
+    print("[ADD_ITEM] Adding item %s with amount %s" % [item_id, amount])
+    if not battle_state.current_character:
+        return
+    
+    var item: BaseInventoryItem = load("res://Scripts/Data/Items/%s.tres" % item_id)
+    if not item:
+        print("[ADD_ITEM] Item %s not found!" % item_id)
+        return
+    battle_state.current_character.inventory.add_item(item, int(amount))
+
+func process_basic_attack(attacker: BattleCharacter, target: BattleCharacter) -> BattleEnums.ESkillResult:
+    var attacker_position: Vector3 = attacker.get_parent().global_position
+    var target_position: Vector3 = target.get_parent().global_position
+
+    var distance: float = attacker_position.distance_to(target_position)
+    var attack_range := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.AttackRange)
+    if distance > attack_range:
+        print("[ATTACK] Target out of range!")
+        return BattleEnums.ESkillResult.SR_OUT_OF_RANGE
+
+    await battle_state.message_ui.show_messages(["Attack"])
+
+    print("%s attacks %s with %s!" % [attacker.character_name, target.character_name, 
+        Util.get_enum_name(BattleEnums.EAffinityElement, attacker.basic_attack_element)])
+    
+    var AC := ceili(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass))
+    var luck := ceili(attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.Luck))
+
+
+    var attack_roll := DiceRoll.roll(20, 1, AC, luck) # use luck as bonus
+    var phys_str := ceili(attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.PhysicalStrength))
+    var damage_roll := DiceRoll.roll(20, 1, phys_str)
+
+    var result := target.take_damage(attacker, [damage_roll], attack_roll, attacker.basic_attack_element)
+    print("[ATTACK] Result: " + Util.get_enum_name(BattleEnums.ESkillResult, result))
+    return result
 
 ## Calling Spellitem#use on an AOE spell will not spawn the radius, but rather apply the effect to the target character.
 ## This function will handle both AOE spells and normal items/spells.
-func use_item_or_aoe(item: BaseInventoryItem, user_character: BattleCharacter, target_character: BattleCharacter, update_inventory: bool = false) -> BaseInventoryItem.UseStatus:
+func use_item_or_aoe(item: BaseInventoryItem, user_character: BattleCharacter, target_character: BattleCharacter, update_inventory: bool = true) -> BaseInventoryItem.UseStatus:
     if item is SpellItem:
         var spell_item := item as SpellItem
-        if spell_item.item_type == BaseInventoryItem.ItemType.SPELL_USE_ANYWHERE:
-            # If the spell is an AOE spell, we need to spawn it at the target position (get parent because BattleCharacter is not a 3D node by default)
-            if not spawn_aoe(spell_item, user_character, target_character.get_parent().global_position):
+        if spell_item.item_type == BaseInventoryItem.ItemType.FIELD_SPELL:
+            # If the spell is an AOE spell, we need to spawn it at the target position
+            if not create_area_of_effect_radius(spell_item, user_character, target_character.get_parent().global_position):
                 return BaseInventoryItem.UseStatus.SPELL_FAIL
+            else:
+                # For AOE spells, we still need to update inventory to consume the item
+                if update_inventory:
+                    spell_item._update_inventory(BaseInventoryItem.UseStatus.SPELL_SUCCESS)
+                return BaseInventoryItem.UseStatus.SPELL_SUCCESS
         else:
             # Otherwise, use the spell normally
             return spell_item.use(user_character, target_character, update_inventory)
     # If it's not a spell, just use the item normally
-    return item.use(user_character, target_character)
+    return item.use(user_character, target_character, update_inventory)
 
-
-func spawn_aoe(spell: SpellItem, caster: BattleCharacter, spawn_position: Vector3) -> bool:
-    if spell.area_of_effect_radius == 0 or spell.item_type != BaseInventoryItem.ItemType.SPELL_USE_ANYWHERE:
+## This function should be used for spawning radius AOE spells without requiring a BattleCharacter (spawn at position)
+func create_area_of_effect_radius(spell: SpellItem, caster: BattleCharacter, spawn_position: Vector3) -> bool:
+    if spell.area_of_effect_radius == 0 or spell.item_type != BaseInventoryItem.ItemType.FIELD_SPELL:
         print("[AOE SPELL] Spell %s is not an AOE spell" % spell.item_name)
         return false
 
-    # TODO: AOE nodes should not be instant, they should have a node which spawns them in with animation e.g. a bomb,
-    # which upon colliding with something spawns the AOE node at its position.
-    # Spawn AOE
-    var aoe_spell: AOESpell = AOESpell.new(spell, caster, spawn_position)
-    get_tree().get_root().add_child(aoe_spell)
+    # Create a persistent SpellArea with trigger behavior
+    var aoe_area = PersistentSpellArea.new(spell, caster, spawn_position)
+    get_tree().get_root().add_child(aoe_area)
 
     # we only need to track Sustain spells, so we can remove the spell when a condition is met
     # TODO: spend one action to sustain the spell every turn (optionally) - we need a UI for this
     if spell.ttl_turns == -1:
-        tracked_spell_aoe_nodes.append(aoe_spell)
+        tracked_spell_aoe_nodes.append(aoe_area)
 
     print("[AOE SPELL] Spawned AOE spell effect at %s" % spawn_position)
     return true
+
+func draw_spell(target_character: BattleCharacter, current_character: BattleCharacter, selected_spell_index: int = 0, cast_immediately: bool = false) -> void:
+
+    if selected_spell_index < 0 or selected_spell_index >= target_character.draw_list.size():
+        return
+
+    var drawn_spell := target_character.draw_list[selected_spell_index] as SpellItem
+
+    print("[DRAW] Drawn spell: " + drawn_spell.item_name)
+
+    var draw_bonus_d4s := ceili(current_character.stats.get_stat(CharacterStatEntry.ECharacterStat.Luck))
+    var draw_bonus := DiceRoll.roll(4, draw_bonus_d4s).total()
+
+    # Mastery gives 2 d6 rolls for drawing instead of 1, but does not affect the draw_spell bonus
+    var rolls := 1
+    if drawn_spell.spell_element in current_character.mastery_elements:
+        print("[DRAW] Character has mastery for %s" % [Util.get_enum_name(BattleEnums.EAffinityElement, drawn_spell.spell_element)])
+        rolls = MASTERY_DRAW_ROLLS
+
+    print("[DRAW] Draw bonus: " + str(draw_bonus))
+    var drawn_amount := DiceRoll.roll(6, rolls, draw_bonus).total()
+    print("[DRAW] Drawn amount: " + str(drawn_amount))
+    
+
+    if cast_immediately:
+        await battle_state.message_ui.show_messages([drawn_spell.item_name])
+        var status := drawn_spell.use(current_character, target_character, false)
+        print("[DRAW] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
+    else:
+        
+        if current_character.inventory:
+            current_character.inventory.add_item(drawn_spell, drawn_amount)
+            print("[DRAW] Received %s %s!" % [str(drawn_amount), drawn_spell.item_name])
+            var draw_display_string := "%s drew %s %ss"
+            if current_character.mastery_elements.has(drawn_spell.spell_element):
+                draw_display_string += " (Mastery)"
+
+            await battle_state.message_ui.show_messages([draw_display_string % [current_character.character_name, str(drawn_amount), drawn_spell.item_name]])
+        else:
+            print("[DRAW] Character has no inventory")
+
+    if not current_character.is_spell_familiar(drawn_spell):
+        current_character.add_familiar_spell(drawn_spell)
+
 
 # Sort based on available actions. Used in the inventory UI to prioritize items that the player probably wants to use based on current context.
 func sort_items_by_usefulness(a: BaseInventoryItem, b: BaseInventoryItem) -> bool:
@@ -49,8 +135,8 @@ func sort_items_by_usefulness(a: BaseInventoryItem, b: BaseInventoryItem) -> boo
     var b_useful := (b.can_use_on_allies and battle_state.available_actions in ally_actions) or (b.can_use_on_enemies and battle_state.available_actions == BattleEnums.EAvailableCombatActions.ENEMY)
     
     if battle_state.available_actions == BattleEnums.EAvailableCombatActions.GROUND:
-        var a_cast_anywhere := a.item_type == BaseInventoryItem.ItemType.SPELL_USE_ANYWHERE
-        var b_cast_anywhere := b.item_type == BaseInventoryItem.ItemType.SPELL_USE_ANYWHERE
+        var a_cast_anywhere := a.item_type == BaseInventoryItem.ItemType.FIELD_SPELL
+        var b_cast_anywhere := b.item_type == BaseInventoryItem.ItemType.FIELD_SPELL
         if a_cast_anywhere != b_cast_anywhere: return a_cast_anywhere
     
     if a_useful != b_useful: return a_useful

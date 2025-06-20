@@ -1,67 +1,21 @@
 # Godot RPG
+
 [Project: Requiem](https://docs.google.com/document/d/1ciNLXNb76iGfoPWgEIhHHFKyTaYyUXYv_RmkQ1yvwhU/edit?usp=sharing) - Work in progress RPG built in Godot 4 with GDScript
 
-# Credits
+[Current design doc (TTRPG version)](https://btarg.github.io/requiem-vault/)
+
+## Credits
+
 - [Third Person Controller template by WaffleAWT](https://github.com/WaffleAWT/Godot-4.3-Third-Person-Controller)
 - [Godot debug console plugin by Jitspoe](https://github.com/jitspoe/godot-console)
 - [Mixamo Bone Map by catprisbrey](https://github.com/catprisbrey/Godot4-OpenAnimationLibraries/blob/main/BoneMaps/Mixamo%20BoneMap.tres)
 
-# TODO
-- Priority:
-    - [x] UI reacts to actual results of combat (`SR_ABSORB` should not be counted as a `SPELL_SUCCESS`)
-    - [x] Make camera collide with the world but not players/enemies
-    - [x] Fix movement bug 
-    - [ ] Get basic UI visuals in place for player and enemy health bars 
-    - [ ] UI for dynamic combat choice system
-    - [x] Basic visual feedback such as damage numbers and attack animations
-    - [ ] Implement basic form of enemy AI
-    - [ ] Implement overworld to combat transitions
-    - [ ] Implement junction UI
+## Unfinished Features / Todo List
 
-- Battle basics
-    - [x] Multiple player characters
-    - [ ] Special skills and MP usage
-        - [ ] Drawing uses MP?
-    - [ ] Money and XP
-    - [ ] Level up system
-    - [ ] Enemies drop items
-- Junction system
-    - [x] Players can junction items
-    - [x] Items can affect stats
-- Movement
-    - [x] In-battle player movement state
-    - [x] Movement in metres as a stat (speed)
-    - [ ] Pathfinding for enemies
-    - [x] Pathfinding stuck detection
-- Spells and items
-    - [x] Spells, attacks etc. can have a radius for targets (range)
-        - [ ] Draw the radius visually around the player
-- UI/UX
-    - [ ] Victory screen / game over screen
-    - [ ] Pause menu with options to save, load, quit, etc.
-    - [ ] Health bars for each player character
-    - [x] UI for choosing which enemies to attack
-    - [x] UI for choosing spells
-    - [ ] UI for choosing what to draw
-        - [ ] UI for choosing whether to stock or cast a draw
-    - [ ] UI for choosing junctioned items
-    - [ ] UI for inventory: able to use items out of combat (e.g. healing potions/spells)
-    - [x] Damage numbers
-        - [x] Change colours for healing
-        - [x] Further hit feedback - BLOCK, DRAIN etc
-    - [x] Target line UI
-- Visuals
-    - [ ] Animated characters
-    - [ ] Spell projectiles and animations for attacks
-- AI
-    - [ ] Look into beehaviour
-    - [ ] Enemies seek the player and attack
-        - [ ] Enemies choose how we enter battle: either by attacking the player or by being attacked by the player
-    - [ ] Enemies can attack in battle
-        - [ ] Enemies can use spells
-        - [ ] Enemies can draw
-- Out of battle
-    - [ ] Dialogue system
-    - [ ] Shops
-    - [ ] Side quests
-    - [ ] Save/load system
+- [ ] Magic: Implement MP costs for spells
+- [ ] Magic: Implement Affinity Points or other system for levelling affinities
+- [ ] Affinities: Implement [Mastery](https://btarg.github.io/requiem-vault/Players/Concepts/Mechanics/Magic/Mastery)
+- [ ] Affinities: Implement [Scanning](https://btarg.github.io/requiem-vault/Players/Concepts/Mechanics/Elements-and-Affinities/Scanning)
+- [ ] Levelling: Implement levelling up with shared XP pool and Hoard system
+- [ ] Battle mechanics: Implement [Knockdown rolls](https://btarg.github.io/requiem-vault/Players/Concepts/Mechanics/Critical-Hits-and-Knockdowns)
+- [ ] Battle mechanics: Implement [Saving Throws](https://btarg.github.io/requiem-vault/Players/Concepts/Mechanics/Saving-Throws)

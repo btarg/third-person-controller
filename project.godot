@@ -22,8 +22,8 @@ Console="*res://addons/console/console.gd"
 AffinityLog="*res://Scripts/BattleSystem/Logging/AffinityLog.gd"
 ControllerHelper="*res://Scripts/Autoload/ControllerHelper.gd"
 BattleSignalBus="*res://Scripts/BattleSystem/BattleSignalBus.gd"
-RadiusVisual="*res://Scenes/Characters/radius_visual.tscn"
 SpellHelper="*res://Scripts/Autoload/SpellHelper.gd"
+MovementRadiusVisual="*res://Scenes/Characters/movement_radius_visual.tscn"
 
 [display]
 
@@ -187,3 +187,8 @@ arrow_left={
 [physics]
 
 common/physics_interpolation=true
+
+[rendering]
+
+anti_aliasing/quality/msaa_2d=1
+anti_aliasing/quality/msaa_3d=2

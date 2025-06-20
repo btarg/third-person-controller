@@ -26,8 +26,7 @@ var _familiar_spells: Array[SpellItem] = []
 ]
 @export var draw_list_from_inventory: bool = true
 
-@onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
-@onready var exploration_state := get_node("/root/GameModeStateMachine/ExplorationState") as ExplorationState
+@onready var battle_state := GameModeStateMachine.get_node("BattleState") as BattleState
 @onready var behaviour_state_machine := self.get_node("StateMachine") as StateMachine
 
 @onready var stats := $CharacterStats as CharacterStats
@@ -110,7 +109,7 @@ func spend_actions(actions: int) -> void:
     OnSpendActions.emit(self)
 
 func _on_inventory_updated(resource: BaseInventoryItem, _count: int, is_new_item: bool) -> void:
-    print("[INVENTORY] " + character_name + " has updated their inventory")
+    # print("[INVENTORY] " + character_name + " has updated their inventory")
     
     if not is_new_item:
         return
@@ -379,16 +378,19 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
         and attacker.basic_attack_element == damage_type):
             damage = 0
             result = BattleEnums.ESkillResult.SR_FAIL
-        else:
-            var attacker_strength := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.PhysicalStrength)\
-                    if damage_type == BattleEnums.EAffinityElement.PHYS else\
-                            attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.MagicalStrength)
+
+        # COMMENTED OUT: Strength is only added to the attack roll now, not the damage roll
+
+        # else:
+        #     var attacker_strength := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.PhysicalStrength)\
+        #             if damage_type == BattleEnums.EAffinityElement.PHYS else\
+        #                     attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.MagicalStrength)
             
-            print("[Attack] Original Damage: " + str(damage))
-            print(attacker.character_name + " has strength: " + str(attacker_strength))
-            # UPDATE: strength now adds to damage instead of multiplying (rounded up)
-            damage = ceil(damage + attacker_strength)
-            print("[Attack] Damage with strength: " + str(damage))
+        #     print("[Attack] Original Damage: " + str(damage))
+        #     print(attacker.character_name + " has strength: " + str(attacker_strength))
+        #     # UPDATE: strength now adds to damage instead of multiplying (rounded up)
+        #     damage = ceil(damage + attacker_strength)
+        #     print("[Attack] Damage with strength: " + str(damage))
     
     if damage > 0:
         current_hp -= damage
@@ -397,6 +399,7 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
             return BattleEnums.ESkillResult.SR_DEATH
 
     BattleSignalBus.OnTakeDamage.emit(self, damage)
+    BattleSignalBus.OnSkillResult.emit(attacker, self, result, damage)
     var damage_number := DamageNumber.create_damage_number(damage, damage_type, result, self.get_parent(), battle_state.top_down_player.camera)
     add_child(damage_number)
     print("[DAMAGE] %s did %s damage to %s (%s)" % [attacker.character_name, damage, character_name, Util.get_enum_name(BattleEnums.ESkillResult, result)])
@@ -434,15 +437,13 @@ func _on_death(attacker: BattleCharacter) -> void:
 func _calculate_crit_damage(attacker: BattleCharacter, damage: int) -> int:
     var crit_multiplier := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.AttackCritMultiplier)
     var calculated_damage := ceili(damage * crit_multiplier)
-    print("[CRIT] Crit multiplier: " + str(crit_multiplier))
-    print("[CRIT] Calculated damage: " + str(calculated_damage))
+    print("[CRIT] %s: %s -> %s (mult: %s)" % [attacker.character_name, str(damage), str(calculated_damage), str(crit_multiplier)])
     return calculated_damage
     
 func _calculate_resist_damage(initial_damage: int, element: BattleEnums.EAffinityElement) -> int:
-    # use defense stat to reduce damage
+    # Use defense stat to reduce damage (flat value)
     var defense := stats.get_stat(CharacterStatEntry.ECharacterStat.PhysicalDefense)\
     if element == BattleEnums.EAffinityElement.PHYS else stats.get_stat(CharacterStatEntry.ECharacterStat.Spirit)
-    # Updated: no longer use defense as a percentage since it would be OP with the new levelling system
     var calculated_damage := ceili(initial_damage - defense)
     print("[RESIST] Defense: " + str(defense))
     print("[RESIST] Calculated damage: %s (original: %s)" % [str(calculated_damage), initial_damage])

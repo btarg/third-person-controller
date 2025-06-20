@@ -5,11 +5,11 @@ extends State
 # @onready var exploration_player := get_tree().get_nodes_in_group("Player").front() as PlayerController
 
 @onready var battle_character := state_machine.get_parent() as BattleCharacter
-@onready var radius_visual := get_node("/root/RadiusVisual") as MeshInstance3D
+@onready var radius_visual := MovementRadiusVisual as MeshInstance3D
 
 # One level up is state machine, two levels up is the battle character. The inventory is on the same level
 @onready var inventory_manager := get_node("../../../Inventory") as Inventory
-@onready var battle_state := get_node("/root/GameModeStateMachine/BattleState") as BattleState
+@onready var battle_state := GameModeStateMachine.get_node("BattleState") as BattleState
 
 # Camera used for raycasts
 # We get the node manually here to avoid @onready order shenanigans
@@ -72,10 +72,9 @@ func enter() -> void:
     player_think_ui.show()
     player_think_ui.set_text()
     
-    # Show turn order UI when entering think state
-    if battle_state.turn_order_ui and battle_state.turn_order_ui.is_player_turn:
-        battle_state.turn_order_ui.show()
-        battle_state.turn_order_ui.focus_last_selected()
+    # Enable input for turn order UI when entering think state
+    if battle_state.turn_order_ui:
+        battle_state.turn_order_ui.input_allowed = true
 
     print(battle_character.character_name + " is thinking about what to do")
 
@@ -97,9 +96,9 @@ func enter() -> void:
 func exit() -> void:
     print(battle_character.character_name + " has stopped thinking")
     
-    # Hide turn order UI when exiting think state
+    # Disable input for turn order UI when exiting think state
     if battle_state.turn_order_ui:
-        battle_state.turn_order_ui.hide()
+        battle_state.turn_order_ui.input_allowed = false
     
     # If the character is still moving when exiting, cancel movement and return home
     if battle_character.character_controller and battle_character.character_controller.is_moving():
@@ -127,22 +126,16 @@ func _process_radius_visual() -> void:
 
 
 # ==============================================================================
-# PLAN FOR THINK STATE
-# Step 1: shoot a raycast from either the middle of the camera every frame
-# when we are using a controller, or from the click pos when clicking mouse
+# THINK STATE
 #
-# Step 2: if the raycast hits a character, show context actions
-# e.g. if it's an enemy, show the options to attack, draw, or use a spell
-#
-# Step 3: if the raycast hits the ground, show the options to move
-#
-# Step 4: if the player selects an action, transition to the appropriate state
-# for the UI to be displayed, e.g. display the inventory when casting a spell
+# This is where we handle raycasting for selecting characters and
+# determining available actions based on the raycasted character.
 # ==============================================================================
 
 func _state_physics_process(_delta: float) -> void:
    
     # what the fuck is this
+    # Here we need to pause raycasting so the turn order container works properly
     if not battle_state.top_down_player.moved_from_focus:
         if (not battle_state.top_down_player.is_at_focus
         or battle_state.available_actions == BattleEnums.EAvailableCombatActions.NONE):
@@ -196,14 +189,11 @@ func _state_physics_process(_delta: float) -> void:
         return
 
     var character := children.front() as BattleCharacter
-
     if not character:
-        battle_state.select_character(null, false)
         return
     
     if character != _last_raycast_selected_character:
         battle_state.select_character(character, false)
-        
         _last_raycast_selected_character = character
 
 func _state_process(_delta: float) -> void:
@@ -261,15 +251,10 @@ func _state_unhandled_input(event: InputEvent) -> void:
     # SPELLS AND ATTACKS
     # ==============================================================================
 
-    # Spell/item selection is available for allies and enemies, and self
+    # Spell/item selection - go directly to inventory without needing a target first
     if event.is_action_pressed("combat_spellitem"):
-        # Select self if no other character is selected before handling a button press
-        if (battle_state.player_selected_character == null
-        and battle_character):
-            battle_state.select_character(battle_character)
-        # Don't allow selecting self if moving
-        if (battle_character.character_controller.is_moving()
-        or battle_state.player_selected_character.character_controller.is_moving()):
+        # Don't allow spell selection if moving
+        if battle_character.character_controller.is_moving():
             return
 
         Transitioned.emit(self, "ChooseSpellItemState")
@@ -297,7 +282,7 @@ func process_action(chosen_action: BattleEnums.EPlayerCombatAction) -> void:
         return
     match chosen_action:
         BattleEnums.EPlayerCombatAction.CA_ATTACK:
-            var attack := await _process_basic_attack(battle_state.current_character, target_character)
+            var attack := await SpellHelper.process_basic_attack(battle_state.current_character, target_character)
             if attack != BattleEnums.ESkillResult.SR_OUT_OF_RANGE:
                 battle_character.spend_actions(1)
         BattleEnums.EPlayerCombatAction.CA_DRAW:
@@ -307,36 +292,5 @@ func process_action(chosen_action: BattleEnums.EPlayerCombatAction) -> void:
             print("Invalid action")
             battle_character.spend_actions(1)
 
-    
-
-
-func _process_basic_attack(attacker: BattleCharacter, target: BattleCharacter) -> BattleEnums.ESkillResult:
-    var attacker_position: Vector3 = attacker.get_parent().global_position
-    var target_position: Vector3= target.get_parent().global_position
-
-    var distance: float = attacker_position.distance_to(target_position)
-    var attack_range := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.AttackRange)
-    if distance > attack_range:
-        print("[ATTACK] Target out of range!")
-        return BattleEnums.ESkillResult.SR_OUT_OF_RANGE
-
-    await battle_state.message_ui.show_messages(["Attack"])
-
-    print("%s attacks %s with %s!" % [attacker.character_name, target.character_name, 
-        Util.get_enum_name(BattleEnums.EAffinityElement, attacker.basic_attack_element)])
-    
-    var AC := ceili(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass))
-    var luck := ceili(attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.Luck))
-
-
-    var attack_roll := DiceRoll.roll(20, 1, AC, luck) # use luck as bonus
-
-    var phys_str := ceili(attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.PhysicalStrength))
-
-    var damage_roll := DiceRoll.roll(20, 1, phys_str)
-
-    var result := target.take_damage(attacker, [damage_roll], attack_roll, attacker.basic_attack_element)
-    print("[ATTACK] Result: " + Util.get_enum_name(BattleEnums.ESkillResult, result))
-    return result
 
 func _state_input(_event: InputEvent) -> void: pass

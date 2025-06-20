@@ -244,11 +244,12 @@ func _update_spell_selection(context: AIDecisionContext) -> void:
     # First, select best available spells from inventory
 
     # TODO: items also have a count, which we should consider
-    # when selecting spells.
+    # when selecting spells. Higher aggression would mean the enemy is more likely to choose
+    # a spell they have only a few charges of, while lower aggression prioritises spells with more charges. 
     if battle_character and battle_character.inventory:
         var available_spells: Array[SpellItem] = []
-        for item_dict in battle_character.inventory.items.values():
-            var res_item := item_dict["resource"] as SpellItem
+        for item in battle_character.inventory.get_items():
+            var res_item := item as SpellItem
             if res_item:
                 # Filter out spells that cost more actions than we have
                 if res_item.actions_cost <= battle_character.actions_left:
@@ -260,7 +261,7 @@ func _update_spell_selection(context: AIDecisionContext) -> void:
         # Reset previous selections
         best_damage_spell = null
         best_heal_spell = null
-          # Find best damage and heal spells based on efficiency, not just raw power
+        # Find best damage and heal spells based on efficiency, not just raw power
         var best_damage_efficiency := 0.0
         var best_heal_efficiency := 0.0
         
@@ -277,29 +278,29 @@ func _update_spell_selection(context: AIDecisionContext) -> void:
                     best_damage_efficiency = efficiency
                     best_damage_spell = spell
     
-    # Then, choose which spell to cast based on context
-    best_spell_to_cast = null
-    if not best_damage_spell and not best_heal_spell:
-        return
-    
-    # Choose heal spell if we or an ally need healing
-    if (context.health_ratio < low_health_threshold or context.ally_needs_healing) and best_heal_spell:
-        best_spell_to_cast = best_heal_spell
-    elif best_damage_spell:
-        best_spell_to_cast = best_damage_spell
-    elif best_heal_spell:
-        best_spell_to_cast = best_heal_spell
+        # Then, choose which spell to cast based on context
+        best_spell_to_cast = null
+        if not best_damage_spell and not best_heal_spell:
+            return
+        
+        # Choose heal spell if we or an ally need healing
+        if (context.health_ratio < low_health_threshold or context.ally_needs_healing) and best_heal_spell:
+            best_spell_to_cast = best_heal_spell
+        elif best_damage_spell:
+            best_spell_to_cast = best_damage_spell
+        elif best_heal_spell:
+            best_spell_to_cast = best_heal_spell
 
-    if best_spell_to_cast:
-        print("[%s AI] Best spell to cast: %s (MP: %d, Range: %.1f, Actions: %d)" % [
-            battle_character.character_name,
-            best_spell_to_cast.item_name,
-            best_spell_to_cast.mp_cost,
-            best_spell_to_cast.effective_range,
-            best_spell_to_cast.actions_cost
-        ])
-    else:
-        print("[%s AI] No spells available to cast!" % battle_character.character_name)
+        if best_spell_to_cast:
+            print("[%s AI] Best spell to cast: %s (MP: %d, Range: %.1f, Actions: %d)" % [
+                battle_character.character_name,
+                best_spell_to_cast.item_name,
+                best_spell_to_cast.mp_cost,
+                best_spell_to_cast.effective_range,
+                best_spell_to_cast.actions_cost
+            ])
+        else:
+            print("[%s AI] No spells available to cast!" % battle_character.character_name)
 
 func _select_best_action(context: AIDecisionContext) -> AIActionData:
     var valid_actions: Array[AIActionData] = []

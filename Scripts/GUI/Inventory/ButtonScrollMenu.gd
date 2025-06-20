@@ -50,10 +50,7 @@ var item_inventory: Inventory:
             delete_all_buttons()
 
         # FIX: we get a list of items but not a copy of the inventory!
-        var filtered_inventory_items := new_inventory.filtered_items(func(_item: BaseInventoryItem):
-            return true  # Show all items since targeting happens after selection
-        )
-        
+        var filtered_inventory_items := new_inventory.get_items()
         filtered_inventory_items.sort_custom(SpellHelper.sort_items_by_usefulness)
 
         for item_entry in filtered_inventory_items:

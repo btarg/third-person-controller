@@ -1,8 +1,7 @@
 extends Node
 class_name Inventory
-## Value is a dictionary with keys "resource" and "count"
-# TODO: replace this with a single dictionary, as the item_id is now based on the resource path (item id as key, resource as value)
-var items: Dictionary[String, Dictionary] = {}
+
+var items: Dictionary[BaseInventoryItem, int] = {}
 ## Dictionary of item_id as key and a modifier id as value
 var linked_modifiers: Dictionary[String, String] = {}
 
@@ -10,6 +9,8 @@ var linked_modifiers: Dictionary[String, String] = {}
 var junctioned_stat_by_item: Dictionary = {}
 ## How many decimal places to round to when calculating stat modifier value for junctioned items
 const JUNCTION_DECIMAL_PLACES: int = 5
+
+const DEBUG_INFINITE_ITEMS: bool = false
 
 @onready var battle_character := get_node("../BattleCharacter") as BattleCharacter
 
@@ -53,38 +54,20 @@ func _ready() -> void:
 
 func filtered_item_ids(predicate: Callable) -> Array[String]:
     var filtered_item_list: Array[String] = []
-    for item_id in items.keys():
-        var item: BaseInventoryItem = items[item_id]["resource"] as BaseInventoryItem
+    for item in items:
         if predicate.call(item):
-            filtered_item_list.append(item_id)
+            filtered_item_list.append(item.item_id)
     return filtered_item_list
-
 
 func filtered_items(predicate: Callable) -> Array[BaseInventoryItem]:
     var filtered_item_list: Array[BaseInventoryItem] = []
-    for item_id in items.keys():
-        var item: BaseInventoryItem = items[item_id]["resource"] as BaseInventoryItem
+    for item in items:
         if predicate.call(item):
             filtered_item_list.append(item)
     return filtered_item_list
 
-func _add_item_command(character_name: String, item_path: String, count_string: String) -> void:
-    if character_name != battle_character.character_internal_name:
-        return
-    var item: BaseInventoryItem = load("res://Scripts/Data/Items/Spells//" + item_path + ".tres") as BaseInventoryItem
-    if item:
-        add_item(item, int(count_string))
-
-func _remove_item_command(character_name: String, item_id: String, count_string: String) -> void:
-    if character_name != battle_character.character_internal_name:
-        return
-    remove_item(item_id, int(count_string))
-
-func _set_junction_command(character_name: String, item_id: String, stat_int_string: String) -> void:
-    if character_name != battle_character.character_internal_name:
-        return
-    var stat := int(stat_int_string) as CharacterStatEntry.ECharacterStat
-    set_item_junctioned_stat(item_id, stat)
+func get_items() -> Array[BaseInventoryItem]:
+    return items.keys()
 
 ## Set the stat that an item is junctioned to.
 ## [br]If the item was already junctioned to a different stat, the previous junction is removed.
@@ -138,7 +121,8 @@ func on_item_used(item: BaseInventoryItem, status: BaseInventoryItem.UseStatus) 
 
     item_used.emit(item, status)
 
-    remove_item(item, 1)
+    if not DEBUG_INFINITE_ITEMS:
+        remove_item(item, 1)
 
 func _generate_stat_modifier(spell_item: SpellItem, stat: CharacterStatEntry.ECharacterStat, value: float) -> StatModifier:
     var modifier: StatModifier = StatModifier.new()
@@ -163,26 +147,26 @@ func add_item(item: BaseInventoryItem, count: int = 1) -> void:
     item = item.duplicate() # duplicate to prevent setting properties of the original resource
     item.item_id = original_path # restore the original resource path after duplication   
 
-    if items.has(item.item_id):
-        var current_count := items[item.item_id]["count"] as int
-        var new_count := current_count + count
-        # Ensure we do not exceed the max stack count
-        if new_count > item.max_stack:
-            print("Cannot add more than max stack count")
-            new_count = item.max_stack
-        items[item.item_id]["count"] = new_count
-    else:
+    var current_count: int = items.get_or_add(item, 0)
+    var new_count := current_count + count
+    
+    if current_count == 0:
+        is_new_item = true
         # Add the item to the inventory
         item.inventory = self
-        items[item.item_id] = {"resource": item, "count": count}
-        is_new_item = true
+    
+    # Ensure we do not exceed the max stack count
+    if new_count > item.max_stack:
+        print("Cannot add more than max stack count")
+        new_count = item.max_stack
+    
+    items[item] = new_count
 
-    var total := items[item.item_id]["count"] as int
-    print("[Inventory] Added %s of item %s (%s) - new count: %s" % [count, item.item_name, item.item_id, total])
-    inventory_updated.emit(item, total, is_new_item)
+    print("[Inventory] Added %s of item %s (%s) - new count: %s" % [count, item.item_name, item.item_id, new_count])
+    inventory_updated.emit(item, new_count, is_new_item)
     
     if item is SpellItem:
-        _update_junction_modifiers(item as SpellItem, total)
+        _update_junction_modifiers(item as SpellItem, new_count)
 
 func _update_junction_modifiers(spell_item: SpellItem, total_item_count: int) -> void:
     if not spell_item:
@@ -218,54 +202,56 @@ func _update_junction_modifiers(spell_item: SpellItem, total_item_count: int) ->
 
 # Remove an existing item by its resource reference or item ID
 func remove_item(item: Variant, count: int) -> void:
-    var item_id: String
     var item_resource: BaseInventoryItem
     
     # Determine if the item is a BaseInventoryItem or a String
     if item is BaseInventoryItem:
-        item_id = item.item_id
         item_resource = item
     elif item is String:
-        item_id = item
-        item_resource = get_item(item_id)
+        item_resource = get_item(item)
+        if not item_resource:
+            print("Item not found in inventory")
+            return
     else:
         push_error("Invalid item type. Must be BaseInventoryItem or String.")
         return
     
-    if item_id not in items:
+    if item_resource not in items:
         print("Item not found in inventory")
         return
 
-    var current_count := items[item_id]["count"] as int
+    var current_count: int = items[item_resource]
     var new_count := current_count - count
     if new_count <= 0:
         print("Removing item from inventory")
         # erase item from map
-        items.erase(item_id)
+        items.erase(item_resource)
         new_count = 0
     else:
-        items[item_id]["count"] = new_count
+        items[item_resource] = new_count
 
     _update_junction_modifiers(item_resource, new_count)
-    print("[Inventory] Removed %s of item %s (%s) - new count: %s" % [count, item_resource.item_name, item_id, new_count])
+    print("[Inventory] Removed %s of item %s (%s) - new count: %s" % [count, item_resource.item_name, item_resource.item_id, new_count])
     inventory_updated.emit(item_resource, new_count, false)
 
 
 # Get the count of an item in the inventory by its item_id
 func get_item_count(item_id: String) -> int:
-    if item_id as String in items:
-        return items[item_id]["count"] as int
+    for item in items.keys():
+        if item.item_id == item_id:
+            return items[item]
     return 0
 
 # Get an existing item's resource by its item_id
 func get_item(item_id: String) -> BaseInventoryItem:
-    if item_id as String in items:
-        return items[item_id]["resource"] as BaseInventoryItem
+    for item in items.keys():
+        if item.item_id == item_id:
+            return item
     return null
 
 func print_inventory() -> void:
     if not items.is_empty():
-        for item_id: String in items.keys():
-            Console.print_line("%s (%s): %s" % [items[item_id]["resource"].item_name, item_id, items[item_id]["count"]], true)
+        for item in items.keys():
+            Console.print_line("%s (%s): %s" % [item.item_name, item.item_id, items[item]], true)
     else:
         Console.print_line("Inventory is empty", true)

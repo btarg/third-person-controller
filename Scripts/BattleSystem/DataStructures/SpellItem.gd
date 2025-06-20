@@ -168,7 +168,9 @@ func use(user: BattleCharacter, target: BattleCharacter, update_inventory: bool 
         # other spell affinities deal damage
         # take_damage() doesn't take a spell result, because we use it for basic attacks too
 
-    var attack_roll := DiceRoll.roll(20, 1, ceil(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass)))
+    var magic_strength := ceili(user.stats.get_stat(CharacterStatEntry.ECharacterStat.MagicalStrength))
+
+    var attack_roll := DiceRoll.roll(20, 1, ceil(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass)), magic_strength)
     # TODO: attacks do damage based on a separate spawned node, like a projectile
     # TODO: calculate damage more randomly
     target.take_damage(user, spell_power_rolls, attack_roll, spell_element)

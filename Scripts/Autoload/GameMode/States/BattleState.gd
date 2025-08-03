@@ -380,7 +380,7 @@ func ready_next_turn() -> void:
     _focus_character(current_character)
 
     # 0 turns left means the character is a new character
-    if current_character.actions_left == 0:
+    if current_character.actions_left <= 0:
         current_character.actions_left = START_ACTIONS
 
     # Select self at start of battle

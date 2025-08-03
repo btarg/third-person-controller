@@ -20,8 +20,8 @@ metadata/_custom_type_script = "uid://de54g0a7lhcrq"
 
 [resource]
 script = ExtResource("2_tan8b")
-item_type = 3
-item_name = "???"
+item_type = 0
+item_name = "Silence"
 item_description = "Test Description"
 has_count = true
 max_stack = 999

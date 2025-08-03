@@ -101,20 +101,18 @@ func spend_actions(actions: int) -> void:
     actions_left -= actions
     print(character_name + " has spent " + str(actions) + " actions")
     if actions_left <= 0:
-        behaviour_state_machine.set_state("IdleState")
         print(character_name + " has no actions left")
+        behaviour_state_machine.set_state("IdleState")
+        battle_state.ready_next_turn()
     else:
         print(character_name + " has " + str(actions_left) + " actions left")
-    battle_state.ready_next_turn()
+        battle_state.ready_next_turn()
     OnSpendActions.emit(self)
 
 func _on_inventory_updated(resource: Item, _count: int, is_new_item: bool) -> void:
-    # print("[INVENTORY] " + character_name + " has updated their inventory")
-    
-    if not is_new_item:
-        return
-    
-    if resource.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL] and not is_spell_familiar(resource):
+    if (is_new_item
+    and resource.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL]
+    and not is_spell_familiar(resource)):
         add_familiar_spell(resource)
 
 func print_stat(stat_int_string: String) -> void:
@@ -161,7 +159,7 @@ func _on_battle_turn_started(character: BattleCharacter) -> void:
 
 func start_turn() -> void:
     print("========")
-    print(character_name + " is starting their turn")
+    print(character_name + " is starting their turn (%s actions left)" % str(actions_left))
     print("========")
     character_active = true
     OnCharacterTurnStarted.emit()
@@ -170,7 +168,7 @@ func start_turn() -> void:
 
     if down_turns > 0:
         behaviour_state_machine.set_state("DownedState")
-    else:
+    elif actions_left > 0:
         behaviour_state_machine.set_state("ThinkState")
         down_turns = 0
 
@@ -183,14 +181,15 @@ func roll_initiative() -> int:
     initiative = DiceRoll.roll(20, 1, 1, initiative_bonus).total()
     return initiative
 
-func restore_mp(amount: int, spell_status: Item.UseStatus = Item.UseStatus.SPELL_FAIL) -> void:
-    var restore_string := "[RESTORE MP] %s restored %s MP" % [character_name, str(amount)]
-    print(restore_string)
+func update_mp(amount: int, spell_status: Item.UseStatus = Item.UseStatus.SPELL_FAIL) -> void:
+    print("[RESTORE MP] %s restored %s MP" % [character_name, str(amount)])
+
     current_mp += amount
     var max_mp := stats.get_stat(CharacterStatEntry.ECharacterStat.MaxMP)
     if current_mp > max_mp:
         # We expect MP to be an int
         current_mp = ceili(max_mp)
+    current_mp = max(current_mp, 0)  # Ensure MP doesn't go below 0
 
     var skill_result := BattleEnums.ESkillResult.SR_FAIL
     match spell_status:

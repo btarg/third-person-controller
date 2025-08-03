@@ -454,12 +454,14 @@ func _use_character_targeting_spell() -> void:
     
     # Use the spell/item
     await battle_state.message_ui.show_messages([selected_spell_item.item_name])
-    var status := SpellHelper.use_item_or_aoe(selected_spell_item, battle_character, target_character)
+    var status := selected_spell_item.activate(
+        battle_character, 
+        target_character, 
+        true,
+        true
+    )
     
     print("[TARGETING] Final use status: " + Util.get_enum_name(Item.UseStatus, status))
-    
-    # Spend the action cost - this will trigger battle callbacks
-    battle_character.spend_actions(selected_spell_item.actions_cost)
     # Stay in this state and wait - battle system will handle transitions
 
 func _back_to_think() -> void:

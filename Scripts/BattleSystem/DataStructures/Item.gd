@@ -2,8 +2,8 @@ class_name Item
 extends Resource
 
 enum ItemType {
-    BATTLE_SPELL, ## A spell that can be used on another character
-    FIELD_SPELL, ## Allows the spell to be used on a position in the world, area shape determined by area_type
+    BATTLE_SPELL, ## Used on another character directly
+    FIELD_SPELL, ## Used on a position in the world, area shape determined by area_type
     
     # Other item types
     SKILL, ## A skill that can be used in battle
@@ -39,6 +39,7 @@ var item_id := "default_item_id"
 @export var max_stack: int = 999
 
 @export_group("Cost")
+## TODO: The action cost is only referenced in other classes and not used here.
 @export var actions_cost: int = 1
 @export var mp_cost: int = 0
 
@@ -246,9 +247,23 @@ func _update_inventory(status: UseStatus) -> void:
     if inventory and has_count:
         inventory.on_item_used(self, status)
 
-func activate(user: BattleCharacter, target: BattleCharacter, update_inventory: bool = true) -> UseStatus:
+## MAIN ACTIVATION FUNCTION
+## Executes the spell/item's effect. Called when the item "collides" with a target.
+func activate(user: BattleCharacter, target: BattleCharacter, update_inventory: bool = true, use_actions: bool = true) -> UseStatus:
     var status: UseStatus
     
+    if mp_cost > 0:
+        if user.current_mp < mp_cost:
+            print("%s does not have enough MP to activate %s" % [user.character_name, item_name])
+            return UseStatus.CANNOT_USE
+        user.update_mp(-mp_cost, UseStatus.CONSUMED_MP)
+
+    if actions_cost > 0 and use_actions:
+        if user.actions_left < actions_cost:
+            print("%s does not have enough actions left to activate %s" % [user.character_name, item_name])
+            return UseStatus.CANNOT_USE
+        user.spend_actions(actions_cost)
+
     # Handle spells
     if item_type in [ItemType.BATTLE_SPELL, ItemType.FIELD_SPELL]:
         print("[SPELL] %s used %s on %s" % [user.character_name, item_name, target.character_name])
@@ -281,7 +296,7 @@ func activate(user: BattleCharacter, target: BattleCharacter, update_inventory: 
                 BattleEnums.EAffinityElement.HEAL:
                     target.heal(DiceRoll.roll_all(spell_power_rolls), false, spell_use_status)
                 BattleEnums.EAffinityElement.MANA:
-                    target.restore_mp(DiceRoll.roll_all(spell_power_rolls), spell_use_status)
+                    target.update_mp(DiceRoll.roll_all(spell_power_rolls), spell_use_status)
 
                 BattleEnums.EAffinityElement.BUFF,\
                 BattleEnums.EAffinityElement.DEBUFF:
@@ -300,7 +315,7 @@ func activate(user: BattleCharacter, target: BattleCharacter, update_inventory: 
         # TODO: attacks do damage based on a separate spawned node, like a projectile
         # TODO: calculate damage more randomly
         target.take_damage(user, spell_power_rolls, attack_roll, spell_element)
-
+        
         # reset cached roll so we can roll again
         _roll_cache.clear()
         
@@ -320,5 +335,9 @@ func activate(user: BattleCharacter, target: BattleCharacter, update_inventory: 
     
     if update_inventory:
         _update_inventory(status)
-    
+
+
+    if use_actions:
+        user.spend_actions(actions_cost)
+
     return status

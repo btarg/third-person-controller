@@ -46,22 +46,6 @@ func process_basic_attack(attacker: BattleCharacter, target: BattleCharacter) ->
     print("[ATTACK] Result: " + Util.get_enum_name(BattleEnums.ESkillResult, result))
     return result
 
-## Calling Item#use on an AOE spell will not spawn the radius, but rather apply the effect to the target character.
-## This function will handle both AOE spells and normal items/spells.
-func use_item_or_aoe(item: Item, user_character: BattleCharacter, target_character: BattleCharacter, update_inventory: bool = true) -> Item.UseStatus:
-    if item.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL]:
-        # For spells that have AOE, check if we should spawn an area effect
-        if item.area_of_effect_radius > 0 and item.item_type == Item.ItemType.FIELD_SPELL:
-            # This is an AOE field spell - it should be handled by the targeting system
-            # For now, just apply the effect directly to the target
-            pass
-        
-        # Apply the spell effect directly to the target character
-        return item.activate(user_character, target_character, update_inventory)
-    
-    # If it's not a spell, just use the item normally
-    return item.activate(user_character, target_character, update_inventory)
-
 ## This function should be used for spawning radius AOE spells without requiring a BattleCharacter (spawn at position)
 func create_area_of_effect_radius(spell: Item, caster: BattleCharacter, spawn_position: Vector3) -> bool:
     if spell.area_of_effect_radius == 0 or spell.item_type != Item.ItemType.FIELD_SPELL:

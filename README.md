@@ -12,7 +12,8 @@
 
 ## Unfinished Features / Todo List
 
-- [ ] Magic: Implement MP costs for spells
+- [x] Magic: Implement MP costs for spells
+- [x] Magic: Implement projectiles for spells
 - [ ] Magic: Implement Affinity Points or other system for levelling affinities
 - [ ] Affinities: Implement [Mastery](https://btarg.github.io/requiem-vault/Players/Concepts/Mechanics/Magic/Mastery)
 - [ ] Affinities: Implement [Scanning](https://btarg.github.io/requiem-vault/Players/Concepts/Mechanics/Elements-and-Affinities/Scanning)

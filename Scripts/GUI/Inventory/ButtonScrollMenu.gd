@@ -78,7 +78,7 @@ func _ready() -> void:
 
 
 func _update_inventory_item(item: Item, item_count: int, is_new_item: bool) -> void:
-    print("Updating inventory: " + item.item_name + " x" + str(item_count))
+    # print("Updating inventory: " + item.item_name + " x" + str(item_count))
     if item_count == 0:
         print("Item _buttons_count is 0. Removing item.")
         _remove_item_button(item)

@@ -54,6 +54,18 @@ func _on_leave_battle() -> void:
         Transitioned.emit(self, "IdleState")
 
 func enter() -> void:
+    # Safety check to prevent infinite loops on state entry
+    if not battle_character:
+        print("[ERROR] ThinkState entered with no battle_character reference!")
+        Transitioned.emit(self, "IdleState")
+        return
+        
+    if battle_character.actions_left <= 0:
+        print("[ERROR] %s entered ThinkState with %d actions left, this should not happen! Transitioning to idle" % [battle_character.character_name, battle_character.actions_left])
+        print("[DEBUG] Character active: %s, Down turns: %d" % [battle_character.character_active, battle_character.down_turns])
+        Transitioned.emit(self, "IdleState")
+        return
+    
     _make_decision()
     _aggression_check()
 
@@ -149,16 +161,28 @@ func _make_decision() -> void:
     var chosen_action := _select_best_action(context)
     
     if not chosen_action:
-        print("[CRITICAL ERROR] %s failed to select any action!" % battle_character.character_name)
+        printerr("[CRITICAL ERROR] %s failed to select any action!" % battle_character.character_name)
         _debug_action_selection_failure(context)
         
         # Fallback: spend one action and transition to idle to prevent infinite loops
-        print("[FALLBACK] %s spending 1 action as emergency fallback" % battle_character.character_name)
-        battle_character.spend_actions(1)
+        printerr("[FALLBACK] %s spending actions as emergency fallback and transitioning to idle" % battle_character.character_name)
+        battle_character.spend_actions(battle_character.actions_left)
         return
 
+    # Execute the chosen action
+    print("%s executing action: %s" % [battle_character.character_name, chosen_action.name])
     chosen_action.execute()
-    print("%s executed action: %s" % [battle_character.character_name, chosen_action.name])
+    
+    # Double-check that actions were actually spent to prevent infinite loops
+    if battle_character.actions_left <= 0:
+        printerr("[AI] %s has no more actions, spend_actions() will handle transition to idle" % battle_character.character_name)
+        # Don't emit transition here - spend_actions() already handles it
+    else:
+        # Continue thinking if we still have actions left
+        print("[AI] %s has %d actions left, continuing to think" % [battle_character.character_name, battle_character.actions_left])
+        # Add a small delay to prevent immediate recursion
+        await get_tree().process_frame
+        _make_decision()
 
 ## TODO: this can be moved to a generic Enemy Think State
 ## as the context is not specific to any enemy.
@@ -581,29 +605,43 @@ func _execute_attack() -> void:
 func _execute_cast_spell() -> void:
     if not best_spell_to_cast:
         print("ERROR: No spell to cast was precalculated!")
+        # Spend 1 action as failsafe to prevent infinite loops
+        battle_character.spend_actions(1)
         return
     
     print("Enemy casting spell: " + best_spell_to_cast.item_name)
     
     # Determine target based on spell type
     if best_spell_to_cast.spell_element == BattleEnums.EAffinityElement.HEAL:
-        print("Enemy casting heal spell on self")
-        # TODO: cast heal spell on self
+        if ally_target_character:
+            print("Enemy casting heal spell on ally: " + ally_target_character.character_name)
+            best_spell_to_cast.activate(battle_character, ally_target_character, false)
+        else:
+            print("Enemy casting heal spell on self")
+            best_spell_to_cast.activate(battle_character, battle_character, false)
     else:
         print("Enemy casting damage spell on player target")
-        # TODO: cast damage spell on player target
+        if target_character:
+            best_spell_to_cast.activate(battle_character, target_character, false)
+        else:
+            print("ERROR: No target character available for damage spell!")
 
-    # TODO: we should factor in the spell's action cost when picking it earlier on.
+    # Always spend the spell's action cost
     battle_character.spend_actions(best_spell_to_cast.actions_cost)
 
 func _execute_heal_ally() -> void:
     if not best_heal_spell or not ally_target_character:
         print("ERROR: No heal spell or ally target available!")
+        # Spend 1 action as failsafe to prevent infinite loops
+        battle_character.spend_actions(1)
         return
     
     print("Enemy casting heal spell on ally: " + ally_target_character.character_name)
-    # Cast heal spell on ally target (enemies don't have an inventory yet, this is TODO)
-    SpellHelper.use_item_or_aoe(best_heal_spell, battle_character, ally_target_character, false)
+    ## TODO: enemy inventory should be updated, deal with this later
+    best_heal_spell.activate(battle_character, ally_target_character, false)
+    
+    # Always spend the spell's action cost
+    battle_character.spend_actions(best_heal_spell.actions_cost)
 
 func _execute_defend() -> void:
     print("Executing defend!")

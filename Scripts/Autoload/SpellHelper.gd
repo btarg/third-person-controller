@@ -13,7 +13,7 @@ func _add_item_command(item_id:String, amount:String) -> void:
     if not battle_state.current_character:
         return
     
-    var item: BaseInventoryItem = load("res://Scripts/Data/Items/%s.tres" % item_id)
+    var item: Item = load("res://Scripts/Data/Items/%s.tres" % item_id)
     if not item:
         print("[ADD_ITEM] Item %s not found!" % item_id)
         return
@@ -46,12 +46,12 @@ func process_basic_attack(attacker: BattleCharacter, target: BattleCharacter) ->
     print("[ATTACK] Result: " + Util.get_enum_name(BattleEnums.ESkillResult, result))
     return result
 
-## Calling BaseInventoryItem#use on an AOE spell will not spawn the radius, but rather apply the effect to the target character.
+## Calling Item#use on an AOE spell will not spawn the radius, but rather apply the effect to the target character.
 ## This function will handle both AOE spells and normal items/spells.
-func use_item_or_aoe(item: BaseInventoryItem, user_character: BattleCharacter, target_character: BattleCharacter, update_inventory: bool = true) -> BaseInventoryItem.UseStatus:
-    if item.item_type in [BaseInventoryItem.ItemType.BATTLE_SPELL, BaseInventoryItem.ItemType.FIELD_SPELL]:
+func use_item_or_aoe(item: Item, user_character: BattleCharacter, target_character: BattleCharacter, update_inventory: bool = true) -> Item.UseStatus:
+    if item.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL]:
         # For spells that have AOE, check if we should spawn an area effect
-        if item.area_of_effect_radius > 0 and item.item_type == BaseInventoryItem.ItemType.FIELD_SPELL:
+        if item.area_of_effect_radius > 0 and item.item_type == Item.ItemType.FIELD_SPELL:
             # This is an AOE field spell - it should be handled by the targeting system
             # For now, just apply the effect directly to the target
             pass
@@ -63,9 +63,9 @@ func use_item_or_aoe(item: BaseInventoryItem, user_character: BattleCharacter, t
     return item.activate(user_character, target_character, update_inventory)
 
 ## This function should be used for spawning radius AOE spells without requiring a BattleCharacter (spawn at position)
-func create_area_of_effect_radius(spell: BaseInventoryItem, caster: BattleCharacter, spawn_position: Vector3) -> bool:
-    if spell.area_of_effect_radius == 0 or spell.item_type != BaseInventoryItem.ItemType.FIELD_SPELL:
-        print("[AOE SPELL] Invalid spell for AOE: radius=%.1f, type=%s" % [spell.area_of_effect_radius, BaseInventoryItem.ItemType.keys()[spell.item_type]])
+func create_area_of_effect_radius(spell: Item, caster: BattleCharacter, spawn_position: Vector3) -> bool:
+    if spell.area_of_effect_radius == 0 or spell.item_type != Item.ItemType.FIELD_SPELL:
+        print("[AOE SPELL] Invalid spell for AOE: radius=%.1f, type=%s" % [spell.area_of_effect_radius, Item.ItemType.keys()[spell.item_type]])
         return false
 
     # Create a persistent SpellArea with trigger behavior
@@ -85,7 +85,7 @@ func draw_spell(target_character: BattleCharacter, current_character: BattleChar
     if selected_spell_index < 0 or selected_spell_index >= target_character.draw_list.size():
         return
 
-    var drawn_spell := target_character.draw_list[selected_spell_index] as BaseInventoryItem
+    var drawn_spell := target_character.draw_list[selected_spell_index] as Item
 
     print("[DRAW] Drawn spell: " + drawn_spell.item_name)
 
@@ -105,8 +105,8 @@ func draw_spell(target_character: BattleCharacter, current_character: BattleChar
 
     if cast_immediately:
         await battle_state.message_ui.show_messages([drawn_spell.item_name])
-        var status: BaseInventoryItem.UseStatus = drawn_spell.activate(current_character, target_character, false)
-        print("[DRAW] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
+        var status: Item.UseStatus = drawn_spell.activate(current_character, target_character, false)
+        print("[DRAW] Final use status: " + Util.get_enum_name(Item.UseStatus, status))
     else:
         
         if current_character.inventory:
@@ -125,14 +125,14 @@ func draw_spell(target_character: BattleCharacter, current_character: BattleChar
 
 
 # Sort based on available actions. Used in the inventory UI to prioritize items that the player probably wants to use based on current context.
-func sort_items_by_usefulness(a: BaseInventoryItem, b: BaseInventoryItem) -> bool:
+func sort_items_by_usefulness(a: Item, b: Item) -> bool:
     var ally_actions := [BattleEnums.EAvailableCombatActions.ALLY, BattleEnums.EAvailableCombatActions.SELF]
     var a_useful := (a.can_use_on_allies and battle_state.available_actions in ally_actions) or (a.can_use_on_enemies and battle_state.available_actions == BattleEnums.EAvailableCombatActions.ENEMY)
     var b_useful := (b.can_use_on_allies and battle_state.available_actions in ally_actions) or (b.can_use_on_enemies and battle_state.available_actions == BattleEnums.EAvailableCombatActions.ENEMY)
     
     if battle_state.available_actions == BattleEnums.EAvailableCombatActions.GROUND:
-        var a_cast_anywhere := a.item_type == BaseInventoryItem.ItemType.FIELD_SPELL
-        var b_cast_anywhere := b.item_type == BaseInventoryItem.ItemType.FIELD_SPELL
+        var a_cast_anywhere := a.item_type == Item.ItemType.FIELD_SPELL
+        var b_cast_anywhere := b.item_type == Item.ItemType.FIELD_SPELL
         if a_cast_anywhere != b_cast_anywhere: return a_cast_anywhere
     
     if a_useful != b_useful: return a_useful
@@ -140,7 +140,7 @@ func sort_items_by_usefulness(a: BaseInventoryItem, b: BaseInventoryItem) -> boo
     # Prioritize spells based on target's known weaknesses when targeting enemies
     if (battle_state.available_actions == BattleEnums.EAvailableCombatActions.ENEMY 
         and battle_state.player_selected_character 
-        and a.item_type in [BaseInventoryItem.ItemType.BATTLE_SPELL, BaseInventoryItem.ItemType.FIELD_SPELL] and b.item_type in [BaseInventoryItem.ItemType.BATTLE_SPELL, BaseInventoryItem.ItemType.FIELD_SPELL]):
+        and a.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL] and b.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL]):
         
         var a_spell := a
         var b_spell := b
@@ -162,7 +162,7 @@ func sort_items_by_usefulness(a: BaseInventoryItem, b: BaseInventoryItem) -> boo
         if a_affinity_priority != b_affinity_priority: 
             return a_affinity_priority < b_affinity_priority
     
-    if a.item_type in [BaseInventoryItem.ItemType.BATTLE_SPELL, BaseInventoryItem.ItemType.FIELD_SPELL] and b.item_type in [BaseInventoryItem.ItemType.BATTLE_SPELL, BaseInventoryItem.ItemType.FIELD_SPELL]:
+    if a.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL] and b.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL]:
         var a_spell := a
         var b_spell := b
         if battle_state.available_actions in ally_actions:

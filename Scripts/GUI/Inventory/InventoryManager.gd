@@ -1,7 +1,7 @@
 extends Node
 class_name Inventory
 
-var items: Dictionary[BaseInventoryItem, int] = {}
+var items: Dictionary[Item, int] = {}
 ## Dictionary of item_id as key and a modifier id as value
 var linked_modifiers: Dictionary[String, String] = {}
 
@@ -14,19 +14,19 @@ const DEBUG_INFINITE_ITEMS: bool = false
 
 @onready var battle_character := get_node("../BattleCharacter") as BattleCharacter
 
-signal inventory_updated(resource: BaseInventoryItem, count: int, is_new_item: bool)
-signal item_used(item_id: BaseInventoryItem, use_status: BaseInventoryItem.UseStatus)
+signal inventory_updated(resource: Item, count: int, is_new_item: bool)
+signal item_used(item_id: Item, use_status: Item.UseStatus)
 
-var fire_spell: BaseInventoryItem = load("res://Scripts/Data/Items/Spells//test_fire_spell.tres")
-var heal_spell: BaseInventoryItem = load("res://Scripts/Data/Items/Spells//test_healing_spell.tres")
-var almighty_spell: BaseInventoryItem = load("res://Scripts/Data/Items/Spells//test_almighty_spell.tres")
-var ice_spell: BaseInventoryItem = load("res://Scripts/Data/Items/Spells//test_ice_spell.tres")
-var elec_spell: BaseInventoryItem = load("res://Scripts/Data/Items/Spells//test_elec_spell.tres")
-var wind_spell: BaseInventoryItem = load("res://Scripts/Data/Items/Spells//test_wind_spell.tres")
-var silence_spell: BaseInventoryItem = load("res://Scripts/Data/Items/Spells//silence_spell.tres")
+var fire_spell: Item = load("res://Scripts/Data/Items/Spells//test_fire_spell.tres")
+var heal_spell: Item = load("res://Scripts/Data/Items/Spells//test_healing_spell.tres")
+var almighty_spell: Item = load("res://Scripts/Data/Items/Spells//test_almighty_spell.tres")
+var ice_spell: Item = load("res://Scripts/Data/Items/Spells//test_ice_spell.tres")
+var elec_spell: Item = load("res://Scripts/Data/Items/Spells//test_elec_spell.tres")
+var wind_spell: Item = load("res://Scripts/Data/Items/Spells//test_wind_spell.tres")
+var silence_spell: Item = load("res://Scripts/Data/Items/Spells//silence_spell.tres")
 
-var aoe_spell: BaseInventoryItem = load("res://Scripts/Data/Items/Spells//test_aoe_spell.tres")
-var aoe_spell_2: BaseInventoryItem = load("res://Scripts/Data/Items/Spells//test_cone_spell.tres")
+var aoe_spell: Item = load("res://Scripts/Data/Items/Spells//test_aoe_spell.tres")
+var aoe_spell_2: Item = load("res://Scripts/Data/Items/Spells//test_cone_spell.tres")
 
 func _ready() -> void:
 
@@ -59,14 +59,14 @@ func filtered_item_ids(predicate: Callable) -> Array[String]:
             filtered_item_list.append(item.item_id)
     return filtered_item_list
 
-func filtered_items(predicate: Callable) -> Array[BaseInventoryItem]:
-    var filtered_item_list: Array[BaseInventoryItem] = []
+func filtered_items(predicate: Callable) -> Array[Item]:
+    var filtered_item_list: Array[Item] = []
     for item in items:
         if predicate.call(item):
             filtered_item_list.append(item)
     return filtered_item_list
 
-func get_items() -> Array[BaseInventoryItem]:
+func get_items() -> Array[Item]:
     return items.keys()
 
 ## Set the stat that an item is junctioned to.
@@ -79,14 +79,14 @@ func set_item_junctioned_stat(item_id: String, stat: CharacterStatEntry.ECharact
     # If the item was junctioned to a different stat, remove that junction first
     if old_stat != CharacterStatEntry.ECharacterStat.NONE and old_stat != stat:
         junctioned_stat_by_item.erase(item_id)
-        var prev_item := get_item(item_id) as BaseInventoryItem
+        var prev_item := get_item(item_id) as Item
         if prev_item:
             # Remove old stat's junction effect by forcing count=0
             _update_junction_modifiers(prev_item, 0)
 
     # Now apply the new junction
     junctioned_stat_by_item[item_id] = stat
-    _update_junction_modifiers(get_item(item_id) as BaseInventoryItem, get_item_count(item_id))
+    _update_junction_modifiers(get_item(item_id) as Item, get_item_count(item_id))
     Console.print_line("[JUNCTION] Junctioned item %s to stat %s"
         % [item_id, Util.get_enum_name(CharacterStatEntry.ECharacterStat, stat)], true)
 
@@ -99,22 +99,22 @@ func _get_junctioned_stat(character_name: String, item_id: String) -> CharacterS
     return result
 
 # Function for debug
-func _on_inventory_updated(resource: BaseInventoryItem, count: int, is_new_item: bool) -> void:
+func _on_inventory_updated(resource: Item, count: int, is_new_item: bool) -> void:
     print("Inventory updated: %s (%s) - %s" % [resource.item_name, resource.item_id, count])
     if is_new_item:
         print("New item added to inventory")
     else:
         print("Item count updated")
 
-func on_item_used(item: BaseInventoryItem, status: BaseInventoryItem.UseStatus) -> void:
+func on_item_used(item: Item, status: Item.UseStatus) -> void:
     match status:
-        BaseInventoryItem.UseStatus.CONSUMED_HP:
+        Item.UseStatus.CONSUMED_HP:
             print("SIGNAL: Item used to restore HP")
-        BaseInventoryItem.UseStatus.CONSUMED_MP:
+        Item.UseStatus.CONSUMED_MP:
             print("SIGNAL: Item used to restore MP")
-        BaseInventoryItem.UseStatus.CANNOT_USE:
+        Item.UseStatus.CANNOT_USE:
             print("SIGNAL: Item cannot be used")
-        BaseInventoryItem.UseStatus.EQUIPPED:
+        Item.UseStatus.EQUIPPED:
             print("SIGNAL: Item equipped")
         _:
             print("SIGNAL: Item used: " + item.item_name)
@@ -124,7 +124,7 @@ func on_item_used(item: BaseInventoryItem, status: BaseInventoryItem.UseStatus) 
     if not DEBUG_INFINITE_ITEMS:
         remove_item(item, 1)
 
-func _generate_stat_modifier(spell_item: BaseInventoryItem, stat: CharacterStatEntry.ECharacterStat, value: float) -> StatModifier:
+func _generate_stat_modifier(spell_item: Item, stat: CharacterStatEntry.ECharacterStat, value: float) -> StatModifier:
     var modifier: StatModifier = StatModifier.new()
     modifier.turn_duration = -1
     modifier.apply_out_of_combat = true
@@ -140,7 +140,7 @@ func _generate_stat_modifier(spell_item: BaseInventoryItem, stat: CharacterStatE
     return modifier
 
 
-func add_item(item: BaseInventoryItem, count: int = 1) -> void:    
+func add_item(item: Item, count: int = 1) -> void:    
     if not item:
         printerr("Cannot add null item to inventory")
         return
@@ -169,10 +169,10 @@ func add_item(item: BaseInventoryItem, count: int = 1) -> void:
     print("[Inventory] Added %s of item %s (%s) - new count: %s" % [count, item.item_name, item.item_id, new_count])
     inventory_updated.emit(item, new_count, is_new_item)
     
-    if item.item_type in [BaseInventoryItem.ItemType.BATTLE_SPELL, BaseInventoryItem.ItemType.FIELD_SPELL]:
+    if item.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL]:
         _update_junction_modifiers(item, new_count)
 
-func _update_junction_modifiers(spell_item: BaseInventoryItem, total_item_count: int) -> void:
+func _update_junction_modifiers(spell_item: Item, total_item_count: int) -> void:
     if not spell_item:
         print("[Junction] Spell item is null")
         return
@@ -206,10 +206,10 @@ func _update_junction_modifiers(spell_item: BaseInventoryItem, total_item_count:
 
 # Remove an existing item by its resource reference or item ID
 func remove_item(item: Variant, count: int) -> void:
-    var item_resource: BaseInventoryItem
+    var item_resource: Item
     
-    # Determine if the item is a BaseInventoryItem or a String
-    if item is BaseInventoryItem:
+    # Determine if the item is a Item or a String
+    if item is Item:
         item_resource = item
     elif item is String:
         item_resource = get_item(item)
@@ -217,7 +217,7 @@ func remove_item(item: Variant, count: int) -> void:
             print("Item not found in inventory")
             return
     else:
-        push_error("Invalid item type. Must be BaseInventoryItem or String.")
+        push_error("Invalid item type. Must be Item or String.")
         return
     
     if item_resource not in items:
@@ -247,7 +247,7 @@ func get_item_count(item_id: String) -> int:
     return 0
 
 # Get an existing item's resource by its item_id
-func get_item(item_id: String) -> BaseInventoryItem:
+func get_item(item_id: String) -> Item:
     for item in items.keys():
         if item.item_id == item_id:
             return item

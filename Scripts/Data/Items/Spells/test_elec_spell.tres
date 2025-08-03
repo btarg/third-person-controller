@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BaseInventoryItem" load_steps=3 format=3 uid="uid://dtee6temgrdtn"]
+[gd_resource type="Resource" script_class="Item" load_steps=3 format=3 uid="uid://dtee6temgrdtn"]
 
 [ext_resource type="Script" uid="uid://c12nymc8vauu3" path="res://Scripts/BattleSystem/DataStructures/Item.gd" id="1_0rvvm"]
 [ext_resource type="Script" uid="uid://dymhc7pcpegip" path="res://Scripts/BattleSystem/DataStructures/DiceRoll.gd" id="2_1pkbe"]

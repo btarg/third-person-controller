@@ -54,7 +54,7 @@ var item_inventory: Inventory:
         filtered_inventory_items.sort_custom(SpellHelper.sort_items_by_usefulness)
 
         for item_entry in filtered_inventory_items:
-            # var item_entry: BaseInventoryItem = new_inventory.get_item(item_id)
+            # var item_entry: Item = new_inventory.get_item(item_id)
             _update_inventory_item(item_entry, new_inventory.get_item_count(item_entry.item_id), true)
 
         item_inventory = new_inventory
@@ -62,8 +62,8 @@ var item_inventory: Inventory:
 # Map item id to button
 var item_button_map: Dictionary[String, InventoryItemButtonPaint] = {}
 
-signal item_button_pressed(item: BaseInventoryItem)
-signal item_button_hovered(item: BaseInventoryItem)
+signal item_button_pressed(item: Item)
+signal item_button_hovered(item: Item)
 
 func _ready() -> void:
 
@@ -77,7 +77,7 @@ func _ready() -> void:
     add_child(scroll_timer)
 
 
-func _update_inventory_item(item: BaseInventoryItem, item_count: int, is_new_item: bool) -> void:
+func _update_inventory_item(item: Item, item_count: int, is_new_item: bool) -> void:
     print("Updating inventory: " + item.item_name + " x" + str(item_count))
     if item_count == 0:
         print("Item _buttons_count is 0. Removing item.")
@@ -88,7 +88,7 @@ func _update_inventory_item(item: BaseInventoryItem, item_count: int, is_new_ite
         else:
             _update_count_label(item)
 
-func _add_button(item: BaseInventoryItem, item_count: int) -> void:
+func _add_button(item: Item, item_count: int) -> void:
     var new_button := button_scene.instantiate() as InventoryItemButtonPaint
     
     # initialize button spacing
@@ -118,7 +118,7 @@ func _add_button(item: BaseInventoryItem, item_count: int) -> void:
 
     new_button.position.x = margin_x
 
-func _update_count_label(item: BaseInventoryItem) -> void:
+func _update_count_label(item: Item) -> void:
     var button = item_button_map.get(item.item_id)
     if button:
         if item.has_count:
@@ -126,7 +126,7 @@ func _update_count_label(item: BaseInventoryItem) -> void:
         else:
             button.set_item_count(0)  
 
-func _remove_item_button(item: BaseInventoryItem) -> void:
+func _remove_item_button(item: Item) -> void:
     var button = item_button_map.get(item.item_id)
     if button:
         _delete_button(button)
@@ -173,7 +173,7 @@ func update_labels() -> void:
                 continue
             description_label.text = item.get_item_description()
 
-            if item.item_type in [BaseInventoryItem.ItemType.BATTLE_SPELL, BaseInventoryItem.ItemType.FIELD_SPELL]:
+            if item.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL]:
                 var spell_use_roll: DiceRoll = item.get_spell_use_roll(battle_state.current_character, battle_state.player_selected_character)
                 if spell_use_roll.difficulty_class > 1:
                     dc_label.text = "Roll: %s" % spell_use_roll.to_string()

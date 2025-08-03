@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BaseInventoryItem" load_steps=4 format=3 uid="uid://ce5776p2h7yrv"]
+[gd_resource type="Resource" script_class="Item" load_steps=4 format=3 uid="uid://ce5776p2h7yrv"]
 
 [ext_resource type="Script" uid="uid://c12nymc8vauu3" path="res://Scripts/BattleSystem/DataStructures/Item.gd" id="1_bfuhv"]
 [ext_resource type="Resource" uid="uid://d2uax0y37khi3" path="res://Scripts/Data/StatModifiers/speed_half.tres" id="1_htrow"]

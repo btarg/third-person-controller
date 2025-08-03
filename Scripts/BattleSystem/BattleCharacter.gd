@@ -14,12 +14,12 @@ class_name BattleCharacter
     BattleEnums.EAffinityElement.FIRE,
 ]
 
-var _familiar_spells: Array[BaseInventoryItem] = []
+var _familiar_spells: Array[Item] = []
 
 @export var debug_always_crit: bool = false
 
 # TODO: replace this draw list for every character
-@export var draw_list: Array[BaseInventoryItem] = [
+@export var draw_list: Array[Item] = [
     load("res://Scripts/Data/Items/Spells//test_fire_spell.tres"),
     load("res://Scripts/Data/Items/Spells//test_healing_spell.tres"),
     load("res://Scripts/Data/Items/Spells//test_almighty_spell.tres")
@@ -108,13 +108,13 @@ func spend_actions(actions: int) -> void:
     battle_state.ready_next_turn()
     OnSpendActions.emit(self)
 
-func _on_inventory_updated(resource: BaseInventoryItem, _count: int, is_new_item: bool) -> void:
+func _on_inventory_updated(resource: Item, _count: int, is_new_item: bool) -> void:
     # print("[INVENTORY] " + character_name + " has updated their inventory")
     
     if not is_new_item:
         return
     
-    if resource.item_type in [BaseInventoryItem.ItemType.BATTLE_SPELL, BaseInventoryItem.ItemType.FIELD_SPELL] and not is_spell_familiar(resource):
+    if resource.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL] and not is_spell_familiar(resource):
         add_familiar_spell(resource)
 
 func print_stat(stat_int_string: String) -> void:
@@ -132,10 +132,10 @@ func print_modifiers() -> void:
             stat_value_string += str(modifier.stat_value)
             Console.print_line(modifier.name + " - " + enum_name + ": " + stat_value_string, true)
 
-func is_spell_familiar(spell: BaseInventoryItem) -> bool:
+func is_spell_familiar(spell: Item) -> bool:
     return _familiar_spells.has(spell)
 
-func add_familiar_spell(spell: BaseInventoryItem) -> void:
+func add_familiar_spell(spell: Item) -> void:
     print("[Familiar] " + character_name + " has learned " + spell.item_name)
     _familiar_spells.append(spell)
 
@@ -183,7 +183,7 @@ func roll_initiative() -> int:
     initiative = DiceRoll.roll(20, 1, 1, initiative_bonus).total()
     return initiative
 
-func restore_mp(amount: int, spell_status: BaseInventoryItem.UseStatus = BaseInventoryItem.UseStatus.SPELL_FAIL) -> void:
+func restore_mp(amount: int, spell_status: Item.UseStatus = Item.UseStatus.SPELL_FAIL) -> void:
     var restore_string := "[RESTORE MP] %s restored %s MP" % [character_name, str(amount)]
     print(restore_string)
     current_mp += amount
@@ -194,11 +194,11 @@ func restore_mp(amount: int, spell_status: BaseInventoryItem.UseStatus = BaseInv
 
     var skill_result := BattleEnums.ESkillResult.SR_FAIL
     match spell_status:
-        BaseInventoryItem.UseStatus.SPELL_SUCCESS:
+        Item.UseStatus.SPELL_SUCCESS:
             skill_result = BattleEnums.ESkillResult.SR_SUCCESS
-        BaseInventoryItem.UseStatus.SPELL_CRIT_SUCCESS:
+        Item.UseStatus.SPELL_CRIT_SUCCESS:
             skill_result = BattleEnums.ESkillResult.SR_CRITICAL
-        BaseInventoryItem.UseStatus.SPELL_CRIT_FAIL:
+        Item.UseStatus.SPELL_CRIT_FAIL:
             skill_result = BattleEnums.ESkillResult.SR_FAIL
 
     var restore_number := DamageNumber.create_damage_number(
@@ -207,7 +207,7 @@ func restore_mp(amount: int, spell_status: BaseInventoryItem.UseStatus = BaseInv
         battle_state.top_down_player.camera)
     add_child(restore_number)
 
-func heal(amount: int, from_absorb: bool = false, spell_status: BaseInventoryItem.UseStatus = BaseInventoryItem.UseStatus.SPELL_FAIL) -> void:
+func heal(amount: int, from_absorb: bool = false, spell_status: Item.UseStatus = Item.UseStatus.SPELL_FAIL) -> void:
     var heal_string := "[HEAL] %s healed %s HP" % [character_name, str(amount)]
     if from_absorb:
         heal_string += " from ABSORB"
@@ -220,11 +220,11 @@ func heal(amount: int, from_absorb: bool = false, spell_status: BaseInventoryIte
 
     var skill_result := BattleEnums.ESkillResult.SR_FAIL
     match spell_status:
-        BaseInventoryItem.UseStatus.SPELL_SUCCESS:
+        Item.UseStatus.SPELL_SUCCESS:
             skill_result = BattleEnums.ESkillResult.SR_SUCCESS
-        BaseInventoryItem.UseStatus.SPELL_CRIT_SUCCESS:
+        Item.UseStatus.SPELL_CRIT_SUCCESS:
             skill_result = BattleEnums.ESkillResult.SR_CRITICAL
-        BaseInventoryItem.UseStatus.SPELL_CRIT_FAIL:
+        Item.UseStatus.SPELL_CRIT_FAIL:
             skill_result = BattleEnums.ESkillResult.SR_FAIL
 
     var heal_number := DamageNumber.create_damage_number(

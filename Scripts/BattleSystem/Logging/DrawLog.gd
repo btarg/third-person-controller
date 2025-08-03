@@ -8,8 +8,8 @@ func _ready() -> void:
     pass
 
 ## Get the known name of a spell, or "???" if it hasn't been drawn yet
-func get_draw_spell_name(spell: BaseInventoryItem) -> String:
+func get_draw_spell_name(spell: Item) -> String:
     return spell.item_name if _drawn_spells.has(spell.item_id) else "???"
 
-func add_spell_to_log(spell: BaseInventoryItem) -> void:
+func add_spell_to_log(spell: Item) -> void:
     _drawn_spells.append(spell.item_id)

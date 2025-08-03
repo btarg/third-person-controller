@@ -41,7 +41,7 @@ enum EPlayerCombatAction {
     CA_MOVE ## Use movement
 }
 
-static func get_combat_action_selection(chosen_action: EPlayerCombatAction, spell_or_item: BaseInventoryItem) -> Dictionary:
+static func get_combat_action_selection(chosen_action: EPlayerCombatAction, spell_or_item: Item) -> Dictionary:
     var can_select_enemies := false
     var can_select_allies := false
 

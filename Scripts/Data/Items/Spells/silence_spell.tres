@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BaseInventoryItem" load_steps=5 format=3 uid="uid://b8bqshxrasip7"]
+[gd_resource type="Resource" script_class="Item" load_steps=5 format=3 uid="uid://b8bqshxrasip7"]
 
 [ext_resource type="Script" uid="uid://de54g0a7lhcrq" path="res://Scripts/Data/StatModifiers/SilenceStatModifier.gd" id="1_441gy"]
 [ext_resource type="Script" uid="uid://c12nymc8vauu3" path="res://Scripts/BattleSystem/DataStructures/Item.gd" id="2_tan8b"]
@@ -20,6 +20,13 @@ metadata/_custom_type_script = "uid://de54g0a7lhcrq"
 
 [resource]
 script = ExtResource("2_tan8b")
+item_type = 3
+item_name = "???"
+item_description = "Test Description"
+has_count = true
+max_stack = 999
+actions_cost = 1
+mp_cost = 0
 target_type = 0
 area_type = 0
 area_of_effect_radius = 0.0
@@ -36,10 +43,3 @@ junction_table = Dictionary[int, float]({
 2: 1.0,
 3: 1.0
 })
-item_type = 3
-item_name = "???"
-item_description = "Test Description"
-has_count = true
-max_stack = 999
-actions_cost = 1
-mp_cost = 0

@@ -1,4 +1,4 @@
-class_name BaseInventoryItem
+class_name Item
 extends Resource
 
 enum ItemType {
@@ -185,7 +185,7 @@ func get_icon_path() -> String:
     
     # For non-spells, use item type-based icons
     var icon_path := "res://Assets/GUI/Icons/Items/item_"
-    icon_path += Util.get_enum_name(BaseInventoryItem.ItemType, item_type).to_lower()
+    icon_path += Util.get_enum_name(Item.ItemType, item_type).to_lower()
     return icon_path + ".png"
 
 func get_rich_name(icon_size: int = 64) -> String:

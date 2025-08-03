@@ -9,7 +9,7 @@ class_name PlayerTargetingState extends State
 # Get the selected spell from PlayerChooseSpellItemState
 @onready var spell_selection_state := get_node("../ChooseSpellItemState") as PlayerChooseSpellItemState
 
-var selected_spell_item: BaseInventoryItem = null
+var selected_spell_item: Item = null
 var _last_raycast_selected_character: BattleCharacter
 var _spell_used: bool = false  # Flag to prevent spam clicking
 
@@ -62,8 +62,8 @@ func _on_character_selected(character: BattleCharacter) -> void:
         return
         
     # Only show line for direct targeting spells (not AOE field spells)
-    var is_direct_targeting := not (selected_spell_item.item_type in [BaseInventoryItem.ItemType.BATTLE_SPELL, BaseInventoryItem.ItemType.FIELD_SPELL] 
-        and selected_spell_item.item_type == BaseInventoryItem.ItemType.FIELD_SPELL)
+    var is_direct_targeting := not (selected_spell_item.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL] 
+        and selected_spell_item.item_type == Item.ItemType.FIELD_SPELL)
     
     if is_direct_targeting and selected_spell_item and is_valid_target(character):
         _setup_line_rendering(character)
@@ -159,7 +159,7 @@ func enter() -> void:
 
     # Check spell type and set up targeting accordingly
     if selected_spell_item:
-        if selected_spell_item.item_type == BaseInventoryItem.ItemType.FIELD_SPELL:
+        if selected_spell_item.item_type == Item.ItemType.FIELD_SPELL:
             # Ground targeting spell - start in ground mode
             battle_state.available_actions = BattleEnums.EAvailableCombatActions.GROUND
             _setup_aoe_indicator()
@@ -209,17 +209,17 @@ func _setup_aoe_indicator() -> void:
     
     # Check target type to determine positioning behavior
     match selected_spell_item.target_type:
-        BaseInventoryItem.TargetType.FIXED_AIM_FROM_CHAR:
+        Item.TargetType.FIXED_AIM_FROM_CHAR:
             # Fixed position at character location - no mouse tracking
             _setup_fixed_aoe_at_character()
-        BaseInventoryItem.TargetType.FREE_SELECT:
+        Item.TargetType.FREE_SELECT:
             # Free selection - follows mouse cursor
             _setup_free_select_aoe()
         _:
             # Default to free select for backwards compatibility
             _setup_free_select_aoe()
     
-    print("[TARGETING] AOE indicator set up for %s with target type: %s" % [selected_spell_item.item_name, BaseInventoryItem.TargetType.keys()[selected_spell_item.target_type]])
+    print("[TARGETING] AOE indicator set up for %s with target type: %s" % [selected_spell_item.item_name, Item.TargetType.keys()[selected_spell_item.target_type]])
 
 func _start_circle_cast() -> void:
     spell_area_indicator.area_type = AreaUtils.SpellAreaType.CIRCLE
@@ -275,7 +275,7 @@ func _start_line_cast() -> void:
 
 func _capture_ground_position() -> void:
     # For fixed position spells, use character position
-    if selected_spell_item.target_type == BaseInventoryItem.TargetType.FIXED_AIM_FROM_CHAR:
+    if selected_spell_item.target_type == Item.TargetType.FIXED_AIM_FROM_CHAR:
         captured_ground_position = Util.project_to_ground(battle_character.get_parent(), 1, 0.002)
         print("[GROUND CAPTURE] Fixed position at character: " + str(captured_ground_position))
         return
@@ -303,12 +303,12 @@ func _state_physics_process(_delta: float) -> void:
     var ray_result := _perform_raycast()
     
     # Check if this is a place anywhere spell
-    var is_place_anywhere := (selected_spell_item.item_type in [BaseInventoryItem.ItemType.BATTLE_SPELL, BaseInventoryItem.ItemType.FIELD_SPELL] 
-        and selected_spell_item.item_type == BaseInventoryItem.ItemType.FIELD_SPELL)
+    var is_place_anywhere := (selected_spell_item.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL] 
+        and selected_spell_item.item_type == Item.ItemType.FIELD_SPELL)
 
     if is_place_anywhere:
         # Update spell area indicator if it's visible and using free select
-        if selected_spell_item.target_type == BaseInventoryItem.TargetType.FREE_SELECT:
+        if selected_spell_item.target_type == Item.TargetType.FREE_SELECT:
             _update_spell_targeting()
             
             # Update ground position for free select spells
@@ -389,8 +389,8 @@ func _use_selected_spell_item() -> void:
     player_think_ui.hide()
     
     # Check if it's a ground-targeting spell
-    if (selected_spell_item.item_type in [BaseInventoryItem.ItemType.BATTLE_SPELL, BaseInventoryItem.ItemType.FIELD_SPELL] 
-    and selected_spell_item.item_type == BaseInventoryItem.ItemType.FIELD_SPELL):
+    if (selected_spell_item.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL] 
+    and selected_spell_item.item_type == Item.ItemType.FIELD_SPELL):
         _use_field_spell()
     else:
         _use_character_targeting_spell()
@@ -456,7 +456,7 @@ func _use_character_targeting_spell() -> void:
     await battle_state.message_ui.show_messages([selected_spell_item.item_name])
     var status := SpellHelper.use_item_or_aoe(selected_spell_item, battle_character, target_character)
     
-    print("[TARGETING] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
+    print("[TARGETING] Final use status: " + Util.get_enum_name(Item.UseStatus, status))
     
     # Spend the action cost - this will trigger battle callbacks
     battle_character.spend_actions(selected_spell_item.actions_cost)
@@ -506,7 +506,7 @@ func _update_spell_targeting() -> void:
         return
     
     # Only update targeting for free select spells
-    if selected_spell_item.target_type != BaseInventoryItem.TargetType.FREE_SELECT:
+    if selected_spell_item.target_type != Item.TargetType.FREE_SELECT:
         return
         
     var mouse_world_pos := _get_mouse_world_position()

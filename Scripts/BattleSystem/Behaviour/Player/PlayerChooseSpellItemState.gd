@@ -8,7 +8,7 @@ class_name PlayerChooseSpellItemState
 @onready var inv_scroll_menu := inventory_ui.get_node("ButtonScrollMenu") as ButtonScrollMenu
 
 # Store the selected spell for targeting
-var selected_spell_item: BaseInventoryItem = null
+var selected_spell_item: Item = null
 
 func _ready() -> void:
     inv_scroll_menu.item_button_pressed.connect(_choose_spell_item)
@@ -43,12 +43,12 @@ func enter() -> void:
     battle_state.top_down_player.allow_moving_focus = false
 
 
-func _hover_spell_item(chosen_item: BaseInventoryItem) -> void:
+func _hover_spell_item(chosen_item: Item) -> void:
     if not active or not chosen_item:
         return
     # TODO: Could add preview logic here in the future
 
-func _choose_spell_item(chosen_item: BaseInventoryItem) -> void:
+func _choose_spell_item(chosen_item: Item) -> void:
     if not active or not chosen_item:
         return
 

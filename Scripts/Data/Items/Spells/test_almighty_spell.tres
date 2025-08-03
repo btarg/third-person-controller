@@ -1,12 +1,26 @@
-[gd_resource type="Resource" script_class="SpellItem" load_steps=3 format=3 uid="uid://cbir0tni56d0e"]
+[gd_resource type="Resource" script_class="BaseInventoryItem" load_steps=3 format=3 uid="uid://cbir0tni56d0e"]
 
-[ext_resource type="Script" uid="uid://cwyovt5hobip" path="res://Scripts/BattleSystem/DataStructures/SpellItem.gd" id="1_kpclh"]
+[ext_resource type="Script" uid="uid://c12nymc8vauu3" path="res://Scripts/BattleSystem/DataStructures/Item.gd" id="1_kpclh"]
 [ext_resource type="Script" uid="uid://dymhc7pcpegip" path="res://Scripts/BattleSystem/DataStructures/DiceRoll.gd" id="2_tg5m2"]
 
 [resource]
 script = ExtResource("1_kpclh")
+item_type = 0
+item_name = "Megidolaon"
+item_description = "Deals heavy ALMIGHTY dmg to one enemy"
+has_count = true
+max_stack = 999
+actions_cost = 1
+mp_cost = 0
+target_type = 0
+area_type = 0
 area_of_effect_radius = 0.0
+line_width = 0.0
+cone_angle_degrees = 60.0
 ttl_turns = -1
+can_use_on_enemies = true
+can_use_on_allies = false
+effective_range = 5
 spell_element = 9
 spell_power_rolls = Array[ExtResource("2_tg5m2")]([])
 junction_table = Dictionary[int, float]({
@@ -14,12 +28,3 @@ junction_table = Dictionary[int, float]({
 2: 1.005,
 5: 1.005
 })
-item_type = 0
-item_name = "Megidolaon"
-item_description = "Deals heavy ALMIGHTY dmg to one enemy"
-max_stack = 999
-can_use_on_enemies = true
-can_use_on_allies = false
-effective_range = 5
-actions_cost = 1
-mp_cost = 0

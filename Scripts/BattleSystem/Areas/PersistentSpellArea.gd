@@ -1,6 +1,6 @@
 class_name PersistentSpellArea extends SpellArea
 
-var _spell_item: SpellItem = null
+var _spell_item: BaseInventoryItem = null
 var _ttl_turns: int = -1 # -1 means sustained spell, 0 means we do the effect once and then remove the spell
 var _turns_left: int = 0
 var _target_spawn_position: Vector3 = Vector3.ZERO
@@ -15,7 +15,7 @@ var _times_triggered: int = 0
 
 @onready var battle_state := GameModeStateMachine.get_node("BattleState") as BattleState
 
-func _init(spell_item: SpellItem, p_caster: BattleCharacter, spawn_position: Vector3) -> void:
+func _init(spell_item: BaseInventoryItem, p_caster: BattleCharacter, spawn_position: Vector3) -> void:
     super._init(p_caster, spell_item.area_type, spell_item.area_of_effect_radius, spell_item.cone_angle_degrees, spell_item.line_width, Vector3.FORWARD)
     
     _spell_item = spell_item
@@ -193,7 +193,7 @@ func _apply_effect_to_character(character: BattleCharacter) -> void:
         return
     
     if _spell_item.can_use_on(caster, character, true): # Ignore costs for AOE
-        _spell_item.use(caster, character, false)  # Don't consume item for AOE
+        _spell_item.activate(caster, character, false)  # Don't consume item for AOE
         print("[PERSISTENT SPELL AREA] %s used %s on %s" % [caster.character_name, _spell_item.item_name, character.character_name])
         _has_been_affected.append(character)
 

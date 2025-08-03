@@ -62,8 +62,8 @@ func _on_character_selected(character: BattleCharacter) -> void:
         return
         
     # Only show line for direct targeting spells (not AOE field spells)
-    var is_direct_targeting := not (selected_spell_item is SpellItem 
-        and (selected_spell_item as SpellItem).item_type == BaseInventoryItem.ItemType.FIELD_SPELL)
+    var is_direct_targeting := not (selected_spell_item.item_type in [BaseInventoryItem.ItemType.BATTLE_SPELL, BaseInventoryItem.ItemType.FIELD_SPELL] 
+        and selected_spell_item.item_type == BaseInventoryItem.ItemType.FIELD_SPELL)
     
     if is_direct_targeting and selected_spell_item and is_valid_target(character):
         _setup_line_rendering(character)
@@ -207,15 +207,19 @@ func _setup_aoe_indicator() -> void:
     # Configure the spell area indicator based on the spell
     spell_area_indicator.caster = battle_character
     
-    match selected_spell_item.area_type:
-        AreaUtils.SpellAreaType.CIRCLE:
-            _start_circle_cast()
-        AreaUtils.SpellAreaType.CONE:
-            _start_cone_cast()
-        AreaUtils.SpellAreaType.LINE:
-            _start_line_cast()
+    # Check target type to determine positioning behavior
+    match selected_spell_item.target_type:
+        BaseInventoryItem.TargetType.FIXED_AIM_FROM_CHAR:
+            # Fixed position at character location - no mouse tracking
+            _setup_fixed_aoe_at_character()
+        BaseInventoryItem.TargetType.FREE_SELECT:
+            # Free selection - follows mouse cursor
+            _setup_free_select_aoe()
+        _:
+            # Default to free select for backwards compatibility
+            _setup_free_select_aoe()
     
-    print("[TARGETING] AOE indicator set up for %s" % selected_spell_item.item_name)
+    print("[TARGETING] AOE indicator set up for %s with target type: %s" % [selected_spell_item.item_name, BaseInventoryItem.TargetType.keys()[selected_spell_item.target_type]])
 
 func _start_circle_cast() -> void:
     spell_area_indicator.area_type = AreaUtils.SpellAreaType.CIRCLE
@@ -270,7 +274,13 @@ func _start_line_cast() -> void:
     print("[LINE CAST] Started line casting with length: %s, width: %s" % [selected_spell_item.area_of_effect_radius, selected_spell_item.line_width])
 
 func _capture_ground_position() -> void:
-    # Get the ground position from the current raycast when entering the state
+    # For fixed position spells, use character position
+    if selected_spell_item.target_type == BaseInventoryItem.TargetType.FIXED_AIM_FROM_CHAR:
+        captured_ground_position = Util.project_to_ground(battle_character.get_parent(), 1, 0.002)
+        print("[GROUND CAPTURE] Fixed position at character: " + str(captured_ground_position))
+        return
+    
+    # For free select spells, get the ground position from the current raycast when entering the state
     var result := Util.raycast_from_center_or_mouse(top_down_camera)
     
     if result and result.has("position"):
@@ -293,20 +303,23 @@ func _state_physics_process(_delta: float) -> void:
     var ray_result := _perform_raycast()
     
     # Check if this is a place anywhere spell
-    var is_place_anywhere := (selected_spell_item is SpellItem 
-        and (selected_spell_item as SpellItem).item_type == BaseInventoryItem.ItemType.FIELD_SPELL)
+    var is_place_anywhere := (selected_spell_item.item_type in [BaseInventoryItem.ItemType.BATTLE_SPELL, BaseInventoryItem.ItemType.FIELD_SPELL] 
+        and selected_spell_item.item_type == BaseInventoryItem.ItemType.FIELD_SPELL)
 
     if is_place_anywhere:
-        # Update spell area indicator if it's visible
-        _update_spell_targeting()
+        # Update spell area indicator if it's visible and using free select
+        if selected_spell_item.target_type == BaseInventoryItem.TargetType.FREE_SELECT:
+            _update_spell_targeting()
+            
+            # Update ground position for free select spells
+            if ray_result.has("position"):
+                captured_ground_position = ray_result.position
+                # Update AOE indicator position if it's visible and it's a circle type
+                if (spell_area_indicator and spell_area_indicator.visible 
+                and spell_area_indicator.area_type == AreaUtils.SpellAreaType.CIRCLE):
+                    spell_area_indicator.global_position = captured_ground_position
+        # For fixed position spells, captured_ground_position is already set and doesn't change
         
-        # Update ground position for place anywhere spells
-        if ray_result.has("position"):
-            captured_ground_position = ray_result.position
-            # Update AOE indicator position if it's visible and it's a circle type
-            if (spell_area_indicator and spell_area_indicator.visible 
-            and spell_area_indicator.area_type == AreaUtils.SpellAreaType.CIRCLE):
-                spell_area_indicator.global_position = captured_ground_position
         battle_state.select_character(null, false)
     else:
         # Handle character targeting
@@ -376,14 +389,14 @@ func _use_selected_spell_item() -> void:
     player_think_ui.hide()
     
     # Check if it's a ground-targeting spell
-    if (selected_spell_item is SpellItem 
-    and (selected_spell_item as SpellItem).item_type == BaseInventoryItem.ItemType.FIELD_SPELL):
+    if (selected_spell_item.item_type in [BaseInventoryItem.ItemType.BATTLE_SPELL, BaseInventoryItem.ItemType.FIELD_SPELL] 
+    and selected_spell_item.item_type == BaseInventoryItem.ItemType.FIELD_SPELL):
         _use_field_spell()
     else:
         _use_character_targeting_spell()
 
 func _use_field_spell() -> void:
-    var spell_item := selected_spell_item as SpellItem
+    var spell_item := selected_spell_item
     print("[GROUND TARGET] Using spell at captured position: " + str(captured_ground_position))
     
     # Check if we have enough resources
@@ -491,6 +504,10 @@ func _get_mouse_world_position() -> Vector3:
 func _update_spell_targeting() -> void:
     if not spell_area_indicator or not spell_area_indicator.visible:
         return
+    
+    # Only update targeting for free select spells
+    if selected_spell_item.target_type != BaseInventoryItem.TargetType.FREE_SELECT:
+        return
         
     var mouse_world_pos := _get_mouse_world_position()
     
@@ -504,3 +521,88 @@ func _update_spell_targeting() -> void:
         AreaUtils.SpellAreaType.LINE:
             # For lines, update direction from caster to mouse position
             spell_area_indicator.update_fixed_target(mouse_world_pos)
+
+func _setup_fixed_aoe_at_character() -> void:
+    # Fixed AOE at character position - area doesn't move with mouse
+    match selected_spell_item.area_type:
+        AreaUtils.SpellAreaType.CIRCLE:
+            _start_fixed_circle_cast()
+        AreaUtils.SpellAreaType.CONE:
+            _start_fixed_cone_cast()
+        AreaUtils.SpellAreaType.LINE:
+            _start_fixed_line_cast()
+
+func _setup_free_select_aoe() -> void:
+    # Free selection AOE - area follows mouse cursor
+    match selected_spell_item.area_type:
+        AreaUtils.SpellAreaType.CIRCLE:
+            _start_circle_cast()
+        AreaUtils.SpellAreaType.CONE:
+            _start_cone_cast()
+        AreaUtils.SpellAreaType.LINE:
+            _start_line_cast()
+
+func _start_fixed_circle_cast() -> void:
+    spell_area_indicator.area_type = AreaUtils.SpellAreaType.CIRCLE
+    spell_area_indicator.radius = selected_spell_item.area_of_effect_radius
+    spell_area_indicator.caster = battle_character
+    
+    # Position fixed at character's ground level
+    var ground_pos := Util.project_to_ground(battle_character.get_parent(), 1, 0.002)
+    spell_area_indicator.global_position = ground_pos
+    captured_ground_position = ground_pos
+    
+    # Set appropriate colors for targeting
+    spell_area_indicator.set_area_colors(Color.BLUE * 0.3, Color.WHITE, Color.BLUE)
+    
+    # Update shader parameters and show
+    spell_area_indicator.update_shader_params()
+    spell_area_indicator.visible = true
+    
+    print("[FIXED CIRCLE CAST] Started fixed circle casting at character position with radius: %s" % selected_spell_item.area_of_effect_radius)
+
+func _start_fixed_cone_cast() -> void:
+    spell_area_indicator.area_type = AreaUtils.SpellAreaType.CONE
+    spell_area_indicator.radius = selected_spell_item.area_of_effect_radius
+    spell_area_indicator.cone_angle_degrees = selected_spell_item.cone_angle_degrees
+    spell_area_indicator.caster = battle_character
+    
+    # Position fixed at caster's ground level
+    var ground_pos := Util.project_to_ground(battle_character.get_parent(), 1, 0.002)
+    spell_area_indicator.global_position = ground_pos
+    captured_ground_position = ground_pos
+    
+    # Set initial direction forward
+    spell_area_indicator.aim_direction = Vector3.FORWARD
+    
+    # Set appropriate colors for targeting  
+    spell_area_indicator.set_area_colors(Color.BLUE * 0.3, Color.WHITE, Color.BLUE)
+    
+    # Update shader parameters and show
+    spell_area_indicator.update_shader_params()
+    spell_area_indicator.visible = true
+    
+    print("[FIXED CONE CAST] Started fixed cone casting at character position with radius: %s, angle: %s" % [selected_spell_item.area_of_effect_radius, selected_spell_item.cone_angle_degrees])
+
+func _start_fixed_line_cast() -> void:
+    spell_area_indicator.area_type = AreaUtils.SpellAreaType.LINE
+    spell_area_indicator.radius = selected_spell_item.area_of_effect_radius  # radius represents length for lines
+    spell_area_indicator.line_width = selected_spell_item.line_width
+    spell_area_indicator.caster = battle_character
+    
+    # Position fixed at caster's ground level
+    var ground_pos := Util.project_to_ground(battle_character.get_parent(), 1, 0.002)
+    spell_area_indicator.global_position = ground_pos
+    captured_ground_position = ground_pos
+    
+    # Set initial direction forward
+    spell_area_indicator.aim_direction = Vector3.FORWARD
+    
+    # Set appropriate colors for targeting
+    spell_area_indicator.set_area_colors(Color.BLUE * 0.3, Color.WHITE, Color.BLUE)
+    
+    # Update shader parameters and show
+    spell_area_indicator.update_shader_params()
+    spell_area_indicator.visible = true
+    
+    print("[FIXED LINE CAST] Started fixed line casting at character position with length: %s, width: %s" % [selected_spell_item.area_of_effect_radius, selected_spell_item.line_width])

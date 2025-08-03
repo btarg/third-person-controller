@@ -14,15 +14,15 @@ class_name BattleCharacter
     BattleEnums.EAffinityElement.FIRE,
 ]
 
-var _familiar_spells: Array[SpellItem] = []
+var _familiar_spells: Array[BaseInventoryItem] = []
 
 @export var debug_always_crit: bool = false
 
 # TODO: replace this draw list for every character
-@export var draw_list: Array[SpellItem] = [
-    preload("res://Scripts/Data/Items/Spells//test_fire_spell.tres"),
-    preload("res://Scripts/Data/Items/Spells//test_healing_spell.tres"),
-    preload("res://Scripts/Data/Items/Spells//test_almighty_spell.tres")
+@export var draw_list: Array[BaseInventoryItem] = [
+    load("res://Scripts/Data/Items/Spells//test_fire_spell.tres"),
+    load("res://Scripts/Data/Items/Spells//test_healing_spell.tres"),
+    load("res://Scripts/Data/Items/Spells//test_almighty_spell.tres")
 ]
 @export var draw_list_from_inventory: bool = true
 
@@ -114,8 +114,8 @@ func _on_inventory_updated(resource: BaseInventoryItem, _count: int, is_new_item
     if not is_new_item:
         return
     
-    if resource is SpellItem and not is_spell_familiar(resource as SpellItem):
-        add_familiar_spell(resource as SpellItem)
+    if resource.item_type in [BaseInventoryItem.ItemType.BATTLE_SPELL, BaseInventoryItem.ItemType.FIELD_SPELL] and not is_spell_familiar(resource):
+        add_familiar_spell(resource)
 
 func print_stat(stat_int_string: String) -> void:
     var stat := int(stat_int_string) as CharacterStatEntry.ECharacterStat
@@ -132,10 +132,10 @@ func print_modifiers() -> void:
             stat_value_string += str(modifier.stat_value)
             Console.print_line(modifier.name + " - " + enum_name + ": " + stat_value_string, true)
 
-func is_spell_familiar(spell: SpellItem) -> bool:
+func is_spell_familiar(spell: BaseInventoryItem) -> bool:
     return _familiar_spells.has(spell)
 
-func add_familiar_spell(spell: SpellItem) -> void:
+func add_familiar_spell(spell: BaseInventoryItem) -> void:
     print("[Familiar] " + character_name + " has learned " + spell.item_name)
     _familiar_spells.append(spell)
 

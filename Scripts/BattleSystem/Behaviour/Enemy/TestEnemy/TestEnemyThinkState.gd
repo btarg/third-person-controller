@@ -30,9 +30,9 @@ var current_aggression: float = 0.5
 var last_player_hp_ratio: float = 1.0
 var last_damage_dealt: int = 0
 
-var best_damage_spell: SpellItem = null
-var best_heal_spell: SpellItem = null
-var best_spell_to_cast: SpellItem = null
+var best_damage_spell: BaseInventoryItem = null
+var best_heal_spell: BaseInventoryItem = null
+var best_spell_to_cast: BaseInventoryItem = null
 
 @onready var battle_character := state_machine.get_owner().get_node("BattleCharacter") as BattleCharacter
 
@@ -247,9 +247,9 @@ func _update_spell_selection(context: AIDecisionContext) -> void:
     # when selecting spells. Higher aggression would mean the enemy is more likely to choose
     # a spell they have only a few charges of, while lower aggression prioritises spells with more charges. 
     if battle_character and battle_character.inventory:
-        var available_spells: Array[SpellItem] = []
+        var available_spells: Array[BaseInventoryItem] = []
         for item in battle_character.inventory.get_items():
-            var res_item := item as SpellItem
+            var res_item := item as BaseInventoryItem
             if res_item:
                 # Filter out spells that cost more actions than we have
                 if res_item.actions_cost <= battle_character.actions_left:
@@ -641,7 +641,7 @@ func _get_best_spell_range() -> float:
     return max_range
 
 
-func _calculate_spell_efficiency(spell: SpellItem, max_power: int, aggression: float) -> float:
+func _calculate_spell_efficiency(spell: BaseInventoryItem, max_power: int, aggression: float) -> float:
     if max_power <= 0:
         return 0.0
     

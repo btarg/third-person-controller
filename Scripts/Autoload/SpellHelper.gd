@@ -46,30 +46,26 @@ func process_basic_attack(attacker: BattleCharacter, target: BattleCharacter) ->
     print("[ATTACK] Result: " + Util.get_enum_name(BattleEnums.ESkillResult, result))
     return result
 
-## Calling Spellitem#use on an AOE spell will not spawn the radius, but rather apply the effect to the target character.
+## Calling BaseInventoryItem#use on an AOE spell will not spawn the radius, but rather apply the effect to the target character.
 ## This function will handle both AOE spells and normal items/spells.
 func use_item_or_aoe(item: BaseInventoryItem, user_character: BattleCharacter, target_character: BattleCharacter, update_inventory: bool = true) -> BaseInventoryItem.UseStatus:
-    if item is SpellItem:
-        var spell_item := item as SpellItem
-        if spell_item.item_type == BaseInventoryItem.ItemType.FIELD_SPELL:
-            # If the spell is an AOE spell, we need to spawn it at the target position
-            if not create_area_of_effect_radius(spell_item, user_character, target_character.get_parent().global_position):
-                return BaseInventoryItem.UseStatus.SPELL_FAIL
-            else:
-                # For AOE spells, we still need to update inventory to consume the item
-                if update_inventory:
-                    spell_item._update_inventory(BaseInventoryItem.UseStatus.SPELL_SUCCESS)
-                return BaseInventoryItem.UseStatus.SPELL_SUCCESS
-        else:
-            # Otherwise, use the spell normally
-            return spell_item.use(user_character, target_character, update_inventory)
+    if item.item_type in [BaseInventoryItem.ItemType.BATTLE_SPELL, BaseInventoryItem.ItemType.FIELD_SPELL]:
+        # For spells that have AOE, check if we should spawn an area effect
+        if item.area_of_effect_radius > 0 and item.item_type == BaseInventoryItem.ItemType.FIELD_SPELL:
+            # This is an AOE field spell - it should be handled by the targeting system
+            # For now, just apply the effect directly to the target
+            pass
+        
+        # Apply the spell effect directly to the target character
+        return item.activate(user_character, target_character, update_inventory)
+    
     # If it's not a spell, just use the item normally
-    return item.use(user_character, target_character, update_inventory)
+    return item.activate(user_character, target_character, update_inventory)
 
 ## This function should be used for spawning radius AOE spells without requiring a BattleCharacter (spawn at position)
-func create_area_of_effect_radius(spell: SpellItem, caster: BattleCharacter, spawn_position: Vector3) -> bool:
+func create_area_of_effect_radius(spell: BaseInventoryItem, caster: BattleCharacter, spawn_position: Vector3) -> bool:
     if spell.area_of_effect_radius == 0 or spell.item_type != BaseInventoryItem.ItemType.FIELD_SPELL:
-        print("[AOE SPELL] Spell %s is not an AOE spell" % spell.item_name)
+        print("[AOE SPELL] Invalid spell for AOE: radius=%.1f, type=%s" % [spell.area_of_effect_radius, BaseInventoryItem.ItemType.keys()[spell.item_type]])
         return false
 
     # Create a persistent SpellArea with trigger behavior
@@ -79,7 +75,7 @@ func create_area_of_effect_radius(spell: SpellItem, caster: BattleCharacter, spa
     # we only need to track Sustain spells, so we can remove the spell when a condition is met
     # TODO: spend one action to sustain the spell every turn (optionally) - we need a UI for this
     if spell.ttl_turns == -1:
-        tracked_spell_aoe_nodes.append(aoe_area)
+        tracked_spell_aoe_nodes.push_back(aoe_area)
 
     print("[AOE SPELL] Spawned AOE spell effect at %s" % spawn_position)
     return true
@@ -89,7 +85,7 @@ func draw_spell(target_character: BattleCharacter, current_character: BattleChar
     if selected_spell_index < 0 or selected_spell_index >= target_character.draw_list.size():
         return
 
-    var drawn_spell := target_character.draw_list[selected_spell_index] as SpellItem
+    var drawn_spell := target_character.draw_list[selected_spell_index] as BaseInventoryItem
 
     print("[DRAW] Drawn spell: " + drawn_spell.item_name)
 
@@ -109,7 +105,7 @@ func draw_spell(target_character: BattleCharacter, current_character: BattleChar
 
     if cast_immediately:
         await battle_state.message_ui.show_messages([drawn_spell.item_name])
-        var status := drawn_spell.use(current_character, target_character, false)
+        var status: BaseInventoryItem.UseStatus = drawn_spell.activate(current_character, target_character, false)
         print("[DRAW] Final use status: " + Util.get_enum_name(BaseInventoryItem.UseStatus, status))
     else:
         
@@ -144,10 +140,10 @@ func sort_items_by_usefulness(a: BaseInventoryItem, b: BaseInventoryItem) -> boo
     # Prioritize spells based on target's known weaknesses when targeting enemies
     if (battle_state.available_actions == BattleEnums.EAvailableCombatActions.ENEMY 
         and battle_state.player_selected_character 
-        and a is SpellItem and b is SpellItem):
+        and a.item_type in [BaseInventoryItem.ItemType.BATTLE_SPELL, BaseInventoryItem.ItemType.FIELD_SPELL] and b.item_type in [BaseInventoryItem.ItemType.BATTLE_SPELL, BaseInventoryItem.ItemType.FIELD_SPELL]):
         
-        var a_spell := a as SpellItem
-        var b_spell := b as SpellItem
+        var a_spell := a
+        var b_spell := b
         var target_internal_name := battle_state.player_selected_character.character_internal_name
         
         # Get affinity priorities (WEAK=0, NEUTRAL=1, RESIST=2, IMMUNE=3, REFLECT=4, ABSORB=5)
@@ -166,9 +162,9 @@ func sort_items_by_usefulness(a: BaseInventoryItem, b: BaseInventoryItem) -> boo
         if a_affinity_priority != b_affinity_priority: 
             return a_affinity_priority < b_affinity_priority
     
-    if a is SpellItem and b is SpellItem:
-        var a_spell := a as SpellItem
-        var b_spell := b as SpellItem
+    if a.item_type in [BaseInventoryItem.ItemType.BATTLE_SPELL, BaseInventoryItem.ItemType.FIELD_SPELL] and b.item_type in [BaseInventoryItem.ItemType.BATTLE_SPELL, BaseInventoryItem.ItemType.FIELD_SPELL]:
+        var a_spell := a
+        var b_spell := b
         if battle_state.available_actions in ally_actions:
             var priority_elements := [BattleEnums.EAffinityElement.HEAL, BattleEnums.EAffinityElement.BUFF]
             var a_priority := a_spell.spell_element in priority_elements

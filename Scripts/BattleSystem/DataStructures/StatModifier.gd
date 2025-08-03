@@ -11,6 +11,7 @@ class_name StatModifier extends Resource
 
 
 ## -1 means infinite duration until removed
+## TODO: allow for setting round duration instead of turns
 @export var turn_duration: int = 1
 var turns_left: int = turn_duration
 @export var can_stack: bool = true

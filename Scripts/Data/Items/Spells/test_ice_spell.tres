@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="SpellItem" load_steps=3 format=3 uid="uid://vsq3uksjmk3k"]
 
-[ext_resource type="Script" uid="uid://cwyovt5hobip" path="res://Scripts/BattleSystem/DataStructures/SpellItem.gd" id="1_23vso"]
+[ext_resource type="Script" uid="uid://c12nymc8vauu3" path="res://Scripts/BattleSystem/DataStructures/Item.gd" id="1_23vso"]
 [ext_resource type="Script" uid="uid://dymhc7pcpegip" path="res://Scripts/BattleSystem/DataStructures/DiceRoll.gd" id="2_hj35q"]
 
 [resource]

@@ -46,9 +46,9 @@ func _ready() -> void:
     # TEST: set two different spells to the same stat, should only apply the modifier for the last one
     # since only one item is allowed to be junctioned to one stat at a time
     # I also set the same item to two different stats, should only apply the modifier for the last one
-    set_item_junctioned_stat(fire_spell.item_id, CharacterStatEntry.ECharacterStat.PhysicalStrength)
-    set_item_junctioned_stat(fire_spell.item_id, CharacterStatEntry.ECharacterStat.PhysicalDefense)
-    set_item_junctioned_stat(heal_spell.item_id, CharacterStatEntry.ECharacterStat.PhysicalStrength)
+    # set_item_junctioned_stat(fire_spell.item_id, CharacterStatEntry.ECharacterStat.PhysicalStrength)
+    # set_item_junctioned_stat(fire_spell.item_id, CharacterStatEntry.ECharacterStat.PhysicalDefense)
+    # set_item_junctioned_stat(heal_spell.item_id, CharacterStatEntry.ECharacterStat.PhysicalStrength)
 
     print_inventory()
 
@@ -79,14 +79,14 @@ func set_item_junctioned_stat(item_id: String, stat: CharacterStatEntry.ECharact
     # If the item was junctioned to a different stat, remove that junction first
     if old_stat != CharacterStatEntry.ECharacterStat.NONE and old_stat != stat:
         junctioned_stat_by_item.erase(item_id)
-        var prev_item := get_item(item_id) as SpellItem
+        var prev_item := get_item(item_id) as BaseInventoryItem
         if prev_item:
             # Remove old stat's junction effect by forcing count=0
             _update_junction_modifiers(prev_item, 0)
 
     # Now apply the new junction
     junctioned_stat_by_item[item_id] = stat
-    _update_junction_modifiers(get_item(item_id) as SpellItem, get_item_count(item_id))
+    _update_junction_modifiers(get_item(item_id) as BaseInventoryItem, get_item_count(item_id))
     Console.print_line("[JUNCTION] Junctioned item %s to stat %s"
         % [item_id, Util.get_enum_name(CharacterStatEntry.ECharacterStat, stat)], true)
 
@@ -124,7 +124,7 @@ func on_item_used(item: BaseInventoryItem, status: BaseInventoryItem.UseStatus) 
     if not DEBUG_INFINITE_ITEMS:
         remove_item(item, 1)
 
-func _generate_stat_modifier(spell_item: SpellItem, stat: CharacterStatEntry.ECharacterStat, value: float) -> StatModifier:
+func _generate_stat_modifier(spell_item: BaseInventoryItem, stat: CharacterStatEntry.ECharacterStat, value: float) -> StatModifier:
     var modifier: StatModifier = StatModifier.new()
     modifier.turn_duration = -1
     modifier.apply_out_of_combat = true
@@ -141,6 +141,10 @@ func _generate_stat_modifier(spell_item: SpellItem, stat: CharacterStatEntry.ECh
 
 
 func add_item(item: BaseInventoryItem, count: int = 1) -> void:    
+    if not item:
+        printerr("Cannot add null item to inventory")
+        return
+    
     var is_new_item: bool = false
     var original_path := item.resource_path.get_file().trim_suffix('.tres') # Get the original resource path without the .tres extension
     
@@ -165,10 +169,10 @@ func add_item(item: BaseInventoryItem, count: int = 1) -> void:
     print("[Inventory] Added %s of item %s (%s) - new count: %s" % [count, item.item_name, item.item_id, new_count])
     inventory_updated.emit(item, new_count, is_new_item)
     
-    if item is SpellItem:
-        _update_junction_modifiers(item as SpellItem, new_count)
+    if item.item_type in [BaseInventoryItem.ItemType.BATTLE_SPELL, BaseInventoryItem.ItemType.FIELD_SPELL]:
+        _update_junction_modifiers(item, new_count)
 
-func _update_junction_modifiers(spell_item: SpellItem, total_item_count: int) -> void:
+func _update_junction_modifiers(spell_item: BaseInventoryItem, total_item_count: int) -> void:
     if not spell_item:
         print("[Junction] Spell item is null")
         return

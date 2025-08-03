@@ -1,11 +1,26 @@
-[gd_resource type="Resource" script_class="SpellItem" load_steps=3 format=3 uid="uid://dtee6temgrdtn"]
+[gd_resource type="Resource" script_class="BaseInventoryItem" load_steps=3 format=3 uid="uid://dtee6temgrdtn"]
 
-[ext_resource type="Script" uid="uid://cwyovt5hobip" path="res://Scripts/BattleSystem/DataStructures/SpellItem.gd" id="1_0rvvm"]
+[ext_resource type="Script" uid="uid://c12nymc8vauu3" path="res://Scripts/BattleSystem/DataStructures/Item.gd" id="1_0rvvm"]
 [ext_resource type="Script" uid="uid://dymhc7pcpegip" path="res://Scripts/BattleSystem/DataStructures/DiceRoll.gd" id="2_1pkbe"]
 
 [resource]
 script = ExtResource("1_0rvvm")
+item_type = 0
+item_name = "Thundara"
+item_description = "Deals moderate ELEC dmg to one enemy."
+has_count = true
+max_stack = 999
+actions_cost = 1
+mp_cost = 0
+target_type = 0
+area_type = 0
 area_of_effect_radius = 0.0
+line_width = 0.0
+cone_angle_degrees = 60.0
+ttl_turns = -1
+can_use_on_enemies = true
+can_use_on_allies = false
+effective_range = 5
 spell_element = 3
 spell_power_rolls = Array[ExtResource("2_1pkbe")]([])
 junction_table = Dictionary[int, float]({
@@ -13,12 +28,3 @@ junction_table = Dictionary[int, float]({
 2: 1.005,
 5: 1.005
 })
-item_type = 0
-item_name = "Thundara"
-item_description = "Deals moderate ELEC dmg to one enemy."
-max_stack = 999
-can_use_on_enemies = true
-can_use_on_allies = false
-effective_range = 5
-actions_cost = 1
-mp_cost = 0

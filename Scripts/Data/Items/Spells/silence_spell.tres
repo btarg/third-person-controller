@@ -1,36 +1,45 @@
-[gd_resource type="Resource" script_class="SpellItem" load_steps=5 format=3 uid="uid://b8bqshxrasip7"]
+[gd_resource type="Resource" script_class="BaseInventoryItem" load_steps=5 format=3 uid="uid://b8bqshxrasip7"]
 
-[ext_resource type="Script" path="res://Scripts/Data/StatModifiers/SilenceStatModifier.gd" id="1_441gy"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/SpellItem.gd" id="1_dwovg"]
-[ext_resource type="Script" path="res://Scripts/BattleSystem/DataStructures/DiceRoll.gd" id="3_svi6p"]
+[ext_resource type="Script" uid="uid://de54g0a7lhcrq" path="res://Scripts/Data/StatModifiers/SilenceStatModifier.gd" id="1_441gy"]
+[ext_resource type="Script" uid="uid://c12nymc8vauu3" path="res://Scripts/BattleSystem/DataStructures/Item.gd" id="2_tan8b"]
+[ext_resource type="Script" uid="uid://dymhc7pcpegip" path="res://Scripts/BattleSystem/DataStructures/DiceRoll.gd" id="3_svi6p"]
 
-[sub_resource type="Resource" id="Resource_jp5gd"]
+[sub_resource type="Resource" id="Resource_tan8b"]
 script = ExtResource("1_441gy")
-stat = 14
+stat = 5
 modifier_id = "silence"
 name = "Silenced"
-description = "Prevents enemies from using spells"
+description = "Can't use Skills"
 is_multiplier = false
-stat_value = 1.0
+stat_value = -2.0
 turn_duration = 3
 can_stack = true
 stack_override = false
 apply_out_of_combat = false
+metadata/_custom_type_script = "uid://de54g0a7lhcrq"
 
 [resource]
-script = ExtResource("1_dwovg")
-spell_element = 11
-modifier = SubResource("Resource_jp5gd")
-spell_power_rolls = Array[ExtResource("3_svi6p")]([])
-junction_table = {
-0: 2.0,
-2: 1.005,
-5: 1.005
-}
-item_type = 0
-item_name = "Silence"
-item_description = ""
-max_stack = 999
+script = ExtResource("2_tan8b")
+target_type = 0
+area_type = 0
+area_of_effect_radius = 0.0
+line_width = 0.0
+cone_angle_degrees = 60.0
+ttl_turns = -1
 can_use_on_enemies = true
-can_use_on_allies = false
-spell_range = 5
+can_use_on_allies = true
+effective_range = 5
+spell_element = 11
+modifier = SubResource("Resource_tan8b")
+spell_power_rolls = Array[ExtResource("3_svi6p")]([])
+junction_table = Dictionary[int, float]({
+2: 1.0,
+3: 1.0
+})
+item_type = 3
+item_name = "???"
+item_description = "Test Description"
+has_count = true
+max_stack = 999
+actions_cost = 1
+mp_cost = 0

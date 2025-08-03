@@ -2,6 +2,7 @@ class_name SpellArea extends MeshInstance3D
 
 const ENABLE_DEBUG_PRINT := false
 
+# TODO: prevent Z-fighting with other spell areas
 @export var radius_visual_shader := preload("res://Assets/Shaders/spell_area_visual.gdshader") as Shader
 @export var ground_layer: int = 1  # Layer mask for ground collision
 @export var target_group_name: StringName = &"BattleCharacter"  # Group name for target nodes

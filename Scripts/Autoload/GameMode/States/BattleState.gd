@@ -4,6 +4,7 @@ class_name BattleState
 var turn_order: Array[BattleCharacter] = []
 
 # We start with 3 actions per character, like Pathfinder
+# TODO: we will probably have a different START_ACTIONS value in future (mythic enemies have 4 actions etc)
 const START_ACTIONS := 3
 
 # get exploration player
@@ -26,22 +27,24 @@ var _last_available_actions := BattleEnums.EAvailableCombatActions.NONE
 var turns_played := -1
 var movement_locked_in := false
 
+var _available_actions : BattleEnums.EAvailableCombatActions = BattleEnums.EAvailableCombatActions.SELF
 var available_actions : BattleEnums.EAvailableCombatActions = BattleEnums.EAvailableCombatActions.SELF:
     get:
-        return available_actions
+        return _available_actions
     set(value):
-        available_actions = value
+        _available_actions = value
         if value != _last_available_actions:
             BattleSignalBus.OnAvailableCombatChoicesChanged.emit()
             _last_available_actions = value
 
 ## The BattleCharacter which the player has targeted
 ## This is used for attacking enemies etc
+var _player_selected_character : BattleCharacter
 var player_selected_character : BattleCharacter:
     get:
-        return player_selected_character
+        return _player_selected_character
     set(character):
-        player_selected_character = character
+        _player_selected_character = character
 
         # Set available actions based on selected character
         if not character:
@@ -304,7 +307,7 @@ func leave_battle(character: BattleCharacter, do_result_check: bool = true) -> v
 
 func _cleanup() -> void:
     current_character = null
-    player_selected_character = null
+    _player_selected_character = null
 
     turn_order.clear()
     player_units.clear()

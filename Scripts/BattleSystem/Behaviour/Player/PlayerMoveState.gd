@@ -42,10 +42,9 @@ func _finish_move() -> void:
         print("[MOVE] " + battle_character.character_name + " has no turns left to move!")
         return
 
-
-    _back_to_think()
+    _stop_thinking() # return to idle before we spend actions to trigger exit()
     battle_character.spend_actions(turn_cost_to_move)
-
+    
     # Reset the distance travelled
     distance_travelled = 0
     turn_cost_to_move = 0

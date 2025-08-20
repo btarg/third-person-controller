@@ -1,9 +1,9 @@
 class_name PersistentSpellArea extends SpellArea
 
-var _spell_item: Item = null
-var _ttl_turns: int = -1 # -1 means sustained spell, 0 means we do the effect once and then remove the spell
-var _turns_left: int = 0
-var _target_spawn_position: Vector3 = Vector3.ZERO
+var m_spell_item: Item = null
+var m_ttl_turns: int   = -1 # -1 means sustained spell, 0 means we do the effect once and then remove the spell
+var m_turns_left: int   = 0
+var m_target_spawn_position: Vector3 = Vector3.ZERO
 
 # Track characters currently in the area to handle proper enter/exit logic
 var _characters_in_area: Array[BattleCharacter] = []
@@ -18,12 +18,12 @@ var _times_triggered: int = 0
 func _init(spell_item: Item, p_caster: BattleCharacter, spawn_position: Vector3) -> void:
     super._init(p_caster, spell_item.area_type, spell_item.area_of_effect_radius, spell_item.cone_angle_degrees, spell_item.line_width, Vector3.FORWARD)
     
-    _spell_item = spell_item
-    _ttl_turns = spell_item.ttl_turns
-    _turns_left = _ttl_turns if _ttl_turns > 0 else -1
+    m_spell_item = spell_item
+    m_ttl_turns = spell_item.ttl_turns
+    m_turns_left = m_ttl_turns if m_ttl_turns > 0 else -1
     
     # Store spawn position for later use in direction calculation
-    _target_spawn_position = spawn_position
+    m_target_spawn_position = spawn_position
 
 
 func _ready() -> void:
@@ -94,11 +94,11 @@ func _physics_process(_delta: float) -> void:
         last_selected_nodes = current_nodes
 
 func _on_character_entered(battle_character: BattleCharacter) -> void:
-    print("[PERSISTENT SPELL AREA] %s entered AOE area" % battle_character.character_name)
+    print("[AOE TRIGGER] %s entered AOE area: %s" % battle_character.character_name, m_spell_item.item_name)
     
     # Check if the character was already affected at their current position (prevents re-triggering on movement cancel)
     if battle_character in _has_been_affected:
-        print("[PERSISTENT SPELL AREA] %s already affected at this position, skipping" % battle_character.character_name)
+        print("[AOE TRIGGER] %s already affected at this position, skipping" % battle_character.character_name)
         return
     
     if _times_triggered == 0:
@@ -111,7 +111,7 @@ func _on_character_entered(battle_character: BattleCharacter) -> void:
     var character_controller := battle_character.character_controller
     if character_controller and character_controller.free_movement:
         # Character is in movement mode - connect to spend actions signal to apply effect when movement is locked in
-        print("[PERSISTENT SPELL AREA] %s entered AOE area while moving" % battle_character.character_name)
+        print("[AOE TRIGGER] %s entered AOE area while moving" % battle_character.character_name)
         _disconnect_actions_signal(battle_character)
         battle_character.OnSpendActions.connect(_on_spend_actions)
     else:
@@ -148,10 +148,10 @@ func _disconnect_actions_signal(battle_character: BattleCharacter) -> void:
         battle_character.OnSpendActions.disconnect(_on_spend_actions)
 
 func _setup_area_positioning() -> void:
-    match _spell_item.area_type:
+    match m_spell_item.area_type:
         AreaUtils.SpellAreaType.CIRCLE:
             # Position circle at the target spawn position
-            global_position = _target_spawn_position
+            global_position = m_target_spawn_position
             print("[PERSISTENT SPELL AREA] Circle positioned at: %s" % global_position)
         AreaUtils.SpellAreaType.CONE:
             # Position cone at caster's ground level
@@ -159,7 +159,7 @@ func _setup_area_positioning() -> void:
             global_position = caster_ground_pos
             
             # Calculate direction from caster to target spawn position
-            var direction_to_target := (_target_spawn_position - caster_ground_pos).normalized()
+            var direction_to_target := (m_target_spawn_position - caster_ground_pos).normalized()
             if direction_to_target.length() < 0.001:
                 # If spawn position is at caster position, use forward direction
                 direction_to_target = Vector3.FORWARD
@@ -169,12 +169,12 @@ func _setup_area_positioning() -> void:
             print("[PERSISTENT SPELL AREA] Cone direction set to: %s" % aim_direction)
             
         AreaUtils.SpellAreaType.LINE:
-            # Position line at caster's ground level  
+            # Position line slightly above caster's ground level
             var caster_ground_pos := Util.project_to_ground(caster.get_parent(), 1, 0.002)
             global_position = caster_ground_pos
             
             # Calculate direction from caster to target spawn position
-            var direction_to_target := (_target_spawn_position - caster_ground_pos).normalized()
+            var direction_to_target := (m_target_spawn_position - caster_ground_pos).normalized()
             if direction_to_target.length() < 0.001:
                 # If spawn position is at caster position, use forward direction
                 direction_to_target = Vector3.FORWARD
@@ -188,19 +188,19 @@ func _apply_effect_to_character(character: BattleCharacter) -> void:
         print("[PERSISTENT SPELL AREA] ERROR: Caster is null when trying to apply effect!")
         return
     
-    if not _spell_item:
+    if not m_spell_item:
         print("[PERSISTENT SPELL AREA] ERROR: Spell item is null when trying to apply effect!")
         return
     
-    if _spell_item.can_use_on(caster, character, true): # Ignore costs for AOE
-        _spell_item.activate(caster, character, false)  # Don't consume item for AOE
-        print("[PERSISTENT SPELL AREA] %s used %s on %s" % [caster.character_name, _spell_item.item_name, character.character_name])
+    if m_spell_item.can_use_on(caster, character, true): # Ignore costs for AOE
+        m_spell_item.activate(caster, character, false, false)  # Don't consume item for AOE, and don't use actions for every application of the effect
+        print("[AOE TRIGGER] %s used %s on %s" % [caster.character_name, m_spell_item.item_name, character.character_name])
         _has_been_affected.append(character)
 
         _times_triggered += 1
 
     else:
-        print("[PERSISTENT SPELL AREA] %s cannot use %s on %s" % [caster.character_name, _spell_item.item_name, character.character_name])
+        print("[PERSISTENT SPELL AREA] %s cannot use %s on %s" % [caster.character_name, m_spell_item.item_name, character.character_name])
 
 
 func _apply_effect_to_nodes_in_area() -> void:
@@ -213,14 +213,14 @@ func _apply_effect_to_nodes_in_area() -> void:
             if character_controller and character_controller.free_movement:
                 continue
 
-            print("[PERSISTENT SPELL AREA] %s is in AOE area, applying effect" % battle_character.character_name)
+            print("[AOE TRIGGER] %s is in AOE area, applying effect" % battle_character.character_name)
             _apply_effect_to_character(battle_character)
 
 func _on_turn_started(_turn_character: BattleCharacter = null) -> void:
-    if _turns_left != -1:
-        _turns_left -= 1
-        if _turns_left <= 0:
-            print("[PERSISTENT SPELL AREA] %s has expired after %d turns" % [_spell_item.item_name, _ttl_turns])
+    if m_turns_left != -1:
+        m_turns_left -= 1
+        if m_turns_left <= 0:
+            print("[AOE TRIGGER] %s has expired after %d turns" % [m_spell_item.item_name, m_ttl_turns])
             queue_free()  # Remove the AOE spell effect after its duration
             return
     

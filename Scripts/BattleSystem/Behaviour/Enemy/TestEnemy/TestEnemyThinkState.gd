@@ -170,22 +170,25 @@ func _make_decision() -> void:
         return
 
     # Execute the chosen action
-    print("%s executing action: %s" % [battle_character.character_name, chosen_action.name])
+    print("[AI] %s executing action: %s" % [battle_character.character_name, chosen_action.name])
+    
+    # Store actions before execution for safety check
+    var actions_before := battle_character.actions_left
     chosen_action.execute()
     
-    # Double-check that actions were actually spent to prevent infinite loops
+    # Safety check: ensure actions were actually spent
+    if battle_character.actions_left >= actions_before:
+        printerr("[ERROR] Action %s didn't spend any actions! Force spending 1 action to prevent infinite loop." % chosen_action.name)
+        battle_character.spend_actions(1)
+    
+    # Check if we should continue thinking or transition to idle
     if battle_character.actions_left <= 0:
-        printerr("[AI] %s has no more actions, spend_actions() will handle transition to idle" % battle_character.character_name)
-        # Don't emit transition here - spend_actions() already handles it
+        print("[AI] %s has no more actions left, spend_actions() will handle transition to idle" % battle_character.character_name)
     else:
-        # Continue thinking if we still have actions left
-        print("[AI] %s has %d actions left, continuing to think" % [battle_character.character_name, battle_character.actions_left])
-        # Add a small delay to prevent immediate recursion
-        await get_tree().process_frame
-        _make_decision()
+        # The BattleState will handle putting us back into ThinkState via ready_next_turn()
+        print("[AI] %s has %d actions left, BattleState will handle continuation" % [battle_character.character_name, battle_character.actions_left])
 
 ## TODO: this can be moved to a generic Enemy Think State
-## as the context is not specific to any enemy.
 func _get_context() -> AIDecisionContext:
     var current_hp := battle_character.current_hp
     var max_hp: float = max(0.0, battle_character.stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP))
@@ -235,7 +238,7 @@ func _get_context() -> AIDecisionContext:
     print("=== %s Decision Context ===" % battle_character.character_name)
     print("HP: %d/%d (%.1f%%)" % [current_hp, max_hp, current_hp / max_hp * 100])
     print("MP: %d/%d (%.1f%%)" % [current_mp, max_mp, current_mp / max_mp * 100])
-    print("Actions Left: %d" % battle_character.actions_left)
+    print("Actions Left: %d/%d" % battle_character.actions_left, battle_character.battle_state.START_ACTIONS)
     print("Aggression: %.2f" % current_aggression)
     
     if best_damage_spell:
@@ -356,7 +359,7 @@ func _select_best_action(context: AIDecisionContext) -> AIActionData:
     for action in valid_actions:
         current_weight += action.current_weight
         if random_value <= current_weight:
-            print("Selected action: %s (weight: %.2f)" % [action.name, action.current_weight])
+            print("[%s AI] Selected action: %s (weight: %.2f)" % [battle_character.name, action.name, action.current_weight])
             return action
     
     # Final fallback
@@ -573,7 +576,7 @@ func _can_execute_heal_ally(context: AIDecisionContext) -> bool:
     
     if battle_character.actions_left < best_heal_spell.actions_cost:
         return false
-      # Check if ally is in range
+    # Check if ally is in range
     var ally_distance: float = battle_character.get_parent().global_position.distance_to(
         context.most_injured_ally.get_parent().global_position)
     
@@ -611,6 +614,9 @@ func _execute_cast_spell() -> void:
     
     print("Enemy casting spell: " + best_spell_to_cast.item_name)
     
+    # Store the action cost before activation
+    var spell_actions_cost := best_spell_to_cast.actions_cost
+    
     # Determine target based on spell type
     if best_spell_to_cast.spell_element == BattleEnums.EAffinityElement.HEAL:
         if ally_target_character:
@@ -625,9 +631,21 @@ func _execute_cast_spell() -> void:
             best_spell_to_cast.activate(battle_character, target_character, false)
         else:
             print("ERROR: No target character available for damage spell!")
-
-    # Always spend the spell's action cost
-    battle_character.spend_actions(best_spell_to_cast.actions_cost)
+            # Spend actions even if spell fails to prevent infinite loops
+            battle_character.spend_actions(spell_actions_cost)
+            return
+    
+    # Ensure actions are spent (defensive programming)
+    # The spell's activate() method should handle this, but we add this as backup
+    # Note: We don't double-spend if the spell already spent actions correctly
+    if battle_character.actions_left >= spell_actions_cost:
+        printerr("[ERROR] Spell %s didn't spend the correct amount of actions! Expected: %d, Actual: %d" % [
+            best_spell_to_cast.item_name, 
+            spell_actions_cost, 
+            battle_character.actions_left
+        ])
+        # Force spending the correct amount of actions to prevent infinite loop
+        battle_character.spend_actions(spell_actions_cost)
 
 func _execute_heal_ally() -> void:
     if not best_heal_spell or not ally_target_character:
@@ -664,7 +682,7 @@ func _execute_use_item() -> void:
     battle_character.spend_actions(1)  # Example: just spend 1 action for now
 
 func exit() -> void:
-    print("Enemy Think State Exited")
+    print("[%s AI] Enemy Think State Exited" % battle_character.name)
 
 func _get_best_spell_range() -> float:
     var max_range := 0.0
@@ -697,8 +715,8 @@ func _calculate_spell_efficiency(spell: Item, max_power: int, aggression: float)
     
     # Combined efficiency score
     var total_efficiency: float = (action_efficiency * efficiency_weight_actions) + \
-                           (mp_efficiency * efficiency_weight_mp) + \
-                           (max_power * efficiency_weight_power)
+                        (mp_efficiency * efficiency_weight_mp) + \
+                        (max_power * efficiency_weight_power)
     
     print("[SPELL EFFICIENCY] %s: Power=%d, Actions=%d, MP=%d, Aggression=%.1f, Efficiency=%.2f" % [
         spell.item_name, max_power, spell.actions_cost, spell.mp_cost, aggression, total_efficiency])
@@ -833,7 +851,7 @@ func _debug_action_selection_failure(context: AIDecisionContext) -> void:
     print("\nAction evaluation breakdown:")
     for action in available_actions:
         var can_exec := action.can_execute(context)
-        var weight := 0.0
+        var weight = 0.0
         if can_exec:
             weight = action.calculate_weight(context)
         

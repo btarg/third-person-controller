@@ -238,7 +238,7 @@ func _get_context() -> AIDecisionContext:
     print("=== %s Decision Context ===" % battle_character.character_name)
     print("HP: %d/%d (%.1f%%)" % [current_hp, max_hp, current_hp / max_hp * 100])
     print("MP: %d/%d (%.1f%%)" % [current_mp, max_mp, current_mp / max_mp * 100])
-    print("Actions Left: %d/%d" % battle_character.actions_left, battle_character.battle_state.START_ACTIONS)
+    print("Actions Left: %d/%d" % [battle_character.actions_left, battle_character.battle_state.START_ACTIONS])
     print("Aggression: %.2f" % current_aggression)
     
     if best_damage_spell:

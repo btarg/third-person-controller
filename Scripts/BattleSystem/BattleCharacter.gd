@@ -103,10 +103,9 @@ func spend_actions(actions: int) -> void:
     if actions_left <= 0:
         print(character_name + " has no actions left")
         behaviour_state_machine.set_state("IdleState")
-        battle_state.ready_next_turn()
     else:
         print(character_name + " has " + str(actions_left) + " actions left")
-        battle_state.ready_next_turn()
+    battle_state.ready_next_turn()
     OnSpendActions.emit(self)
 
 func _on_inventory_updated(resource: Item, _count: int, is_new_item: bool) -> void:
@@ -132,6 +131,9 @@ func print_modifiers() -> void:
 
 func is_spell_familiar(spell: Item) -> bool:
     return _familiar_spells.has(spell)
+
+func is_alive() -> bool:
+    return current_hp > 0 
 
 func add_familiar_spell(spell: Item) -> void:
     print("[Familiar] " + character_name + " has learned " + spell.item_name)
@@ -159,7 +161,7 @@ func _on_battle_turn_started(character: BattleCharacter) -> void:
 
 func start_turn() -> void:
     print("========")
-    print(character_name + " is starting their turn (%s actions left)" % str(actions_left))
+    print(character_name + " is starting their turn (%d actions, %d HP)" % [actions_left, current_hp])
     print("========")
     character_active = true
     OnCharacterTurnStarted.emit()

@@ -47,13 +47,16 @@ func process_basic_attack(attacker: BattleCharacter, target: BattleCharacter) ->
     return result
 
 ## This function should be used for spawning radius AOE spells without requiring a BattleCharacter (spawn at position)
-func create_area_of_effect_radius(spell: Item, caster: BattleCharacter, spawn_position: Vector3) -> bool:
+func create_area_of_effect(spell: Item, caster: BattleCharacter, spawn_position: Vector3, aim_direction: Vector3 = Vector3.FORWARD) -> bool:
     if spell.area_of_effect_radius == 0 or spell.item_type != Item.ItemType.FIELD_SPELL:
-        print("[AOE SPELL] Invalid spell for AOE: radius=%.1f, type=%s" % [spell.area_of_effect_radius, Item.ItemType.keys()[spell.item_type]])
+        print("[AOE] Invalid spell for AOE: radius=%.1f, type=%s" % [spell.area_of_effect_radius, Item.ItemType.keys()[spell.item_type]])
         return false
 
-    # Create a persistent SpellArea with trigger behavior
-    var aoe_area = PersistentSpellArea.new(spell, caster, spawn_position)
+    # Create a persistent SpellArea with trigger behavior, passing the aim direction
+    var aoe_area = PersistentSpellArea.new(spell, caster, spawn_position, aim_direction)
+    
+    print("[AOE] Created spell area with aim direction: %s" % aim_direction)
+    
     get_tree().get_root().add_child(aoe_area)
 
     # we only need to track Sustain spells, so we can remove the spell when a condition is met
@@ -61,7 +64,7 @@ func create_area_of_effect_radius(spell: Item, caster: BattleCharacter, spawn_po
     if spell.ttl_turns == -1:
         tracked_spell_aoe_nodes.push_back(aoe_area)
 
-    print("[AOE SPELL] Spawned AOE spell effect at %s" % spawn_position)
+    print("[AOE] Spawned AOE spell effect at %s" % spawn_position)
     return true
 
 func draw_spell(target_character: BattleCharacter, current_character: BattleCharacter, selected_spell_index: int = 0, cast_immediately: bool = false) -> void:

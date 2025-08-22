@@ -14,6 +14,12 @@ enum ItemType {
     QUEST,
     MISC
 }
+enum TargetType {
+    NONE, ## This is a battle spell
+    AOE_FROM_PLAYER,  ## Aim the AOE from the caster (circles are simply fixed)
+    AOE_FROM_TARGET,  ## Aim the AOE from any target's position
+    AOE_FREE_SELECT,   ## Aim the AOE from the mouse cursor position (e.g. place a circle somewhere)
+}
 enum UseStatus {
     SPELL_FAIL,
     SPELL_SUCCESS,
@@ -47,14 +53,18 @@ var item_id := "default_item_id"
 var inventory: Inventory = null
 
 ## AOE targeting for spells and items
-@export_group("AOE")
-enum TargetType {
-    NONE, ## This is not an AOE item, ignore
-    FIXED_AIM_FROM_CHAR,  ## Aim the AOE from the player (circles are simply fixed at the character's position)
-    FREE_SELECT   ## Aim the AOE from the mouse cursor position
-}
-@export var target_type: TargetType = TargetType.NONE
+@export_group("Item Targeting")
+@export var target_type := TargetType.NONE
 @export var area_type := AreaUtils.SpellAreaType.CIRCLE
+
+## How far away a target can be to activate this item (does not apply to self)
+@export var effective_range: int = 5
+
+@export var can_use_on_enemies: bool = true
+@export var can_use_on_allies: bool = true
+@export var only_on_dead_characters: bool = false ## Primarily for revive items
+
+@export_group("AOE Spells")
 ## Radius also acts as the length for line and cone area types
 @export var area_of_effect_radius: float = 0.0
 ## only applies to line area type
@@ -64,12 +74,6 @@ enum TargetType {
 
 ## Time to live for AOEs in turns: -1 means sustained spell, 0 means we do the effect once and then remove the spell
 @export var ttl_turns: int = -1
-
-@export var can_use_on_enemies: bool = true
-@export var can_use_on_allies: bool = true
-
-## How far away a target can be to activate this item (does not apply to self)
-@export var effective_range: int = 5
 
 @export_group("Spell")
 @export var spell_element := BattleEnums.EAffinityElement.FIRE
@@ -240,7 +244,11 @@ func can_use_on(user: BattleCharacter, target: BattleCharacter, ignore_costs: bo
     
     var same_side := (user.character_type in [BattleEnums.ECharacterType.FRIENDLY, BattleEnums.ECharacterType.PLAYER]) == \
                     (target.character_type in [BattleEnums.ECharacterType.FRIENDLY, BattleEnums.ECharacterType.PLAYER])
-    
+
+    # Revive items can only be used on dead allies
+    if only_on_dead_characters:
+        return can_use_on_allies and same_side and not target.is_alive()
+
     return can_use_on_allies if same_side else can_use_on_enemies
 
 func _update_inventory(status: UseStatus) -> void:
@@ -248,7 +256,7 @@ func _update_inventory(status: UseStatus) -> void:
         inventory.on_item_used(self, status)
 
 ## MAIN ACTIVATION FUNCTION
-## Executes the spell/item's effect. Called when the item "collides" with a target.
+## Executes the spell/item's effect. Called when the item "connects" with a target.
 func activate(user: BattleCharacter, target: BattleCharacter, update_inventory: bool = true, use_actions: bool = true) -> UseStatus:
     var status: UseStatus
     
@@ -289,15 +297,18 @@ func activate(user: BattleCharacter, target: BattleCharacter, update_inventory: 
                 DiceRoll.DiceStatus.ROLL_CRIT_FAIL:
                     spell_use_status = UseStatus.SPELL_CRIT_FAIL
 
-        # we only apply buffs and debuffs if we are not immune to those.
-        # some enemies can be immune to debuffs, and allies could potentially be given immunity to buffs by an enemy
+        
         if target.get_affinity(spell_element) != BattleEnums.EAffinityType.IMMUNE:
             match spell_element:
                 BattleEnums.EAffinityElement.HEAL:
                     target.heal(DiceRoll.roll_all(spell_power_rolls), false, spell_use_status)
+                    return spell_use_status
                 BattleEnums.EAffinityElement.MANA:
                     target.update_mp(DiceRoll.roll_all(spell_power_rolls), spell_use_status)
-
+                    return spell_use_status
+                    
+                # we only apply buffs and debuffs if we are not immune to those.
+                # some enemies can be immune to debuffs, and allies could potentially be given immunity to buffs by an enemy
                 BattleEnums.EAffinityElement.BUFF,\
                 BattleEnums.EAffinityElement.DEBUFF:
                     if modifier and spell_use_status in [UseStatus.SPELL_SUCCESS, UseStatus.SPELL_CRIT_SUCCESS]:

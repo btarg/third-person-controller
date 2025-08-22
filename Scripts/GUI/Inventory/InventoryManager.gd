@@ -28,6 +28,8 @@ var silence_spell: Item = load("res://Scripts/Data/Items/Spells//silence_spell.t
 var aoe_spell: Item = load("res://Scripts/Data/Items/Spells//test_aoe_spell.tres")
 var aoe_spell_2: Item = load("res://Scripts/Data/Items/Spells//test_cone_spell.tres")
 
+var revive_item: Item = load("res://Scripts/Data/Items/test_revive_item.tres")
+
 func _ready() -> void:
 
     print("InventoryManager ready")
@@ -36,11 +38,12 @@ func _ready() -> void:
     add_item(aoe_spell_2, 15)
     add_item(heal_spell, 15)
     add_item(fire_spell, 15)
-    add_item(ice_spell, 15)
-    add_item(elec_spell, 15)
-    add_item(wind_spell, 15)
+#    add_item(ice_spell, 15)
+#    add_item(elec_spell, 15)
+#    add_item(wind_spell, 15)
     add_item(almighty_spell, 15)
     add_item(silence_spell, 15)
+    add_item(revive_item, 15)
 
 
     # TEST: set two different spells to the same stat, should only apply the modifier for the last one

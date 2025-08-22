@@ -15,8 +15,8 @@ var _times_triggered: int = 0
 
 @onready var battle_state := GameModeStateMachine.get_node("BattleState") as BattleState
 
-func _init(spell_item: Item, p_caster: BattleCharacter, spawn_position: Vector3) -> void:
-    super._init(p_caster, spell_item.area_type, spell_item.area_of_effect_radius, spell_item.cone_angle_degrees, spell_item.line_width, Vector3.FORWARD)
+func _init(spell_item: Item, p_caster: BattleCharacter, spawn_position: Vector3, p_aim_direction: Vector3 = Vector3.FORWARD) -> void:
+    super._init(p_caster, spell_item.area_type, spell_item.area_of_effect_radius, spell_item.cone_angle_degrees, spell_item.line_width, p_aim_direction)
     
     m_spell_item = spell_item
     m_ttl_turns = spell_item.ttl_turns
@@ -154,34 +154,48 @@ func _setup_area_positioning() -> void:
             global_position = m_target_spawn_position
             print("[PERSISTENT SPELL AREA] Circle positioned at: %s" % global_position)
         AreaUtils.SpellAreaType.CONE:
-            # Position cone at caster's ground level
-            var caster_ground_pos := Util.project_to_ground(caster.get_parent(), 1, 0.002)
-            global_position = caster_ground_pos
+            # Position cone based on target type
+            if m_spell_item.target_type == Item.TargetType.AOE_FROM_TARGET:
+                # For AOE_FROM_TARGET, position at the target spawn position
+                global_position = m_target_spawn_position
+                print("[PERSISTENT SPELL AREA] Cone positioned at target: %s with direction: %s" % [global_position, aim_direction])
+            else:
+                # For other types (AOE_FROM_PLAYER), position at caster's ground level
+                var caster_ground_pos := Util.project_to_ground(caster.get_parent(), 1, 0.002)
+                global_position = caster_ground_pos
+                
+                # Calculate direction from caster to target spawn position for AOE_FROM_PLAYER directional spells
+                var direction_to_target := (m_target_spawn_position - caster_ground_pos).normalized()
+                if direction_to_target.length() < 0.001:
+                    # If spawn position is at caster position, use forward direction
+                    direction_to_target = Vector3.FORWARD
+                
+                aim_direction = Vector3(direction_to_target.x, 0.0, direction_to_target.z).normalized()
+                print("[PERSISTENT SPELL AREA] Cone positioned at caster: %s, direction: %s" % [global_position, aim_direction])
             
-            # Calculate direction from caster to target spawn position
-            var direction_to_target := (m_target_spawn_position - caster_ground_pos).normalized()
-            if direction_to_target.length() < 0.001:
-                # If spawn position is at caster position, use forward direction
-                direction_to_target = Vector3.FORWARD
-            
-            aim_direction = Vector3(direction_to_target.x, 0.0, direction_to_target.z).normalized()
             update_shader_params()
-            print("[PERSISTENT SPELL AREA] Cone direction set to: %s" % aim_direction)
             
         AreaUtils.SpellAreaType.LINE:
-            # Position line slightly above caster's ground level
-            var caster_ground_pos := Util.project_to_ground(caster.get_parent(), 1, 0.002)
-            global_position = caster_ground_pos
+            # Position line based on target type
+            if m_spell_item.target_type == Item.TargetType.AOE_FROM_TARGET:
+                # For AOE_FROM_TARGET, position at the target spawn position
+                global_position = m_target_spawn_position
+                print("[PERSISTENT SPELL AREA] Line positioned at target: %s with direction: %s" % [global_position, aim_direction])
+            else:
+                # For other types (AOE_FROM_PLAYER), position at caster's ground level
+                var caster_ground_pos := Util.project_to_ground(caster.get_parent(), 1, 0.002)
+                global_position = caster_ground_pos
+                
+                # Calculate direction from caster to target spawn position for AOE_FROM_PLAYER directional spells
+                var direction_to_target := (m_target_spawn_position - caster_ground_pos).normalized()
+                if direction_to_target.length() < 0.001:
+                    # If spawn position is at caster position, use forward direction
+                    direction_to_target = Vector3.FORWARD
+                
+                aim_direction = Vector3(direction_to_target.x, 0.0, direction_to_target.z).normalized()
+                print("[PERSISTENT SPELL AREA] Line positioned at caster: %s, direction: %s" % [global_position, aim_direction])
             
-            # Calculate direction from caster to target spawn position
-            var direction_to_target := (m_target_spawn_position - caster_ground_pos).normalized()
-            if direction_to_target.length() < 0.001:
-                # If spawn position is at caster position, use forward direction
-                direction_to_target = Vector3.FORWARD
-            
-            aim_direction = Vector3(direction_to_target.x, 0.0, direction_to_target.z).normalized()
             update_shader_params()
-            print("[PERSISTENT SPELL AREA] Line direction set to: %s" % aim_direction)
 
 func _apply_effect_to_character(character: BattleCharacter) -> void:
     if not caster:

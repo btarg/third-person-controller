@@ -5,6 +5,7 @@ class_name PlayerDeadState
 
 func _ready() -> void:
     battle_character.OnLeaveBattle.connect(_on_leave_battle)
+    BattleSignalBus.OnHeal.connect(_on_heal)
     
 func _on_leave_battle() -> void:
     if active:
@@ -19,6 +20,13 @@ func enter() -> void:
 
 func _stop_thinking() -> void:
     Transitioned.emit(self, "IdleState")
+
+# Dead characters cannot normally be selected by regular spells,
+# but those with only_on_dead_characters set to true can target them.
+func _on_heal(_healed_character: BattleCharacter) -> void:
+    if _healed_character == battle_character:
+        print("[REVIVE] " + battle_character.character_name + " has been revived and can re-enter the battle!")
+        Transitioned.emit(self, "IdleState")
 
 func exit() -> void: pass
 func _state_process(_delta: float) -> void: pass

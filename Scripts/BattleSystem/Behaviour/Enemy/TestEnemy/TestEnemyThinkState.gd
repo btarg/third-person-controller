@@ -25,14 +25,12 @@ func enter() -> void:
         Transitioned.emit(self, "IdleState")
         return
     
-    _make_decision()
+    make_decision()
     _aggression_check()
 
 # TODO: multi-targeting logic for spells and items
 # Before we can make decisions, we need to pick player(s) as target(s).
 # We will only be able to select multiple targets with a skill which has AOE
-# So this logic will need to be implemented much later on, once I have
-# moved SpellItem logic to the new Skill system. // 17/06/2025
 
 # IMPORTANT:
 # I will need to make sure that the enemy has enough Actions left to execute
@@ -49,23 +47,13 @@ func _initialize_actions() -> void:
         _can_execute_attack,
         -0.1 # decrease aggression slightly for attack action
     ))
-    # Cast spell action
+    # Cast spell/Use item action (unified since both are Item objects)
     available_actions.append(AIActionData.new(
-        "cast_spell",
-        _calculate_spell_weight,
-        _execute_cast_spell,
-        _can_execute_cast_spell,
-        -0.2
-    ))
-    
-    # Heal ally action
-    # TODO: also allow buffing allies
-    available_actions.append(AIActionData.new(
-        "heal_ally",
-        _calculate_heal_ally_weight,
-        _execute_heal_ally,
-        _can_execute_heal_ally,
-        0.0
+        "use_item",
+        _calculate_item_weight,
+        _execute_use_item,
+        _can_execute_use_item,
+        -0.2 # Decrease aggression slightly after using items/spells
     ))
     
     # Defend action
@@ -93,159 +81,7 @@ func _initialize_actions() -> void:
         _can_execute_draw_spell,
         -0.2
     ))
-    
-    # Use item action
-    available_actions.append(AIActionData.new(
-        "use_item",
-        _calculate_item_weight,
-        _execute_use_item,
-        _can_execute_use_item,
-        0.1
-    ))
 
-func _make_decision() -> void:
-    # Safety check - ensure we have a valid battle character and actions left
-    if not battle_character or not battle_character.character_active:
-        print("[ERROR] %s trying to think when not active, transitioning to idle" % battle_character.character_name)
-        Transitioned.emit(self, "IdleState")
-        return
-    
-    if battle_character.actions_left <= 0:
-        print("[ERROR] %s has no actions left, transitioning to idle" % battle_character.character_name)
-        Transitioned.emit(self, "IdleState")
-        return
-    
-    var context := _get_context()
-    _update_spell_selection(context)
-    var chosen_action := _select_best_action(context)
-    
-    if not chosen_action:
-        printerr("[CRITICAL ERROR] %s failed to select any action!" % battle_character.character_name)
-        _debug_action_selection_failure(context)
-        
-        # Fallback: spend one action and transition to idle to prevent infinite loops
-        printerr("[FALLBACK] %s spending actions as emergency fallback and transitioning to idle" % battle_character.character_name)
-        battle_character.spend_actions(battle_character.actions_left)
-        return
-
-    # Execute the chosen action
-    print("[AI] %s executing action: %s" % [battle_character.character_name, chosen_action.name])
-    
-    # Store actions before execution for safety check
-    var actions_before := battle_character.actions_left
-    chosen_action.execute()
-    
-    # Safety check: ensure actions were actually spent
-    if battle_character.actions_left >= actions_before:
-        printerr("[ERROR] Action %s didn't spend any actions! Force spending 1 action to prevent infinite loop." % chosen_action.name)
-        battle_character.spend_actions(1)
-    
-    # Check if we should continue thinking or transition to idle
-    if battle_character.actions_left <= 0:
-        print("[AI] %s has no more actions left, spend_actions() will handle transition to idle" % battle_character.character_name)
-    else:
-        # The BattleState will handle putting us back into ThinkState via ready_next_turn()
-        print("[AI] %s has %d actions left, BattleState will handle continuation" % [battle_character.character_name, battle_character.actions_left])
-
-
-func _update_spell_selection(context: AIDecisionContext) -> void:
-    # First, select best available spells from inventory
-
-    # TODO: items also have a count, which we should consider
-    # when selecting spells. Higher aggression would mean the enemy is more likely to choose
-    # a spell they have only a few charges of, while lower aggression prioritises spells with more charges. 
-    if battle_character and battle_character.inventory:
-        var available_spells: Array[Item] = []
-        for item in battle_character.inventory.get_items():
-            var res_item := item as Item
-            if res_item:
-                # Filter out spells that cost more actions than we have
-                if res_item.actions_cost <= battle_character.actions_left:
-                    available_spells.append(res_item)
-                else:
-                    print("[SPELL FILTER] %s costs %d actions but only have %d - skipping" % [
-                        res_item.item_name, res_item.actions_cost, battle_character.actions_left])
-        
-        # Reset previous selections
-        best_damage_spell = null
-        best_heal_spell = null
-        # Find best damage and heal spells based on efficiency, not just raw power
-        var best_damage_efficiency := 0.0
-        var best_heal_efficiency := 0.0
-        
-        for spell in available_spells:
-            var max_power := DiceRoll.max_possible_all(spell.spell_power_rolls)
-            var efficiency: float = _calculate_spell_efficiency(spell, max_power, context.aggression)
-            
-            if spell.spell_element == BattleEnums.EAffinityElement.HEAL:
-                if efficiency > best_heal_efficiency:
-                    best_heal_efficiency = efficiency
-                    best_heal_spell = spell
-            elif spell.spell_element not in [BattleEnums.EAffinityElement.BUFF, BattleEnums.EAffinityElement.DEBUFF]:
-                if efficiency > best_damage_efficiency:
-                    best_damage_efficiency = efficiency
-                    best_damage_spell = spell
-    
-        # Then, choose which spell to cast based on context
-        best_spell_to_cast = null
-        if not best_damage_spell and not best_heal_spell:
-            return
-        
-        # Choose heal spell if we or an ally need healing
-        if (context.health_ratio < low_health_threshold or context.ally_needs_healing) and best_heal_spell:
-            best_spell_to_cast = best_heal_spell
-        elif best_damage_spell:
-            best_spell_to_cast = best_damage_spell
-        elif best_heal_spell:
-            best_spell_to_cast = best_heal_spell
-
-        if best_spell_to_cast:
-            print("[%s AI] Best spell to cast: %s (MP: %d, Range: %.1f, Actions: %d)" % [
-                battle_character.character_name,
-                best_spell_to_cast.item_name,
-                best_spell_to_cast.mp_cost,
-                best_spell_to_cast.effective_range,
-                best_spell_to_cast.actions_cost
-            ])
-        else:
-            print("[%s AI] No spells available to cast!" % battle_character.character_name)
-
-func _select_best_action(context: AIDecisionContext) -> AIActionData:
-    var valid_actions: Array[AIActionData] = []
-    
-    # Filter actions that can be executed and calculate their weights
-    for action in available_actions:
-        if action.can_execute(context):
-            action.calculate_weight(context)
-            if action.current_weight > 0.0:
-                valid_actions.append(action)
-    
-    if valid_actions.is_empty():
-        print("[ERROR] No valid actions available!")
-        return null
-    
-    # Weighted random selection
-    var total_weight := 0.0
-    for action in valid_actions:
-        total_weight += action.current_weight
-    
-    if total_weight <= 0.0:
-        print("[ERROR] Total weight is zero or negative: %.2f" % total_weight)
-        # Fallback: just pick the first valid action
-        return valid_actions[0]
-    
-    var random_value := randf() * total_weight
-    var current_weight := 0.0
-    
-    for action in valid_actions:
-        current_weight += action.current_weight
-        if random_value <= current_weight:
-            print("[%s AI] Selected action: %s (weight: %.2f)" % [battle_character.name, action.name, action.current_weight])
-            return action
-    
-    # Final fallback
-    print("[WARNING] Weight selection failed, using first valid action")
-    return valid_actions[0]
 
 # Weight calculation functions
 func _calculate_attack_weight(context: AIDecisionContext) -> float:
@@ -258,30 +94,149 @@ func _calculate_attack_weight(context: AIDecisionContext) -> float:
     if context.health_ratio < low_health_threshold and context.player_health_ratio > critical_health_threshold:
         weight *= 0.5
     
+    if debug_mode:
+        print("[%s AI] ATTACK weight: %.3f" % [battle_character.character_name, weight])
+    
     return weight
 
-func _calculate_spell_weight(context: AIDecisionContext) -> float:
-    # If no spells are available, return 0 to disable spell casting
-    if not best_damage_spell and not best_heal_spell:
+func _calculate_item_weight(context: AIDecisionContext) -> float:
+    # If no items are available, return 0 to disable item/spell usage
+    if not best_item_to_use:
         return 0.0
     
-    var weight := base_spell_weight
+    var weight := base_spell_weight  # Use spell weight as base since most items are spells
     weight *= context.aggression
     
-    if not context.in_attack_range:
-        weight *= 1.2
+    # Special handling for revive items - they get extremely high priority
+    if best_item_to_use.only_on_dead_characters:
+        if context.has_dead_allies:
+            weight *= 5.0  # Massive priority boost for revive items when allies are dead
+            print("[AI] %s: Applying massive weight boost for revive item %s" % [battle_character.character_name, best_item_to_use.item_name])
+        else:
+            # This should not happen due to filtering, but safety check
+            return 0.0
+    else:
+        # Trust SpellHelper's item selection and boost weight based on urgency
+        match best_item_to_use.spell_element:
+            BattleEnums.EAffinityElement.HEAL:
+                # For healing items, check if we have a valid target and adjust weight accordingly
+                var healing_decision := SpellHelper.determine_healing_target(battle_character, context, best_item_to_use)
+                var heal_target: BattleCharacter = healing_decision["target"]
+                
+                if not heal_target:
+                    # No valid healing target, significantly reduce weight
+                    weight *= 0.1
+                elif heal_target == battle_character:
+                    # Self-healing - standard priority based on our health
+                    if context.health_ratio < critical_health_threshold:
+                        weight *= 5.0  # EMERGENCY self-healing - highest priority!
+                    elif context.health_ratio < low_health_threshold:
+                        weight *= 3.0  # Urgent self-healing
+                    else:
+                        weight *= 0.7  # Non-urgent self-healing
+                else:
+                    # Ally healing - adjust based on ally's condition and our selfishness
+                    var ally_health_ratio := context.lowest_ally_health_ratio
+                    var selfishness := context.aggression
+                    
+                    if ally_health_ratio < critical_health_threshold:
+                        # Ally is critical - VERY high priority, but still affected by selfishness
+                        weight *= (5.0 * (1.0 - selfishness * 0.3))  # Ranges from 5.0 (altruistic) to 3.5 (selfish)
+                    elif ally_health_ratio < low_health_threshold:
+                        # Ally needs healing - moderate priority, more affected by selfishness
+                        weight *= (3.0 * (1.0 - selfishness * 0.6))  # Ranges from 3.0 (altruistic) to 1.2 (selfish)
+                    else:
+                        # Ally has minor injuries - low priority, heavily affected by selfishness
+                        weight *= (1.0 * (1.0 - selfishness))  # Ranges from 1.0 (altruistic) to 0.0 (selfish)
+                    
+                    if debug_mode:
+                        print("[%s AI] Heal weight for ally %s: %.2f (Ally HP: %.1f%%, Selfishness: %.2f)" % [
+                            battle_character.character_name, 
+                            heal_target.character_name,
+                            weight,
+                            ally_health_ratio * 100,
+                            selfishness
+                        ])
+            
+            BattleEnums.EAffinityElement.MANA:
+                # MP items get priority based on how desperately we need mana
+                if context.mana_ratio < 0.2:
+                    weight *= 2.5  # Emergency MP
+                elif context.mana_ratio < 0.4:
+                    weight *= 1.5  # Urgent MP
+                else:
+                    weight *= 0.8  # Non-urgent MP
+            
+            _: # Damage spells and other items
+                # Standard damage/utility items
+                if context.player_health_ratio < low_health_threshold:
+                    weight *= 1.5  # Target is vulnerable
+                    
+        # We should always prioritise using an item if we are not in attack range
+        if (not context.in_attack_range) and context.in_spell_range:
+            weight *= 1.25
     
-    if context.player_health_ratio < low_health_threshold:
-        weight *= 1.3
+    # CRITICAL SITUATION BOOST: If multiple characters are critically injured, healing becomes top priority
+    if (best_item_to_use and best_item_to_use.spell_element == BattleEnums.EAffinityElement.HEAL and
+        ((context.health_ratio < critical_health_threshold and context.critically_injured_ally_count > 0) or
+         context.critically_injured_ally_count >= 2)):
+        weight *= 2.0  # Extra boost when multiple critical injuries
+        if debug_mode:
+            print("[%s AI] CRITICAL SITUATION BOOST for healing! Multiple critical injuries detected" % battle_character.character_name)
+    
+    if debug_mode and best_item_to_use:
+        print("[%s AI] ITEM weight: %.3f (Item: %s)" % [battle_character.character_name, weight, best_item_to_use.item_name])
+    elif debug_mode:
+        print("[%s AI] ITEM weight: 0.0 (No items available)" % battle_character.character_name)
     
     return weight
 
 func _calculate_defend_weight(context: AIDecisionContext) -> float:
+    """
+    Calculate defend weight with HEALING PRIORITY SYSTEM:
+    - If healing is available and needed, defending gets heavily penalized
+    - Healing should ALWAYS be preferred over defending when characters are injured
+    - Defending is a last resort when no better options exist
+    """
     var weight := base_defend_weight
     
-    # Only defend when at low health
+    # CRITICAL: If we have healing available and need it, heavily deprioritize defending
+    if best_item_to_use and best_item_to_use.spell_element == BattleEnums.EAffinityElement.HEAL:
+        # Check if we have a valid healing target
+        var healing_decision := SpellHelper.determine_healing_target(battle_character, context, best_item_to_use)
+        var heal_target: BattleCharacter = healing_decision["target"]
+        
+        if heal_target:
+            # We can heal someone who needs it - defending is much less important
+            if context.health_ratio < critical_health_threshold:
+                weight *= 0.1  # Almost never defend when we're critical and can heal
+            elif context.health_ratio < low_health_threshold:
+                weight *= 0.2  # Rarely defend when we're low and can heal
+            elif context.injured_ally_count > 0 and context.lowest_ally_health_ratio < critical_health_threshold:
+                weight *= 0.3  # Reduce defending when ally is critical and we can heal
+            else:
+                weight *= 0.5  # General reduction when healing is available
+            
+            if debug_mode:
+                print("[%s AI] DEFEND weight heavily reduced due to available healing: %.3f (can heal %s)" % [
+                    battle_character.character_name, weight, heal_target.character_name
+                ])
+        else:
+            # No valid healing target, normal defend logic
+            weight = _apply_normal_defend_logic(context, weight)
+    else:
+        # No healing available, use normal defend logic
+        weight = _apply_normal_defend_logic(context, weight)
+    
+    if debug_mode:
+        print("[%s AI] DEFEND weight: %.3f" % [battle_character.character_name, weight])
+    
+    return weight
+
+func _apply_normal_defend_logic(context: AIDecisionContext, weight: float) -> float:
+    # Only defend when at low health and no better options
     if context.health_ratio < low_health_threshold:
-        weight *= 1.8
+        weight *= 1.2  # Reduced from 1.8 - healing should still be preferred
     elif context.health_ratio > good_health_threshold:
         # High health enemy should rarely defend
         weight *= 0.3
@@ -297,56 +252,6 @@ func _calculate_defend_weight(context: AIDecisionContext) -> float:
     weight /= context.aggression
     return weight
 
-func _calculate_heal_weight(context: AIDecisionContext) -> float:
-    var weight := base_heal_weight
-    
-    if context.health_ratio < critical_health_threshold:
-        weight *= 3.0
-    elif context.health_ratio < low_health_threshold:
-        weight *= 1.5
-    else:
-        weight *= 0.2
-    
-    if context.player_health_ratio < critical_health_threshold:
-        weight *= 0.3
-    
-    return weight
-
-func _calculate_heal_ally_weight(context: AIDecisionContext) -> float:
-    var weight := base_heal_weight
-    
-    # No ally to heal
-    if not context.ally_needs_healing or not context.most_injured_ally:
-        return 0.0
-    
-    # Prioritize ally healing based on how badly they need it
-    if context.ally_health_ratio < critical_health_threshold:
-        weight *= 4.0  # Very high priority
-    elif context.ally_health_ratio < low_health_threshold:
-        weight *= 2.5
-    else:
-        weight *= 0.1  # Low priority if ally is in good health
-    
-    # If we're also low on health, reduce ally healing priority slightly
-    if context.health_ratio < low_health_threshold:
-        weight *= 0.7
-    
-    # Don't heal allies when player is very vulnerable (finish them instead)
-    if context.player_health_ratio < critical_health_threshold:
-        weight *= 0.2
-    
-    return weight
-
-
-## Move weight should be calculated based on distance to player
-## and whether the enemy is in attack range or not.
-# We should check if the enemy doesn't have any viable actions other than moving:
-# 1. No spell in the inventory could hit the player
-# 2. No items that could be used (based on range as well as can_use_on)
-# 3. The player is not in attack range
-# 4. The player is not in draw range
-# 5. All other actions require too much MP or Actions to execute
-
 func _calculate_move_weight(context: AIDecisionContext) -> float:
     var weight := base_move_weight
     
@@ -357,8 +262,8 @@ func _calculate_move_weight(context: AIDecisionContext) -> float:
         # Lower priority if we can already do useful actions
         weight *= 0.3
     
-    # If no spells are available at all, increase movement priority slightly
-    if not best_damage_spell and not best_heal_spell:
+    # If no items are available at all, increase movement priority slightly
+    if not best_damage_item and not best_heal_item:
         weight *= 1.2
     
     # Healthy enemies are more aggressive about moving
@@ -375,21 +280,6 @@ func _calculate_draw_spell_weight(_context: AIDecisionContext) -> float:
         # Higher aggression means we are more likely to Cast instead of Stock once we have drawn a spell,
         # But we will still prefer a regular attack if we are in attack range.
 
-func _calculate_item_weight(context: AIDecisionContext) -> float:
-    var weight := 0.3
-    
-    # Prioritize items when low on health (for healing items)
-    if context.health_ratio < low_health_threshold:
-        weight *= 2.0
-    elif context.health_ratio > good_health_threshold:
-        weight *= 0.5
-    
-    # Increase weight if we have low mana (for MP items)
-    if context.mana_ratio < 0.3:
-        weight *= 1.5
-    
-    return weight
-
 # Can execute functions
 func _can_execute_attack(context: AIDecisionContext) -> bool:
     # Check if we have at least 1 action (attacks cost 1 action)
@@ -397,71 +287,58 @@ func _can_execute_attack(context: AIDecisionContext) -> bool:
         return false
     return context.in_attack_range
 
-# To check if we can cast a spell, we need to check:
-# 1. If the enemy can use spells
-# 2. If the enemy is in range to cast the spell
-# 3. If the enemy has enough mana to cast the spell
-# 4. If the enemy has enough actions left to cast the spell
-#
-# If the spell targets multiple enemies, we will need to find the optimal location
-# on the map (within range) to cast the spell to hit multiple targets.
-# i can probably cheat this by just selecting the location of the player with
-# the lowest HP, as that is the most likely "primary" target for the spell.
-func _can_execute_cast_spell(context: AIDecisionContext) -> bool:
+func _can_execute_use_item(context: AIDecisionContext) -> bool:
     if not battle_character.can_use_spells:
         return false
     
-    # Check if we have any spell to cast (precalculated)
-    if not best_spell_to_cast:
+    # Check if we have any item to use (precalculated)
+    if not best_item_to_use:
         return false
     
-    # Determine target and range based on spell type
+    # Check if we have enough resources
+    if battle_character.current_mp < best_item_to_use.mp_cost:
+        return false
+    
+    if battle_character.actions_left < best_item_to_use.actions_cost:
+        return false
+    
+    # Determine target and range based on item type
     var target_distance: float
-    if best_spell_to_cast.spell_element == BattleEnums.EAffinityElement.HEAL and context.ally_needs_healing and context.most_injured_ally:
-        # Healing spell targeting ally
+    
+    if best_item_to_use.only_on_dead_characters:
+        # Revive item - check distance to closest dead ally
+        if not context.has_dead_allies or not context.closest_dead_ally:
+            return false
         target_distance = battle_character.get_parent().global_position.distance_to(
-            context.most_injured_ally.get_parent().global_position)
+            context.closest_dead_ally.get_parent().global_position)
+    elif best_item_to_use.spell_element == BattleEnums.EAffinityElement.HEAL:
+        # Use SpellHelper's intelligent healing target determination for range checking
+        var healing_decision := SpellHelper.determine_healing_target(battle_character, context, best_item_to_use)
+        var heal_target: BattleCharacter = healing_decision["target"]
+        
+        if not heal_target:
+            return false
+        
+        if heal_target == battle_character:
+            # Self-heal, always in range
+            target_distance = 0.0
+        else:
+            # Ally heal, check distance
+            target_distance = battle_character.get_parent().global_position.distance_to(
+                heal_target.get_parent().global_position)
     else:
-        # Damage spell or self-heal targeting player or self
+        # Damage item or self-heal targeting player or self
         target_distance = context.distance_to_target
     
     # Check if target is in range
-    if target_distance > best_spell_to_cast.effective_range:
+    if target_distance > best_item_to_use.effective_range:
         return false
     
-    # Final check: can we afford this spell?
-    return (battle_character.current_mp >= best_spell_to_cast.mp_cost 
-            and battle_character.actions_left >= best_spell_to_cast.actions_cost)
+    return true
 
 func _can_execute_defend(_context: AIDecisionContext) -> bool:
     # Defend costs 1 action
     return battle_character.actions_left >= 1
-
-func _can_execute_heal(_context: AIDecisionContext) -> bool:
-    return true  # Could add checks for healing items/abilities
-
-func _can_execute_heal_ally(context: AIDecisionContext) -> bool:
-    # Must have a heal spell and valid ally target
-    if not best_heal_spell:
-        return false
-    
-    if not context.most_injured_ally or not context.ally_needs_healing:
-        return false
-    
-    # Check if we have enough resources
-    if not battle_character.can_use_spells:
-        return false
-    
-    if battle_character.current_mp < best_heal_spell.mp_cost:
-        return false
-    
-    if battle_character.actions_left < best_heal_spell.actions_cost:
-        return false
-    # Check if ally is in range
-    var ally_distance: float = battle_character.get_parent().global_position.distance_to(
-        context.most_injured_ally.get_parent().global_position)
-    
-    return ally_distance <= best_heal_spell.effective_range
 
 func _can_execute_move_towards_player(context: AIDecisionContext) -> bool:
     # Check if we have at least 1 action (movement costs 1 action)
@@ -475,72 +352,91 @@ func _can_execute_draw_spell(context: AIDecisionContext) -> bool:
         return false
     return context.mana_ratio < 0.8  # Don't draw spells if mana is high
 
-func _can_execute_use_item(_context: AIDecisionContext) -> bool:
-    # Check if we have at least 1 action (item usage typically costs 1 action)
-    if battle_character.actions_left < 1:
-        return false
-    return true  # Could add inventory checks
-
 
 func _execute_attack() -> void:
     SpellHelper.process_basic_attack(battle_character, target_character)
     battle_character.spend_actions(1)
 
-func _execute_cast_spell() -> void:
-    if not best_spell_to_cast:
-        print("ERROR: No spell to cast was precalculated!")
+func _execute_use_item() -> Item.UseStatus:
+    
+    var status := Item.UseStatus.CANNOT_USE
+
+    if not best_item_to_use:
+        print("ERROR: No item to use was precalculated!")
         # Spend 1 action as failsafe to prevent infinite loops
         battle_character.spend_actions(1)
-        return
+        return status
     
-    print("Enemy casting spell: " + best_spell_to_cast.item_name)
+    print("Enemy using item: " + best_item_to_use.item_name)
     
     # Store the action cost before activation
-    var spell_actions_cost := best_spell_to_cast.actions_cost
+    var item_actions_cost: int = best_item_to_use.actions_cost
     
-    # Determine target based on spell type
-    if best_spell_to_cast.spell_element == BattleEnums.EAffinityElement.HEAL:
-        if ally_target_character:
-            print("Enemy casting heal spell on ally: " + ally_target_character.character_name)
-            best_spell_to_cast.activate(battle_character, ally_target_character, false)
+    # Determine target based on item type
+    if best_item_to_use.only_on_dead_characters:
+        # Revive item - target closest dead ally
+        var dead_allies := get_tree().get_nodes_in_group("BattleCharacter")
+        var closest_dead_ally: BattleCharacter = null
+        var closest_distance := INF
+        var my_position: Vector3 = battle_character.get_parent().global_position
+        
+        for node in dead_allies:
+            var battle_char := node as BattleCharacter
+            if (battle_char and battle_char != battle_character 
+                and battle_char.character_type == BattleEnums.ECharacterType.ENEMY 
+                and battle_char.current_hp <= 0):
+                var distance: float = my_position.distance_to(battle_char.get_parent().global_position)
+                if distance < closest_distance:
+                    closest_distance = distance
+                    closest_dead_ally = battle_char
+        
+        if closest_dead_ally:
+            print("Enemy using revive item on dead ally: " + closest_dead_ally.character_name)
+            status = best_item_to_use.activate(battle_character, closest_dead_ally, false)
         else:
-            print("Enemy casting heal spell on self")
-            best_spell_to_cast.activate(battle_character, battle_character, false)
+            print("ERROR: No dead ally found for revive item!")
+            battle_character.spend_actions(item_actions_cost)
+            return Item.UseStatus.CANNOT_USE
+            
+    elif best_item_to_use.spell_element == BattleEnums.EAffinityElement.HEAL:
+        # Use SpellHelper's intelligent healing target determination
+        var context := get_context()
+        var healing_decision := SpellHelper.determine_healing_target(battle_character, context, best_item_to_use)
+        var heal_target: BattleCharacter = healing_decision["target"]
+        var heal_reason: String = healing_decision["reason"]
+        
+        if heal_target:
+            print("[%s AI] %s - %s" % [battle_character.character_name, heal_reason, heal_target.character_name])
+            status = best_item_to_use.activate(battle_character, heal_target)
+        else:
+            print("ERROR: No valid heal target determined!")
+            battle_character.spend_actions(item_actions_cost)
+            return Item.UseStatus.CANNOT_USE
     else:
-        print("Enemy casting damage spell on player target")
+        print("Enemy using damage item on player target")
         if target_character:
-            best_spell_to_cast.activate(battle_character, target_character, false)
+            status = best_item_to_use.activate(battle_character, target_character)
         else:
-            print("ERROR: No target character available for damage spell!")
-            # Spend actions even if spell fails to prevent infinite loops
-            battle_character.spend_actions(spell_actions_cost)
-            return
+            print("ERROR: No target character available for damage item!")
+            # Spend actions even if item fails to prevent infinite loops
+            battle_character.spend_actions(item_actions_cost)
+            return Item.UseStatus.CANNOT_USE
     
-    # Ensure actions are spent (defensive programming)
-    # The spell's activate() method should handle this, but we add this as backup
-    # Note: We don't double-spend if the spell already spent actions correctly
-    if battle_character.actions_left >= spell_actions_cost:
-        printerr("[ERROR] Spell %s didn't spend the correct amount of actions! Expected: %d, Actual: %d" % [
-            best_spell_to_cast.item_name, 
-            spell_actions_cost, 
-            battle_character.actions_left
-        ])
-        # Force spending the correct amount of actions to prevent infinite loop
-        battle_character.spend_actions(spell_actions_cost)
+    # # Ensure actions are spent (defensive programming)
+    # # The item's activate() method should handle this, but we add this as backup
+    # # Note: We don't double-spend if the item already spent actions correctly
+    # if battle_character.actions_left >= item_actions_cost:
+    #     printerr("[ERROR] Item %s didn't spend the correct amount of actions! Expected: %d, Actual: %d" % [
+    #         best_item_to_use.item_name, 
+    #         item_actions_cost, 
+    #         battle_character.actions_left
+    #     ])
+    #     # Force spending the correct amount of actions to prevent infinite loop
+    #     battle_character.spend_actions(item_actions_cost)
 
-func _execute_heal_ally() -> void:
-    if not best_heal_spell or not ally_target_character:
-        print("ERROR: No heal spell or ally target available!")
-        # Spend 1 action as failsafe to prevent infinite loops
-        battle_character.spend_actions(1)
-        return
-    
-    print("Enemy casting heal spell on ally: " + ally_target_character.character_name)
-    ## TODO: enemy inventory should be updated, deal with this later
-    best_heal_spell.activate(battle_character, ally_target_character, false)
-    
-    # Always spend the spell's action cost
-    battle_character.spend_actions(best_heal_spell.actions_cost)
+    print("[%s AI] Item use status: %s" % [battle_character.character_name, str(status)])
+
+    return status
 
 func _execute_defend() -> void:
     print("Executing defend!")
@@ -557,40 +453,8 @@ func _execute_draw_spell() -> void:
     # TODO: implement spell drawing logic from draw_list
     battle_character.spend_actions(1)  # Example: just spend 1 action for now
 
-func _execute_use_item() -> void:
-    print("Executing use item!")
-    # TODO: implement item usage logic from inventory
-    battle_character.spend_actions(1)  # Example: just spend 1 action for now
-
 func exit() -> void:
-    print("[%s AI] Enemy Think State Exited" % battle_character.name)
-
-
-func _calculate_spell_efficiency(spell: Item, max_power: int, aggression: float) -> float:
-    if max_power <= 0:
-        return 0.0
-    
-    # Base efficiency is damage/healing per action point
-    var action_efficiency: float = float(max_power) / max(1, spell.actions_cost)
-    
-    # MP efficiency - how much damage/healing per MP spent
-    var mp_efficiency: float = float(max_power) / max(1, spell.mp_cost)
-    
-    # At low aggression, heavily weight resource conservation
-    # At high aggression, prioritize raw power more
-    var efficiency_weight_actions: float = lerp(0.7, 0.3, aggression)  # Low aggression = prioritize action conservation
-    var efficiency_weight_mp: float = lerp(0.5, 0.2, aggression)      # Low aggression = prioritize MP conservation
-    var efficiency_weight_power: float = lerp(0.3, 0.7, aggression)   # High aggression = prioritize raw power
-    
-    # Combined efficiency score
-    var total_efficiency: float = (action_efficiency * efficiency_weight_actions) + \
-                        (mp_efficiency * efficiency_weight_mp) + \
-                        (max_power * efficiency_weight_power)
-    
-    print("[SPELL EFFICIENCY] %s: Power=%d, Actions=%d, MP=%d, Aggression=%.1f, Efficiency=%.2f" % [
-        spell.item_name, max_power, spell.actions_cost, spell.mp_cost, aggression, total_efficiency])
-    
-    return total_efficiency
+    print("[%s AI] Enemy Think State Exited" % battle_character.character_name)
     
 func _connect_aggression_signals() -> void:
     # Connect to battle signals to track events that affect aggression
@@ -641,12 +505,12 @@ func _aggression_check() -> void:
         var distance: float = battle_character.get_parent().global_position.distance_to(target_character.get_parent().global_position)
         var attack_range := battle_character.stats.get_stat(CharacterStatEntry.ECharacterStat.AttackRange)
         if distance <= attack_range:
-            _modify_aggression(0.15, "Player is critically injured and in range!")
+            _modify_aggression(0.1, "Player is critically injured and in range!")
     
     # Check if player health didn't decrease much despite our attacks
     var hp_change: float = last_player_hp_ratio - current_player_hp_ratio
     if last_damage_dealt > 0 and hp_change < 0.05:  # Less than 5% HP change despite dealing damage
-        _modify_aggression(0.1, "Player is resilient to our attacks!")
+        _modify_aggression(0.05, "Player is resilient to our attacks!")
     
     # Update tracking variables
     last_player_hp_ratio = current_player_hp_ratio
@@ -664,34 +528,3 @@ func _modify_aggression(change: float, reason: String = "") -> void:
             change, 
             reason
         ])
-
-func _debug_action_selection_failure(context: AIDecisionContext) -> void:
-    print("=== DEBUG: Action Selection Failure ===")
-    print("Available actions count: %d" % available_actions.size())
-    print("Actions left: %d" % battle_character.actions_left)
-    print("Current MP: %d" % battle_character.current_mp)
-    print("Can use spells: %s" % battle_character.can_use_spells)
-    
-    print("\nAction evaluation breakdown:")
-    for action in available_actions:
-        var can_exec := action.can_execute(context)
-        var weight := 0.0
-        if can_exec:
-            weight = action.calculate_weight(context)
-        
-        print("  %s: can_execute=%s, weight=%.2f" % [action.name, can_exec, weight])
-        
-        # Additional debug info for specific actions
-        match action.name:
-            "cast_spell":
-                print("    - best_spell_to_cast: %s" % ("null" if not best_spell_to_cast else best_spell_to_cast.item_name))
-                if best_spell_to_cast:
-                    print("    - spell MP cost: %d (have: %d)" % [best_spell_to_cast.mp_cost, battle_character.current_mp])
-                    print("    - spell action cost: %d (have: %d)" % [best_spell_to_cast.actions_cost, battle_character.actions_left])
-            "attack":
-                print("    - in_attack_range: %s" % context.in_attack_range)
-                print("    - distance_to_target: %.1f" % context.distance_to_target)
-            "move_towards_player":
-                print("    - in_attack_range: %s, in_spell_range: %s" % [context.in_attack_range, context.in_spell_range])
-    
-    print("=======================================")

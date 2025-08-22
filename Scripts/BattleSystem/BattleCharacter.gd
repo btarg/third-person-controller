@@ -96,6 +96,10 @@ func _ready() -> void:
     if inventory:
         inventory.inventory_updated.connect(_on_inventory_updated)
 
+    # DEBUG: halve enemy HP for testing
+    if character_type == BattleEnums.ECharacterType.ENEMY:
+        current_hp /= 4
+
 
 func spend_actions(actions: int) -> void:
     actions_left -= actions
@@ -209,7 +213,7 @@ func update_mp(amount: int, spell_status: Item.UseStatus = Item.UseStatus.SPELL_
     add_child(restore_number)
 
 func heal(amount: int, from_absorb: bool = false, spell_status: Item.UseStatus = Item.UseStatus.SPELL_FAIL) -> void:
-    var heal_string := "[HEAL] %s healed %s HP" % [character_name, str(amount)]
+    var heal_string := "[HEAL] %s healed %d -> %d (%d HP)" % [character_name, current_hp, current_hp + amount, amount]
     if from_absorb:
         heal_string += " from ABSORB"
     print(heal_string)
@@ -438,7 +442,7 @@ func _on_death(attacker: BattleCharacter) -> void:
 func _calculate_crit_damage(attacker: BattleCharacter, damage: int) -> int:
     var crit_multiplier := attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.AttackCritMultiplier)
     var calculated_damage := ceili(damage * crit_multiplier)
-    print("[CRIT] %s: %s -> %s (mult: %s)" % [attacker.character_name, str(damage), str(calculated_damage), str(crit_multiplier)])
+    print("[CRIT] %s: %d -> %d (mult: %d)" % [attacker.character_name, damage, calculated_damage, crit_multiplier])
     return calculated_damage
     
 func _calculate_resist_damage(initial_damage: int, element: BattleEnums.EAffinityElement) -> int:

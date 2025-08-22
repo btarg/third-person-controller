@@ -191,7 +191,7 @@ func _state_physics_process(_delta: float) -> void:
     var character := children.front() as BattleCharacter
     if not character:
         return
-    
+        
     if character != _last_raycast_selected_character:
         battle_state.select_character(character, false)
         _last_raycast_selected_character = character

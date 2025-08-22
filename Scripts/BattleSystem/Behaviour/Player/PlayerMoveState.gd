@@ -5,7 +5,7 @@ class_name PlayerMoveState
 @onready var battle_state := GameModeStateMachine.get_node("BattleState") as BattleState
 @onready var think_state := get_node("../ThinkState") as PlayerThinkState
 
-var distance_travelled: int = 0.0
+var distance_travelled: int = 0
 var turn_cost_to_move: int = 0
 
 func _ready() -> void:

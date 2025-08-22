@@ -23,8 +23,8 @@ func _stop_thinking() -> void:
 
 # Dead characters cannot normally be selected by regular spells,
 # but those with only_on_dead_characters set to true can target them.
-func _on_heal(_healed_character: BattleCharacter) -> void:
-    if _healed_character == battle_character:
+func _on_heal(healed_character: BattleCharacter, _amount: int) -> void:
+    if healed_character == battle_character:
         print("[REVIVE] " + battle_character.character_name + " has been revived and can re-enter the battle!")
         Transitioned.emit(self, "IdleState")
 

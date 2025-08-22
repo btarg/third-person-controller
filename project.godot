@@ -33,6 +33,10 @@ window/stretch/mode="canvas_items"
 
 enabled=PackedStringArray("res://addons/console/plugin.cfg")
 
+[global]
+
+print_ai_debug_messages=true
+
 [global_group]
 
 Player=""

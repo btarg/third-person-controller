@@ -88,3 +88,21 @@ static func project_to_ground(node: Node3D, ground_layer_mask: int = 1, y_offset
     
     # Return original position if no ground found or insufficient height difference
     return elevated_pos
+
+## Finds the closest player BattleCharacter to the given Node. Returns null if no players found.
+static func find_closest_player(target_node: Node3D) -> BattleCharacter:
+    var players := target_node.get_tree().get_nodes_in_group("Player")
+    if players.is_empty():
+        return null
+
+    var enemy_pos: Vector3 = target_node.global_position
+    var closest_player: Node = null
+    var closest_distance := INF
+
+    for player in players:
+        var distance := enemy_pos.distance_to((player as Node3D).global_position)
+        if distance < closest_distance:
+            closest_distance = distance
+            closest_player = player
+
+    return closest_player.get_node("BattleCharacter") as BattleCharacter	

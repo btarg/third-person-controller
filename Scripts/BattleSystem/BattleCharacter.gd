@@ -96,9 +96,9 @@ func _ready() -> void:
     if inventory:
         inventory.inventory_updated.connect(_on_inventory_updated)
 
-    # DEBUG: halve enemy HP for testing
-    if character_type == BattleEnums.ECharacterType.ENEMY:
-        current_hp /= 4
+    # # DEBUG: halve enemy HP for testing
+    # if character_type == BattleEnums.ECharacterType.ENEMY:
+    #     current_hp /= 4
 
 
 func spend_actions(actions: int) -> void:
@@ -362,7 +362,7 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
 
         elif (affinity_type == BattleEnums.EAffinityType.IMMUNE
         and damage_type != BattleEnums.EAffinityElement.ALMIGHTY):
-            print(character_name + " is immune to " + enum_string)
+            print(character_name + " takes no damage from " + enum_string)
             damage = 0
             result = BattleEnums.ESkillResult.SR_IMMUNE
 

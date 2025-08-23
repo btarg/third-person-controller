@@ -14,7 +14,6 @@ func _on_leave_battle() -> void:
 func enter() -> void:
     print(battle_character.character_name + " is dead and cannot take a turn!")
 
-    _stop_thinking()
     battle_character.actions_left = 0
     battle_character.battle_state.ready_next_turn()
 
@@ -24,7 +23,7 @@ func _stop_thinking() -> void:
 # Dead characters cannot normally be selected by regular spells,
 # but those with only_on_dead_characters set to true can target them.
 func _on_heal(healed_character: BattleCharacter, _amount: int) -> void:
-    if healed_character == battle_character:
+    if healed_character == battle_character and active:
         print("[REVIVE] " + battle_character.character_name + " has been revived and can re-enter the battle!")
         Transitioned.emit(self, "IdleState")
 

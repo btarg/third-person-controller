@@ -69,10 +69,10 @@ func on_state_transitioned(state : State, new_state_name : String) -> void:
 	var new_state : State = states[new_state_name.to_lower()]
 	if !new_state: 
 		printerr("Transition state name does not match a state's name")
+		return
 	
 	if current_state:
 		current_state.exit()
-		new_state.active = false
 		current_state.active = false
 		
 	new_state.active = true

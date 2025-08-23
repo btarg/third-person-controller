@@ -1,6 +1,8 @@
 extends Node
 class_name BattleCharacter
 
+const FAMILIAR_DEBUG: bool = false
+
 @export var character_type : BattleEnums.ECharacterType = BattleEnums.ECharacterType.PLAYER
 @export var default_character_name: String = "Test Enemy"
 @onready var character_name := default_character_name
@@ -86,19 +88,14 @@ func _ready() -> void:
         # TODO: get from inventory instead of hardcoded
         pass
 
-    print("%s internal name %s" % [character_name, character_internal_name])
-
     BattleSignalBus.OnTurnStarted.connect(_on_battle_turn_started)
 
-    print(character_name + " CURRENT HP: " + str(current_hp))
-
-    # if the player has a spell, they should know what it is when drawing it
     if inventory:
         inventory.inventory_updated.connect(_on_inventory_updated)
+    else:
+        push_error("Character %s (%s) has no inventory!" % character_name, character_internal_name)
 
-    # # DEBUG: halve enemy HP for testing
-    # if character_type == BattleEnums.ECharacterType.ENEMY:
-    #     current_hp /= 4
+    print("[READY] Character %s (%s)" % [character_name, character_internal_name])
 
 
 func spend_actions(actions: int) -> void:
@@ -113,6 +110,7 @@ func spend_actions(actions: int) -> void:
     OnSpendActions.emit(self)
 
 func _on_inventory_updated(resource: Item, _count: int, is_new_item: bool) -> void:
+    # if the player has a spell, they should know what it is when drawing it
     if (is_new_item
     and resource.item_type in [Item.ItemType.BATTLE_ITEM, Item.ItemType.FIELD_ITEM]
     and not is_spell_familiar(resource)):
@@ -140,8 +138,11 @@ func is_alive() -> bool:
     return current_hp > 0 
 
 func add_familiar_spell(spell: Item) -> void:
-    print("[Familiar] " + character_name + " has learned " + spell.item_name)
     _familiar_spells.append(spell)
+    
+    if FAMILIAR_DEBUG:
+        print("[Familiar] " + character_name + " has learned " + spell.item_name)
+    
 
 func on_join_battle() -> void:
     # We can reset the silence effect here since all combat buffs/debuffs are reset anyway

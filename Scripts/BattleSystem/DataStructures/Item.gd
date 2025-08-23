@@ -33,7 +33,7 @@ enum UseStatus {
 ## item_type should be BATTLE_SPELL or FIELD_SPELL for spell items
 @export var item_type: ItemType = ItemType.WEAPON
 
-var item_id := "default_item_id"
+var item_id: int = -1
 
 @export var item_name: String = "???"
 @export var item_description: String = "Test Description"

@@ -62,7 +62,9 @@ func _ready() -> void:
 func update_home_position() -> void:
     home_position = global_position
     movement_left = base_movement * battle_character.actions_left
-    print("[MOVE] %s has %s movement left" % [battle_character.character_name, str(movement_left)])
+    
+    if movement_left > 0:
+        print("[MOVE] %s has %d movement left" % [battle_character.character_name, movement_left])
 
 func reset_movement(character: BattleCharacter) -> void:
     if character != battle_character:

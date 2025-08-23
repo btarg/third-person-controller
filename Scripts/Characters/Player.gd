@@ -8,7 +8,7 @@ class_name PlayerController
         return exploration_control_enabled
     set(value):
         exploration_control_enabled = value
-        print("[MOVE] Exploration control state changed! " + str(exploration_control_enabled))
+        print("[Player] Exploration state: " + str(exploration_control_enabled))
         if animator != null and not exploration_control_enabled:
             reset_to_idle()
         if spring_arm_pivot != null:

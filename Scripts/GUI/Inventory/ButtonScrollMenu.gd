@@ -64,7 +64,7 @@ var item_inventory: Inventory:
         item_inventory = new_inventory
 
 # Map item id to button
-var item_button_map: Dictionary[String, InventoryItemButtonPaint] = {}
+var item_button_map: Dictionary[int, InventoryItemButtonPaint] = {}
 
 signal item_button_pressed(item: Item)
 signal item_button_hovered(item: Item)

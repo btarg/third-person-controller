@@ -173,7 +173,7 @@ func update_labels() -> void:
                 continue
             description_label.text = item.get_item_description()
 
-            if item.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL]:
+            if item.item_type in [Item.ItemType.BATTLE_ITEM, Item.ItemType.FIELD_ITEM]:
                 var spell_use_roll: DiceRoll = item.get_spell_use_roll(battle_state.current_character, battle_state.player_selected_character)
                 if spell_use_roll.difficulty_class > 1:
                     dc_label.text = "Roll: %s" % spell_use_roll.to_string()

@@ -48,7 +48,7 @@ func set_text() -> void:
                 
                 # Always assume valid target for field spells
                 var can_confirm_target := targeting_state.is_valid_target(battle_state.player_selected_character)\
-                if battle_state.player_selected_character else targeting_state.selected_spell_item.item_type == Item.ItemType.FIELD_SPELL
+                if battle_state.player_selected_character else targeting_state.selected_spell_item.item_type == Item.ItemType.FIELD_ITEM
                 
 
                 if can_confirm_target:

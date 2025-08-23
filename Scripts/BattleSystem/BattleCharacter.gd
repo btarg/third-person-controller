@@ -114,7 +114,7 @@ func spend_actions(actions: int) -> void:
 
 func _on_inventory_updated(resource: Item, _count: int, is_new_item: bool) -> void:
     if (is_new_item
-    and resource.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL]
+    and resource.item_type in [Item.ItemType.BATTLE_ITEM, Item.ItemType.FIELD_ITEM]
     and not is_spell_familiar(resource)):
         add_familiar_spell(resource)
 
@@ -187,7 +187,7 @@ func roll_initiative() -> int:
     initiative = DiceRoll.roll(20, 1, 1, initiative_bonus).total()
     return initiative
 
-func update_mp(amount: int, spell_status: Item.UseStatus = Item.UseStatus.SPELL_FAIL) -> void:
+func update_mp(amount: int, spell_status: Item.UseStatus = Item.UseStatus.FAIL) -> void:
     print("[RESTORE MP] %s restored %s MP" % [character_name, str(amount)])
 
     current_mp += amount
@@ -199,11 +199,11 @@ func update_mp(amount: int, spell_status: Item.UseStatus = Item.UseStatus.SPELL_
 
     var skill_result := BattleEnums.ESkillResult.SR_FAIL
     match spell_status:
-        Item.UseStatus.SPELL_SUCCESS:
+        Item.UseStatus.SUCCESS:
             skill_result = BattleEnums.ESkillResult.SR_SUCCESS
-        Item.UseStatus.SPELL_CRIT_SUCCESS:
+        Item.UseStatus.CRIT_SUCCESS:
             skill_result = BattleEnums.ESkillResult.SR_CRITICAL
-        Item.UseStatus.SPELL_CRIT_FAIL:
+        Item.UseStatus.CRIT_FAIL:
             skill_result = BattleEnums.ESkillResult.SR_FAIL
 
     var restore_number := DamageNumber.create_damage_number(
@@ -212,7 +212,7 @@ func update_mp(amount: int, spell_status: Item.UseStatus = Item.UseStatus.SPELL_
         battle_state.top_down_player.camera)
     add_child(restore_number)
 
-func heal(amount: int, from_absorb: bool = false, spell_status: Item.UseStatus = Item.UseStatus.SPELL_FAIL) -> void:
+func heal(amount: int, from_absorb: bool = false, spell_status: Item.UseStatus = Item.UseStatus.FAIL) -> void:
     var heal_string := "[HEAL] %s healed %d -> %d (%d HP)" % [character_name, current_hp, current_hp + amount, amount]
     if from_absorb:
         heal_string += " from ABSORB"
@@ -225,11 +225,11 @@ func heal(amount: int, from_absorb: bool = false, spell_status: Item.UseStatus =
 
     var skill_result := BattleEnums.ESkillResult.SR_FAIL
     match spell_status:
-        Item.UseStatus.SPELL_SUCCESS:
+        Item.UseStatus.SUCCESS:
             skill_result = BattleEnums.ESkillResult.SR_SUCCESS
-        Item.UseStatus.SPELL_CRIT_SUCCESS:
+        Item.UseStatus.CRIT_SUCCESS:
             skill_result = BattleEnums.ESkillResult.SR_CRITICAL
-        Item.UseStatus.SPELL_CRIT_FAIL:
+        Item.UseStatus.CRIT_FAIL:
             skill_result = BattleEnums.ESkillResult.SR_FAIL
 
     var heal_number := DamageNumber.create_damage_number(

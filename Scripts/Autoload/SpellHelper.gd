@@ -38,7 +38,7 @@ func process_basic_attack(attacker: BattleCharacter, target: BattleCharacter) ->
     var AC := ceili(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass))
     var luck := ceili(attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.Luck))
 
-
+    # TODO: the basic attack roll should be exposed to the editor
     var attack_roll := DiceRoll.roll(20, 1, AC, luck) # use luck as bonus
     var phys_str := ceili(attacker.stats.get_stat(CharacterStatEntry.ECharacterStat.PhysicalStrength))
     var damage_roll := DiceRoll.roll(20, 1, phys_str)
@@ -49,7 +49,7 @@ func process_basic_attack(attacker: BattleCharacter, target: BattleCharacter) ->
 
 ## This function should be used for spawning radius AOE spells without requiring a BattleCharacter (spawn at position)
 func create_area_of_effect(spell: Item, caster: BattleCharacter, spawn_position: Vector3, aim_direction: Vector3 = Vector3.FORWARD) -> bool:
-    if spell.area_of_effect_radius == 0 or spell.item_type != Item.ItemType.FIELD_SPELL:
+    if spell.area_of_effect_radius == 0 or spell.item_type != Item.ItemType.FIELD_ITEM:
         print("[AOE] Invalid spell for AOE: radius=%.1f, type=%s" % [spell.area_of_effect_radius, Item.ItemType.keys()[spell.item_type]])
         return false
 
@@ -119,8 +119,8 @@ func sort_items_by_usefulness(a: Item, b: Item) -> bool:
     var b_useful := (b.can_use_on_allies and battle_state.available_actions in ally_actions) or (b.can_use_on_enemies and battle_state.available_actions == BattleEnums.EAvailableCombatActions.ENEMY)
     
     if battle_state.available_actions == BattleEnums.EAvailableCombatActions.GROUND:
-        var a_cast_anywhere := a.item_type == Item.ItemType.FIELD_SPELL
-        var b_cast_anywhere := b.item_type == Item.ItemType.FIELD_SPELL
+        var a_cast_anywhere := a.item_type == Item.ItemType.FIELD_ITEM
+        var b_cast_anywhere := b.item_type == Item.ItemType.FIELD_ITEM
         if a_cast_anywhere != b_cast_anywhere: return a_cast_anywhere
     
     if a_useful != b_useful: return a_useful
@@ -128,7 +128,7 @@ func sort_items_by_usefulness(a: Item, b: Item) -> bool:
     # Prioritize spells based on target's known weaknesses when targeting enemies
     if (battle_state.available_actions == BattleEnums.EAvailableCombatActions.ENEMY 
         and battle_state.player_selected_character 
-        and a.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL] and b.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL]):
+        and a.item_type in [Item.ItemType.BATTLE_ITEM, Item.ItemType.FIELD_ITEM] and b.item_type in [Item.ItemType.BATTLE_ITEM, Item.ItemType.FIELD_ITEM]):
         
         var a_spell := a
         var b_spell := b
@@ -150,7 +150,7 @@ func sort_items_by_usefulness(a: Item, b: Item) -> bool:
         if a_affinity_priority != b_affinity_priority: 
             return a_affinity_priority < b_affinity_priority
     
-    if a.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL] and b.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL]:
+    if a.item_type in [Item.ItemType.BATTLE_ITEM, Item.ItemType.FIELD_ITEM] and b.item_type in [Item.ItemType.BATTLE_ITEM, Item.ItemType.FIELD_ITEM]:
         var a_spell := a
         var b_spell := b
         if battle_state.available_actions in ally_actions:
@@ -410,7 +410,7 @@ func calculate_item_effectiveness_score(item: Item, character: BattleCharacter, 
         target_character = battle_state.player_selected_character
     
     if target_character and target_character.character_type == BattleEnums.ECharacterType.ENEMY:
-        if item.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL]:
+        if item.item_type in [Item.ItemType.BATTLE_ITEM, Item.ItemType.FIELD_ITEM]:
             var target_internal_name := target_character.character_internal_name
             if AffinityLog.is_affinity_logged(target_internal_name, item.spell_element):
                 var affinity := AffinityLog.get_affinity(target_internal_name, item.spell_element)

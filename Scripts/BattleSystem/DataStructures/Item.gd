@@ -2,15 +2,13 @@ class_name Item
 extends Resource
 
 enum ItemType {
-    BATTLE_SPELL, ## Used on another character directly
-    FIELD_SPELL, ## Used on a position in the world, area shape determined by area_type
+    BATTLE_ITEM, ## Used on another character directly, in battle
+    FIELD_ITEM, ## Used on a position in the world, area shape determined by area_type
     
-    # Other item types
-    SKILL, ## A skill that can be used in battle
+    # Other items which are not used on a character or area in battle
     WEAPON,
     ARMOR,
-    CONSUMABLE_HP,
-    CONSUMABLE_MP,
+    CONSUMABLE_MODIFIER, ## e.g. buff or debuff items, for use out of battle
     QUEST,
     MISC
 }
@@ -20,15 +18,14 @@ enum TargetType {
     AOE_FROM_TARGET,  ## Aim the AOE from any target's position
     AOE_FREE_SELECT,   ## Aim the AOE from the mouse cursor position (e.g. place a circle somewhere)
 }
+
 enum UseStatus {
-    SPELL_FAIL,
-    SPELL_SUCCESS,
-    SPELL_CRIT_FAIL,
-    SPELL_CRIT_SUCCESS,
-    CONSUMED_HP,
-    CONSUMED_MP,
+    FAIL,
+    SUCCESS,
+    CRIT_FAIL,
+    CRIT_SUCCESS,
     CANNOT_USE,
-    EQUIPPED
+    ALREADY_EQUIPPED
 }
 
 @export_group("Inventory")
@@ -130,7 +127,7 @@ func get_spell_use_roll(caster: BattleCharacter, target: BattleCharacter) -> Dic
 ## This is to be overloaded by child classes
 func get_item_description() -> String:
     # For spells, use spell-specific description
-    if item_type in [ItemType.BATTLE_SPELL, ItemType.FIELD_SPELL]:
+    if item_type in [ItemType.BATTLE_ITEM, ItemType.FIELD_ITEM]:
         var description_parts: Array[String] = []
 
         # Damage/healing effects
@@ -153,7 +150,7 @@ func get_item_description() -> String:
 
         # Target specification
         if can_use_on_enemies and can_use_on_allies:
-            if item_type == ItemType.FIELD_SPELL and area_of_effect_radius > 0:
+            if item_type == ItemType.FIELD_ITEM and area_of_effect_radius > 0:
                 description_string += "to all targets"
             else:
                 description_string += "to any target"
@@ -163,7 +160,7 @@ func get_item_description() -> String:
             description_string += "to an ally"
 
         # Range specification
-        if area_of_effect_radius > 0 and item_type == ItemType.FIELD_SPELL:
+        if area_of_effect_radius > 0 and item_type == ItemType.FIELD_ITEM:
             description_string += " within %s units" % [str(int(area_of_effect_radius))]
         else:
             description_string += " at any range"
@@ -183,7 +180,7 @@ func get_item_description() -> String:
 
 func get_icon_path() -> String:
     # For spells, use element-based icons
-    if item_type in [ItemType.BATTLE_SPELL, ItemType.FIELD_SPELL]:
+    if item_type in [ItemType.BATTLE_ITEM, ItemType.FIELD_ITEM]:
         var element_icon_path := "res://Assets/GUI/Icons/Items/elements/"
         element_icon_path += Util.get_enum_name(BattleEnums.EAffinityElement, spell_element).to_lower()
         return element_icon_path + "_element.png"
@@ -197,21 +194,12 @@ func get_rich_name(icon_size: int = 64) -> String:
     var icon_path = get_icon_path()
     return "[hint=%s][img=%s]%s[/img]%s[/hint]" % [get_item_description(), icon_size, icon_path, item_name]
 
-func get_use_sound(_status: UseStatus = UseStatus.SPELL_SUCCESS) -> AudioStream:
-    # For spells, check if it's a healing spell
-    if item_type in [ItemType.BATTLE_SPELL, ItemType.FIELD_SPELL]:
-        if spell_element == BattleEnums.EAffinityElement.HEAL:
+func get_use_sound(_status: UseStatus = UseStatus.SUCCESS) -> AudioStream:
+    if (item_type in [ItemType.BATTLE_ITEM, ItemType.FIELD_ITEM]
+    and spell_element == BattleEnums.EAffinityElement.HEAL):
             return heal_sound
-        return null
+    return null
     
-    # For non-spells, use the original logic
-    match item_type:
-        ItemType.CONSUMABLE_HP:
-            return heal_sound
-        ItemType.CONSUMABLE_MP:
-            return mana_sound
-        _:
-            return null
 
 func check_cost(user: BattleCharacter) -> bool:
     if user == null:
@@ -230,7 +218,7 @@ func check_cost(user: BattleCharacter) -> bool:
 func can_use_on(user: BattleCharacter, target: BattleCharacter, ignore_costs: bool = false) -> bool:
     if not user:
         return false
-    if target == null and item_type != ItemType.FIELD_SPELL:
+    if target == null and item_type != ItemType.FIELD_ITEM:
         return false
 
     if not check_cost(user) and not ignore_costs:
@@ -253,7 +241,7 @@ func can_use_on(user: BattleCharacter, target: BattleCharacter, ignore_costs: bo
 
 func _update_inventory(status: UseStatus) -> void:
     if inventory and has_count:
-        inventory.on_item_used(self, status)
+        inventory.item_used_callback(self, status)
 
 ## MAIN ACTIVATION FUNCTION
 ## Executes the spell/item's effect. Called when the item "connects" with a target.
@@ -264,7 +252,7 @@ func activate(user: BattleCharacter, target: BattleCharacter, update_inventory: 
         if user.current_mp < mp_cost:
             print("%s does not have enough MP to activate %s" % [user.character_name, item_name])
             return UseStatus.CANNOT_USE
-        user.update_mp(-mp_cost, UseStatus.CONSUMED_MP)
+        user.update_mp(-mp_cost, UseStatus.FAIL)
 
     if actions_cost > 0 and use_actions:
         if user.actions_left < actions_cost:
@@ -273,10 +261,10 @@ func activate(user: BattleCharacter, target: BattleCharacter, update_inventory: 
         user.spend_actions(actions_cost)
 
     # Handle spells
-    if item_type in [ItemType.BATTLE_SPELL, ItemType.FIELD_SPELL]:
+    if item_type in [ItemType.BATTLE_ITEM, ItemType.FIELD_ITEM]:
         print("[SPELL] %s used %s on %s" % [user.character_name, item_name, target.character_name])
         
-        var spell_use_status := UseStatus.SPELL_FAIL
+        var spell_use_status := UseStatus.FAIL
         var dice_status := DiceRoll.DiceStatus.ROLL_SUCCESS
 
         # Almighty damage never misses, but other attacks roll to hit
@@ -289,13 +277,13 @@ func activate(user: BattleCharacter, target: BattleCharacter, update_inventory: 
 
             match dice_status:
                 DiceRoll.DiceStatus.ROLL_SUCCESS:
-                    spell_use_status = UseStatus.SPELL_SUCCESS
+                    spell_use_status = UseStatus.SUCCESS
                 DiceRoll.DiceStatus.ROLL_CRIT_SUCCESS:
-                    spell_use_status = UseStatus.SPELL_CRIT_SUCCESS
+                    spell_use_status = UseStatus.CRIT_SUCCESS
                 DiceRoll.DiceStatus.ROLL_FAIL:
-                    spell_use_status = UseStatus.SPELL_FAIL
+                    spell_use_status = UseStatus.FAIL
                 DiceRoll.DiceStatus.ROLL_CRIT_FAIL:
-                    spell_use_status = UseStatus.SPELL_CRIT_FAIL
+                    spell_use_status = UseStatus.CRIT_FAIL
 
         
         if target.get_affinity(spell_element) != BattleEnums.EAffinityType.IMMUNE:
@@ -311,7 +299,7 @@ func activate(user: BattleCharacter, target: BattleCharacter, update_inventory: 
                 # some enemies can be immune to debuffs, and allies could potentially be given immunity to buffs by an enemy
                 BattleEnums.EAffinityElement.BUFF,\
                 BattleEnums.EAffinityElement.DEBUFF:
-                    if modifier and spell_use_status in [UseStatus.SPELL_SUCCESS, UseStatus.SPELL_CRIT_SUCCESS]:
+                    if modifier and spell_use_status in [UseStatus.SUCCESS, UseStatus.CRIT_SUCCESS]:
                         target.stats.add_modifier(modifier)
                         print("[SPELL] %s applied %s to %s" % [user.character_name, modifier, target.character_name])
                     else:
@@ -332,18 +320,9 @@ func activate(user: BattleCharacter, target: BattleCharacter, update_inventory: 
         
         status = spell_use_status
     else:
-        # Handle regular items
-        match item_type:
-            ItemType.CONSUMABLE_HP:
-                print("%s Healing %s for %s HP" % [user.character_name, target.character_name, item_name])
-                status = UseStatus.CONSUMED_HP
-            ItemType.CONSUMABLE_MP:
-                print("%s Restoring %s for %s MP" % [user.character_name, target.character_name, item_name])
-                status = UseStatus.CONSUMED_MP
-            _:
-                print("Item cannot be consumed: %s" % item_name)
-                status = UseStatus.CANNOT_USE
-    
+        print("Item cannot be consumed: %s" % item_name)
+        status = UseStatus.CANNOT_USE
+
     if update_inventory:
         _update_inventory(status)
 

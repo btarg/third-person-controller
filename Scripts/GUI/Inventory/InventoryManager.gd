@@ -109,21 +109,10 @@ func _on_inventory_updated(resource: Item, count: int, is_new_item: bool) -> voi
     else:
         print("Item count updated")
 
-func on_item_used(item: Item, status: Item.UseStatus) -> void:
-    match status:
-        Item.UseStatus.CONSUMED_HP:
-            print("SIGNAL: Item used to restore HP")
-        Item.UseStatus.CONSUMED_MP:
-            print("SIGNAL: Item used to restore MP")
-        Item.UseStatus.CANNOT_USE:
-            print("SIGNAL: Item cannot be used")
-        Item.UseStatus.EQUIPPED:
-            print("SIGNAL: Item equipped")
-        _:
-            print("SIGNAL: Item used: " + item.item_name)
-
+func item_used_callback(item: Item, status: Item.UseStatus) -> void:
+    print("[ITEM CALLBACK] %s used: %s" % [item.item_name, Util.get_enum_name(Item.UseStatus, status)])
     item_used.emit(item, status)
-
+    
     if not DEBUG_INFINITE_ITEMS:
         remove_item(item, 1)
 
@@ -172,7 +161,7 @@ func add_item(item: Item, count: int = 1) -> void:
     print("[Inventory] Added %s of item %s (%s) - new count: %s" % [count, item.item_name, item.item_id, new_count])
     inventory_updated.emit(item, new_count, is_new_item)
     
-    if item.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL]:
+    if item.item_type in [Item.ItemType.BATTLE_ITEM, Item.ItemType.FIELD_ITEM]:
         _update_junction_modifiers(item, new_count)
 
 func _update_junction_modifiers(spell_item: Item, total_item_count: int) -> void:

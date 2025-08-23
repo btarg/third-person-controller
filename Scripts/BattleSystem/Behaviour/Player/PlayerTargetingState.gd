@@ -62,8 +62,8 @@ func _on_character_selected(character: BattleCharacter) -> void:
         return
         
     # Only show line for direct targeting spells (not AOE field spells)
-    var is_direct_targeting := not (selected_spell_item.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL] 
-        and selected_spell_item.item_type == Item.ItemType.FIELD_SPELL)
+    var is_direct_targeting := not (selected_spell_item.item_type in [Item.ItemType.BATTLE_ITEM, Item.ItemType.FIELD_ITEM] 
+        and selected_spell_item.item_type == Item.ItemType.FIELD_ITEM)
     
     if is_direct_targeting and selected_spell_item and is_valid_target(character):
         _setup_line_rendering(character)
@@ -157,7 +157,7 @@ func enter() -> void:
 
     # Check spell type and set up targeting accordingly
     if selected_spell_item:
-        if selected_spell_item.item_type == Item.ItemType.FIELD_SPELL:
+        if selected_spell_item.item_type == Item.ItemType.FIELD_ITEM:
             # Ground targeting spell - start in ground mode
             battle_state.available_actions = BattleEnums.EAvailableCombatActions.GROUND
             _setup_aoe_indicator()
@@ -329,7 +329,7 @@ func _state_physics_process(_delta: float) -> void:
     var ray_result := _perform_raycast()
     
     # Check if this is a field spell (ground-targeting) - BATTLE spells should use character targeting
-    if selected_spell_item.item_type == Item.ItemType.FIELD_SPELL:
+    if selected_spell_item.item_type == Item.ItemType.FIELD_ITEM:
         # Update spell area indicator for targeting
         _update_spell_targeting()
         
@@ -412,8 +412,8 @@ func _use_selected_spell_item() -> void:
     player_think_ui.hide()
     
     # Check if it's a ground-targeting spell
-    if (selected_spell_item.item_type in [Item.ItemType.BATTLE_SPELL, Item.ItemType.FIELD_SPELL] 
-    and selected_spell_item.item_type == Item.ItemType.FIELD_SPELL):
+    if (selected_spell_item.item_type in [Item.ItemType.BATTLE_ITEM, Item.ItemType.FIELD_ITEM] 
+    and selected_spell_item.item_type == Item.ItemType.FIELD_ITEM):
         _use_field_spell()
     else:
         _use_character_targeting_spell()

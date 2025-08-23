@@ -1,34 +1,40 @@
 extends Node
 class_name Inventory
 
-var items: Dictionary[Item, int] = {}
+const DEBUG_INFINITE_ITEMS: bool = false
+
+## How many decimal places to round to when calculating stat modifier value for junctioned items
+const JUNCTION_DECIMAL_PLACES: int = 5
+
+## Items and their counts in the inventory
+var items: Dictionary[String, int] = {}
+## Cache of item resources by their ID for quick lookup
+var item_lookup: Dictionary[String, Item] = {}
+
+
 ## Dictionary of item_id as key and a modifier id as value
 var linked_modifiers: Dictionary[String, String] = {}
 
 ## Item id as key, junctioned stat as value
-var junctioned_stat_by_item: Dictionary = {}
-## How many decimal places to round to when calculating stat modifier value for junctioned items
-const JUNCTION_DECIMAL_PLACES: int = 5
-
-const DEBUG_INFINITE_ITEMS: bool = false
+var junctioned_stat_by_item: Dictionary[String, CharacterStatEntry.ECharacterStat] = {}
 
 @onready var battle_character := get_node("../BattleCharacter") as BattleCharacter
 
 signal inventory_updated(resource: Item, count: int, is_new_item: bool)
 signal item_used(item_id: Item, use_status: Item.UseStatus)
 
-var fire_spell: Item = load("res://Scripts/Data/Items/Spells//test_fire_spell.tres")
-var heal_spell: Item = load("res://Scripts/Data/Items/Spells//test_healing_spell.tres")
-var almighty_spell: Item = load("res://Scripts/Data/Items/Spells//test_almighty_spell.tres")
-var ice_spell: Item = load("res://Scripts/Data/Items/Spells//test_ice_spell.tres")
-var elec_spell: Item = load("res://Scripts/Data/Items/Spells//test_elec_spell.tres")
-var wind_spell: Item = load("res://Scripts/Data/Items/Spells//test_wind_spell.tres")
-var silence_spell: Item = load("res://Scripts/Data/Items/Spells//silence_spell.tres")
+var fire_spell: Item = load_item("res://Scripts/Data/Items/Spells//test_fire_spell.tres")
+var heal_spell: Item = load_item("res://Scripts/Data/Items/Spells//test_healing_spell.tres")
+var almighty_spell: Item = load_item("res://Scripts/Data/Items/Spells//test_almighty_spell.tres")
+var ice_spell: Item = load_item("res://Scripts/Data/Items/Spells//test_ice_spell.tres")
+var elec_spell: Item = load_item("res://Scripts/Data/Items/Spells//test_elec_spell.tres")
+var wind_spell: Item = load_item("res://Scripts/Data/Items/Spells//test_wind_spell.tres")
+var silence_spell: Item = load_item("res://Scripts/Data/Items/Spells//silence_spell.tres")
 
-var aoe_spell: Item = load("res://Scripts/Data/Items/Spells//test_aoe_spell.tres")
-var aoe_spell_2: Item = load("res://Scripts/Data/Items/Spells//test_cone_spell.tres")
+var aoe_spell: Item = load_item("res://Scripts/Data/Items/Spells//test_aoe_spell.tres")
+var aoe_spell_2: Item = load_item("res://Scripts/Data/Items/Spells//test_cone_spell.tres")
 
-var revive_item: Item = load("res://Scripts/Data/Items/test_revive_item.tres")
+var revive_item: Item = load_item("res://Scripts/Data/Items/test_revive_item.tres")
 
 func _ready() -> void:
 
@@ -57,20 +63,27 @@ func _ready() -> void:
 
 func filtered_item_ids(predicate: Callable) -> Array[String]:
     var filtered_item_list: Array[String] = []
-    for item in items:
-        if predicate.call(item):
-            filtered_item_list.append(item.item_id)
+    for item_id in items:
+        var item = get_item(item_id)
+        if item and predicate.call(item):
+            filtered_item_list.append(item_id)
     return filtered_item_list
 
 func filtered_items(predicate: Callable) -> Array[Item]:
     var filtered_item_list: Array[Item] = []
-    for item in items:
-        if predicate.call(item):
+    for item_id in items:
+        var item = get_item(item_id)
+        if item and predicate.call(item):
             filtered_item_list.append(item)
     return filtered_item_list
 
 func get_items() -> Array[Item]:
-    return items.keys()
+    var item_list: Array[Item] = []
+    for item_id in items:
+        var item = get_item(item_id)
+        if item:
+            item_list.append(item)
+    return item_list
 
 ## Set the stat that an item is junctioned to.
 ## [br]If the item was already junctioned to a different stat, the previous junction is removed.
@@ -109,12 +122,10 @@ func _on_inventory_updated(resource: Item, count: int, is_new_item: bool) -> voi
     else:
         print("Item count updated")
 
-func item_used_callback(item: Item, status: Item.UseStatus) -> void:
-    print("[ITEM CALLBACK] %s used: %s" % [item.item_name, Util.get_enum_name(Item.UseStatus, status)])
-    item_used.emit(item, status)
-    
+func item_used_callback(item: Item) -> void:
     if not DEBUG_INFINITE_ITEMS:
-        remove_item(item, 1)
+        remove_item(item.item_id, 1)
+
 
 func _generate_stat_modifier(spell_item: Item, stat: CharacterStatEntry.ECharacterStat, value: float) -> StatModifier:
     var modifier: StatModifier = StatModifier.new()
@@ -131,34 +142,52 @@ func _generate_stat_modifier(spell_item: Item, stat: CharacterStatEntry.ECharact
 
     return modifier
 
+## Load an item resource by its resource path and cache it
+func load_item(resource_path: String) -> Item:
+    var item_id = resource_path.get_file().trim_suffix('.tres')
+    
+    # Check cache first
+    if item_id in item_lookup:
+        return item_lookup[item_id]
+    
+    # Load and cache
+    var item := load(resource_path) as Item
+    if item:
+        item.item_id = item_id
+        item_lookup[item_id] = item
+    
+    return item
 
-func add_item(item: Item, count: int = 1) -> void:    
-    if not item:
+func add_item(item_to_add: Item, count: int = 1) -> void:    
+    if not item_to_add:
         printerr("Cannot add null item to inventory")
         return
     
+    var item_id := item_to_add.item_id
+    var item: Item
     var is_new_item: bool = false
-    var original_path := item.resource_path.get_file().trim_suffix('.tres') # Get the original resource path without the .tres extension
     
-    item = item.duplicate() # duplicate to prevent setting properties of the original resource
-    item.item_id = original_path # restore the original resource path after duplication   
-
-    var current_count: int = items.get_or_add(item, 0)
+    var current_count: int = items.get(item_id, 0)
     var new_count := current_count + count
     
     if current_count == 0:
         is_new_item = true
-        # Add the item to the inventory
-        item.inventory = self
+        # Only duplicate if we don't already have this item in lookup
+        if item_id not in item_lookup:
+            item_lookup[item_id] = item_to_add
+        else:
+            item = item_lookup[item_id]
+    else:
+        item = item_lookup[item_id]
     
     # Ensure we do not exceed the max stack count
     if new_count > item.max_stack:
         print("Cannot add more than max stack count")
         new_count = item.max_stack
     
-    items[item] = new_count
+    items[item_id] = new_count
 
-    print("[Inventory] Added %s of item %s (%s) - new count: %s" % [count, item.item_name, item.item_id, new_count])
+    print("[Inventory] Added %s of item %s (%s) - new count: %s" % [count, item.item_name, item_id, new_count])
     inventory_updated.emit(item, new_count, is_new_item)
     
     if item.item_type in [Item.ItemType.BATTLE_ITEM, Item.ItemType.FIELD_ITEM]:
@@ -196,58 +225,47 @@ func _update_junction_modifiers(spell_item: Item, total_item_count: int) -> void
             battle_character.stats.remove_modifier_by_id(modifier_id)
             linked_modifiers.erase(spell_item.item_id)
 
-# Remove an existing item by its resource reference or item ID
-func remove_item(item: Variant, count: int) -> void:
-    var item_resource: Item
-    
-    # Determine if the item is a Item or a String
-    if item is Item:
-        item_resource = item
-    elif item is String:
-        item_resource = get_item(item)
-        if not item_resource:
-            print("Item not found in inventory")
-            return
-    else:
-        push_error("Invalid item type. Must be Item or String.")
+# Remove an existing item by its item ID
+func remove_item(item_id: String, amount_to_remove: int) -> void:
+    var item_resource: Item = get_item(item_id)
+    if not item_resource:
+        print("Invalid item resource for ID: %s" % item_id)
         return
     
-    if item_resource not in items:
+    if item_id not in items:
         print("Item not found in inventory")
+        print("[Inventory DEBUG] Available item IDs: %s" % str(items.keys()))
         return
 
-    var current_count: int = items[item_resource]
-    var new_count := current_count - count
+    var current_count: int = items.get(item_id, 0)
+    print("[Inventory DEBUG] Current count for %s: %d, removing %d" % [item_id, current_count, amount_to_remove])
+    var new_count := current_count - amount_to_remove
     if new_count <= 0:
-        print("Removing item from inventory")
-        # erase item from map
-        items.erase(item_resource)
+        print("Removing whole stack from inventory")
+        # erase item from map, but keep it in the lookup cache
+        items.erase(item_id)
         new_count = 0
     else:
-        items[item_resource] = new_count
+        items[item_id] = new_count
 
     _update_junction_modifiers(item_resource, new_count)
-    print("[Inventory] Removed %s of item %s (%s) - new count: %s" % [count, item_resource.item_name, item_resource.item_id, new_count])
+    print("[%s Inventory] Removed %s of item %s (%s) - new count: %s" % [battle_character.character_name, amount_to_remove, item_resource.item_name, item_id, new_count])
     inventory_updated.emit(item_resource, new_count, false)
 
 
 # Get the count of an item in the inventory by its item_id
 func get_item_count(item_id: String) -> int:
-    for item in items.keys():
-        if item.item_id == item_id:
-            return items[item]
-    return 0
+    return items.get(item_id, 0)
 
 # Get an existing item's resource by its item_id
 func get_item(item_id: String) -> Item:
-    for item in items.keys():
-        if item.item_id == item_id:
-            return item
-    return null
+    return item_lookup.get(item_id, null)
 
 func print_inventory() -> void:
     if not items.is_empty():
-        for item in items.keys():
-            Console.print_line("%s (%s): %s" % [item.item_name, item.item_id, items[item]], true)
+        for item_id in items.keys():
+            var item = get_item(item_id)
+            if item:
+                Console.print_line("%s (%s): %s" % [item.item_name, item_id, items[item_id]], true)
     else:
         Console.print_line("Inventory is empty", true)

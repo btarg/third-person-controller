@@ -47,8 +47,6 @@ var item_id := "default_item_id"
 @export var mp_cost: int = 0
 
 
-var inventory: Inventory = null
-
 ## AOE targeting for spells and items
 @export_group("Item Targeting")
 @export var target_type := TargetType.NONE
@@ -239,15 +237,18 @@ func can_use_on(user: BattleCharacter, target: BattleCharacter, ignore_costs: bo
 
     return can_use_on_allies if same_side else can_use_on_enemies
 
-func _update_inventory(status: UseStatus) -> void:
-    if inventory and has_count:
-        inventory.item_used_callback(self, status)
+func _update_inventory(inv_to_update: Inventory) -> void:
+    if inv_to_update and has_count:
+        inv_to_update.item_used_callback(self)
+    else:
+        printerr("No inventory set or item has infinite uses, not updating inventory for %s" % item_name)
+    
 
 ## MAIN ACTIVATION FUNCTION
 ## Executes the spell/item's effect. Called when the item "connects" with a target.
 func activate(user: BattleCharacter, target: BattleCharacter, update_inventory: bool = true, use_actions: bool = true) -> UseStatus:
     var status: UseStatus
-    
+
     if mp_cost > 0:
         if user.current_mp < mp_cost:
             print("%s does not have enough MP to activate %s" % [user.character_name, item_name])
@@ -290,10 +291,10 @@ func activate(user: BattleCharacter, target: BattleCharacter, update_inventory: 
             match spell_element:
                 BattleEnums.EAffinityElement.HEAL:
                     target.heal(DiceRoll.roll_all(spell_power_rolls), false, spell_use_status)
-                    return spell_use_status
+                    status = spell_use_status
                 BattleEnums.EAffinityElement.MANA:
                     target.update_mp(DiceRoll.roll_all(spell_power_rolls), spell_use_status)
-                    return spell_use_status
+                    status = spell_use_status
                     
                 # we only apply buffs and debuffs if we are not immune to those.
                 # some enemies can be immune to debuffs, and allies could potentially be given immunity to buffs by an enemy
@@ -305,29 +306,30 @@ func activate(user: BattleCharacter, target: BattleCharacter, update_inventory: 
                     else:
                         print("[SPELL] No modifier set for %s" % [Util.get_enum_name(BattleEnums.EAffinityElement, spell_element)])
 
-            # other spell affinities deal damage
-            # take_damage() doesn't take a spell result, because we use it for basic attacks too
+                # other spell affinities deal damage
+                # take_damage() doesn't take a spell result, because we use it for basic attacks too
+                # FIX: this is now under the default case so we always update inventory instead of returning early
+                _:
+                    var magic_strength := ceili(user.stats.get_stat(CharacterStatEntry.ECharacterStat.MagicalStrength))
 
-        var magic_strength := ceili(user.stats.get_stat(CharacterStatEntry.ECharacterStat.MagicalStrength))
+                    var attack_roll := DiceRoll.roll(20, 1, ceil(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass)), magic_strength)
+                    # TODO: attacks do damage based on a separate spawned node, like a projectile
+                    # TODO: calculate damage more randomly
+                    target.take_damage(user, spell_power_rolls, attack_roll, spell_element)
+                    
+                    # reset cached roll so we can roll again
+                    _roll_cache.clear()
+                    
+                    status = spell_use_status
 
-        var attack_roll := DiceRoll.roll(20, 1, ceil(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass)), magic_strength)
-        # TODO: attacks do damage based on a separate spawned node, like a projectile
-        # TODO: calculate damage more randomly
-        target.take_damage(user, spell_power_rolls, attack_roll, spell_element)
-        
-        # reset cached roll so we can roll again
-        _roll_cache.clear()
-        
-        status = spell_use_status
+
     else:
         print("Item cannot be consumed: %s" % item_name)
         status = UseStatus.CANNOT_USE
 
     if update_inventory:
-        _update_inventory(status)
-
-
-    if use_actions:
-        user.spend_actions(actions_cost)
+        _update_inventory(user.inventory)
+    else:
+        print("Not updating inventory for %s" % item_name)
 
     return status

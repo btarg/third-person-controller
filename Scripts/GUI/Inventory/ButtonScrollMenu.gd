@@ -40,6 +40,11 @@ var item_inventory: Inventory:
     get:
         return item_inventory
     set(new_inventory):
+        # If it's the same inventory, just update labels and return
+        if item_inventory == new_inventory:
+            update_labels()
+            return
+            
         # disconnect existing signal
         if item_inventory:
             item_inventory.inventory_updated.disconnect(_update_inventory_item)
@@ -54,7 +59,6 @@ var item_inventory: Inventory:
         filtered_inventory_items.sort_custom(SpellHelper.sort_items_by_usefulness)
 
         for item_entry in filtered_inventory_items:
-            # var item_entry: Item = new_inventory.get_item(item_id)
             _update_inventory_item(item_entry, new_inventory.get_item_count(item_entry.item_id), true)
 
         item_inventory = new_inventory
@@ -78,9 +82,8 @@ func _ready() -> void:
 
 
 func _update_inventory_item(item: Item, item_count: int, is_new_item: bool) -> void:
-    # print("Updating inventory: " + item.item_name + " x" + str(item_count))
     if item_count == 0:
-        print("Item _buttons_count is 0. Removing item.")
+        print("Item count is 0. Removing item.")
         _remove_item_button(item)
     else:
         if is_new_item:
@@ -120,11 +123,16 @@ func _add_button(item: Item, item_count: int) -> void:
 
 func _update_count_label(item: Item) -> void:
     var button = item_button_map.get(item.item_id)
+    print("[DEBUG UI] _update_count_label for %s (ID: %s)" % [item.item_name, item.item_id])
     if button:
         if item.has_count:
-            button.set_item_count(item_inventory.get_item_count(item.item_id))
+            var count = item_inventory.get_item_count(item.item_id)
+            print("[DEBUG UI] Setting button count to: %d" % count)
+            button.set_item_count(count)
         else:
-            button.set_item_count(0)  
+            button.set_item_count(0)
+    else:
+        print("[DEBUG UI] Button not found for item ID: %s" % item.item_id)  
 
 func _remove_item_button(item: Item) -> void:
     var button = item_button_map.get(item.item_id)

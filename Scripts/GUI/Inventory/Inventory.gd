@@ -1,5 +1,4 @@
-extends Node
-class_name Inventory
+class_name Inventory extends Node
 
 const DEBUG_INFINITE_ITEMS: bool = false
 
@@ -8,9 +7,6 @@ const JUNCTION_DECIMAL_PLACES: int = 5
 
 ## Items and their counts in the inventory
 var items: Dictionary[String, int] = {}
-## Cache of item resources by their ID for quick lookup
-var item_lookup: Dictionary[String, Item] = {}
-
 
 ## Dictionary of item_id as key and a modifier id as value
 var linked_modifiers: Dictionary[String, String] = {}
@@ -21,35 +17,18 @@ var junctioned_stat_by_item: Dictionary[String, CharacterStatEntry.ECharacterSta
 @onready var battle_character := get_node("../BattleCharacter") as BattleCharacter
 
 signal inventory_updated(resource: Item, count: int, is_new_item: bool)
-signal item_used(item_id: Item, use_status: Item.UseStatus)
 
-var fire_spell: Item = load_item("res://Scripts/Data/Items/Spells//test_fire_spell.tres")
-var heal_spell: Item = load_item("res://Scripts/Data/Items/Spells//test_healing_spell.tres")
-var almighty_spell: Item = load_item("res://Scripts/Data/Items/Spells//test_almighty_spell.tres")
-var ice_spell: Item = load_item("res://Scripts/Data/Items/Spells//test_ice_spell.tres")
-var elec_spell: Item = load_item("res://Scripts/Data/Items/Spells//test_elec_spell.tres")
-var wind_spell: Item = load_item("res://Scripts/Data/Items/Spells//test_wind_spell.tres")
-var silence_spell: Item = load_item("res://Scripts/Data/Items/Spells//silence_spell.tres")
+# signal item_used(item_id: Item, use_status: Item.UseStatus)
 
-var aoe_spell: Item = load_item("res://Scripts/Data/Items/Spells//test_aoe_spell.tres")
-var aoe_spell_2: Item = load_item("res://Scripts/Data/Items/Spells//test_cone_spell.tres")
-
-var revive_item: Item = load_item("res://Scripts/Data/Items/test_revive_item.tres")
 
 func _ready() -> void:
-
     print("InventoryManager ready")
-
-    add_item(aoe_spell, 15)
-    add_item(aoe_spell_2, 15)
-    add_item(heal_spell, 15)
-    add_item(fire_spell, 15)
-#    add_item(ice_spell, 15)
-#    add_item(elec_spell, 15)
-#    add_item(wind_spell, 15)
-    add_item(almighty_spell, 15)
-    add_item(silence_spell, 15)
-    add_item(revive_item, 15)
+    
+    # Add 15 of each spell to inventory for testing
+    var spells := Util.get_files_with_extension("res://Scripts/Data/Items/Spells/", ".tres")
+    for spell in spells:
+        var i := ItemResourceCache.load_item(spell)
+        add_item(i, 15)
 
 
     # TEST: set two different spells to the same stat, should only apply the modifier for the last one
@@ -142,21 +121,14 @@ func _generate_stat_modifier(spell_item: Item, stat: CharacterStatEntry.ECharact
 
     return modifier
 
-## Load an item resource by its resource path and cache it
-func load_item(resource_path: String) -> Item:
-    var item_id = resource_path.get_file().trim_suffix('.tres')
-    
-    # Check cache first
-    if item_id in item_lookup:
-        return item_lookup[item_id]
-    
-    # Load and cache
-    var item := load(resource_path) as Item
-    if item:
-        item.item_id = item_id
-        item_lookup[item_id] = item
-    
-    return item
+
+## Check if an item is already cached
+func is_item_cached(item_id: String) -> bool:
+    return ItemResourceCache.is_cached(item_id)
+
+## Helper function to get item ID from resource path
+func get_item_id_from_path(resource_path: String) -> String:
+    return resource_path.get_file().trim_suffix('.tres')
 
 func add_item(item_to_add: Item, count: int = 1) -> void:    
     if not item_to_add:
@@ -164,7 +136,7 @@ func add_item(item_to_add: Item, count: int = 1) -> void:
         return
     
     var item_id := item_to_add.item_id
-    var item: Item
+    var item: Item = item_to_add
     var is_new_item: bool = false
     
     var current_count: int = items.get(item_id, 0)
@@ -172,13 +144,6 @@ func add_item(item_to_add: Item, count: int = 1) -> void:
     
     if current_count == 0:
         is_new_item = true
-        # Only duplicate if we don't already have this item in lookup
-        if item_id not in item_lookup:
-            item_lookup[item_id] = item_to_add
-        else:
-            item = item_lookup[item_id]
-    else:
-        item = item_lookup[item_id]
     
     # Ensure we do not exceed the max stack count
     if new_count > item.max_stack:
@@ -259,7 +224,7 @@ func get_item_count(item_id: String) -> int:
 
 # Get an existing item's resource by its item_id
 func get_item(item_id: String) -> Item:
-    return item_lookup.get(item_id, null)
+    return ItemResourceCache.get_cached_item(item_id)
 
 func print_inventory() -> void:
     if not items.is_empty():

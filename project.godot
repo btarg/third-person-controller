@@ -24,6 +24,7 @@ ControllerHelper="*res://Scripts/Autoload/ControllerHelper.gd"
 BattleSignalBus="*res://Scripts/BattleSystem/BattleSignalBus.gd"
 SpellHelper="*res://Scripts/Autoload/SpellHelper.gd"
 MovementRadiusVisual="*res://Scenes/Characters/movement_radius_visual.tscn"
+ItemResourceCache="*res://Scripts/GUI/Inventory/ItemResourceCache.gd"
 
 [display]
 

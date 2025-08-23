@@ -8,6 +8,24 @@ static func get_relative_path_from_root(file_path: String) -> String:
     if OS.has_feature("editor")
     else OS.get_executable_path().get_base_dir().path_join(file_path))
 
+## Get all files with the given extension in the specified directory (non-recursive)
+static func get_files_with_extension(path: String, extension: String) -> Array[String]:
+    var files: Array[String] = []
+    var dir = DirAccess.open(path)
+    
+    if dir:
+        dir.list_dir_begin()
+        var file_name = dir.get_next()
+        
+        while file_name != "":
+            if not dir.current_is_dir() and file_name.ends_with(extension):
+                files.append(path.path_join(file_name))
+            file_name = dir.get_next()
+        
+        dir.list_dir_end()
+    
+    return files
+
 ## Calculates a quadratic bezier curve
 static func _quadratic_bezier(p0: Vector3, p1: Vector3, p2: Vector3, t: float) -> Vector3:
     var q0 := p0.lerp(p1, t)

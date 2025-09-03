@@ -7,6 +7,8 @@ signal OnCharacterJoinedBattle(character: BattleCharacter)
 @warning_ignore("UNUSED_SIGNAL")
 signal OnTurnStarted(character: BattleCharacter)
 @warning_ignore("UNUSED_SIGNAL")
+signal OnRoundStarted(rounds_played: int)
+@warning_ignore("UNUSED_SIGNAL")
 signal OnCharacterSelected(character: BattleCharacter)
 @warning_ignore("UNUSED_SIGNAL")
 signal OnBattleStarted

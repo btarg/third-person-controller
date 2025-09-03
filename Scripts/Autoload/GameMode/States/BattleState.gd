@@ -24,9 +24,12 @@ var current_character_index: int = 0
 var current_character: BattleCharacter
 var _last_available_actions := BattleEnums.EAvailableCombatActions.NONE
 
-var turns_played := -1
-var current_round_turns_played := 0
-var rounds_played := 0
+## The number of turns played this combat. Starts at -1 so the first turn becomes 0.
+var total_turns_played := -1
+## The number of turns played this round
+var turns_played_this_round := 0
+## The number of rounds played this combat
+var total_rounds_played := 0
 
 var movement_locked_in := false
 
@@ -333,7 +336,7 @@ func enter() -> void:
     _cleanup()
 
     # ready_next_turn() will increment this to 1
-    turns_played = 0
+    total_turns_played = 0
 
     for child in get_tree().get_nodes_in_group("BattleCharacter"):
         if child is BattleCharacter:
@@ -409,20 +412,22 @@ func ready_next_turn() -> void:
     BattleSignalBus.OnTurnStarted.emit(current_character)
     print("[BATTLE STATE] New turn started for %s" % current_character.character_name)
 
-    current_round_turns_played += 1
-    turns_played += 1
+    turns_played_this_round += 1
+    total_turns_played += 1
 
 
-    if current_round_turns_played >= turn_order.size():
+    if turns_played_this_round >= turn_order.size():
         # We've gone through all characters, so it's a new round
-        current_round_turns_played = 0
-        rounds_played += 1
+        turns_played_this_round = 0
+        total_rounds_played += 1
         print("[BATTLE STATE] New round started")
         current_character.stats.update_modifiers(BattleEnums.EDurationType.ROUNDS)
         
         # Rounds starting applies to all characters
         for character in turn_order:
             await character.stats.active_modifiers_on_round()
+
+        BattleSignalBus.OnRoundStarted.emit(total_rounds_played)
 
 
 func select_character(character: BattleCharacter, focus_camera: bool = true) -> void:
@@ -444,7 +449,7 @@ func _focus_character(focus_character: BattleCharacter) -> void:
     if not focus_character:
         return
     top_down_player.focused_node = focus_character.get_parent()
-    if turns_played < 0:
+    if total_turns_played < 0:
         top_down_player.snap_to_focused_node()
 
 func exit() -> void:
@@ -488,7 +493,7 @@ func print_turn_order() -> void:
         Console.print_line(turn_order.front().character_name + " has the highest initiative", true)
         
         # print round count and turn count
-        Console.print_line("Rounds played: %s, Total turns played: %s" % [rounds_played, turns_played], true)
+        Console.print_line("Rounds played: %s, Total turns played: %s" % [total_rounds_played, total_turns_played], true)
     
 
 func spawn_enemy() -> void:

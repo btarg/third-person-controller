@@ -164,14 +164,9 @@ func _setup_area_positioning() -> void:
                 var caster_ground_pos := Util.project_to_ground(caster.get_parent(), 1, 0.002)
                 global_position = caster_ground_pos
                 
-                # Calculate direction from caster to target spawn position for AOE_FROM_PLAYER directional spells
-                var direction_to_target := (m_target_spawn_position - caster_ground_pos).normalized()
-                if direction_to_target.length() < 0.001:
-                    # If spawn position is at caster position, use forward direction
-                    direction_to_target = Vector3.FORWARD
-                
-                aim_direction = Vector3(direction_to_target.x, 0.0, direction_to_target.z).normalized()
-                print("[PERSISTENT SPELL AREA] Cone positioned at caster: %s, direction: %s" % [global_position, aim_direction])
+                # Use the aim_direction passed from the indicator (don't recalculate)
+                # This preserves the direction that the player was aiming with the indicator
+                print("[PERSISTENT SPELL AREA] Cone positioned at caster: %s, direction: %s (preserved from indicator)" % [global_position, aim_direction])
             
             update_shader_params()
             
@@ -186,14 +181,9 @@ func _setup_area_positioning() -> void:
                 var caster_ground_pos := Util.project_to_ground(caster.get_parent(), 1, 0.002)
                 global_position = caster_ground_pos
                 
-                # Calculate direction from caster to target spawn position for AOE_FROM_PLAYER directional spells
-                var direction_to_target := (m_target_spawn_position - caster_ground_pos).normalized()
-                if direction_to_target.length() < 0.001:
-                    # If spawn position is at caster position, use forward direction
-                    direction_to_target = Vector3.FORWARD
-                
-                aim_direction = Vector3(direction_to_target.x, 0.0, direction_to_target.z).normalized()
-                print("[PERSISTENT SPELL AREA] Line positioned at caster: %s, direction: %s" % [global_position, aim_direction])
+                # Use the aim_direction passed from the indicator (don't recalculate)
+                # This preserves the direction that the player was aiming with the indicator
+                print("[PERSISTENT SPELL AREA] Line positioned at caster: %s, direction: %s (preserved from indicator)" % [global_position, aim_direction])
             
             update_shader_params()
 

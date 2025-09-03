@@ -10,7 +10,3 @@ func on_turn_finished() -> void: pass
 
 ## When the modifier is removed (depleted or actively removed)
 func on_modifier_removed() -> void: pass
-
-
-func _init() -> void:
-    super._init()

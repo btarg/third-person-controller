@@ -5,7 +5,6 @@
 [resource]
 script = ExtResource("1_10e56")
 item_type = 3
-item_id = "test_item_2"
 item_name = "Chicka-Cherry™️ Cola"
 item_description = "A refreshing drink that restores a moderate amount of HP."
 max_stack = 999

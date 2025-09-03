@@ -12,6 +12,6 @@ is_multiplier = true
 stat_value = 0.5
 turn_duration = -1
 can_stack = true
-stack_override = false
+override = false
 apply_out_of_combat = true
 metadata/_custom_type_script = "uid://x5gfye25jhfj"

@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="Item" load_steps=4 format=3 uid="uid://dse36pbkke2iv"]
+
+[ext_resource type="Script" uid="uid://c12nymc8vauu3" path="res://Scripts/BattleSystem/DataStructures/Item.gd" id="1_iu1bd"]
+[ext_resource type="Resource" uid="uid://cmgfpyet0c51x" path="res://Scripts/Data/StatModifiers/strength_double.tres" id="1_vcnch"]
+[ext_resource type="Script" uid="uid://dymhc7pcpegip" path="res://Scripts/BattleSystem/DataStructures/DiceRoll.gd" id="2_vcnch"]
+
+[resource]
+script = ExtResource("1_iu1bd")
+item_type = 0
+item_name = "Strength Amp"
+item_description = "Increases Strength"
+has_count = true
+max_stack = 999
+actions_cost = 1
+mp_cost = 0
+target_type = 0
+area_type = 0
+effective_range = 5
+can_use_on_enemies = true
+can_use_on_allies = true
+only_on_dead_characters = false
+area_of_effect_radius = 0.0
+line_width = 0.0
+cone_angle_degrees = 60.0
+ttl_turns = -1
+spell_element = 10
+modifier = ExtResource("1_vcnch")
+spell_power_rolls = Array[ExtResource("2_vcnch")]([])
+junction_table = Dictionary[int, float]({
+2: 1.0,
+3: 1.0
+})
+metadata/_custom_type_script = "uid://c12nymc8vauu3"

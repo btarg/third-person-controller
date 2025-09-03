@@ -20,6 +20,3 @@ func on_turn_finished() -> void:
 ## When the modifier is removed (depleted or actively removed)
 func on_modifier_removed() -> void:
     character.can_use_spells = true
-
-func _init() -> void:
-    super._init()

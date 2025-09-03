@@ -11,7 +11,7 @@
 [ext_resource type="Script" uid="uid://dxouogvyc8hgf" path="res://Scripts/BattleSystem/DataStructures/CharacterStatEntry.gd" id="6_i5xwa"]
 [ext_resource type="Script" uid="uid://cuwcpybjipvq7" path="res://Scripts/BattleSystem/Behaviour/DownedState.gd" id="8_cde8n"]
 [ext_resource type="PackedScene" uid="uid://cclit0nmwr0cn" path="res://Assets/GUI/3d/target_line_renderer.tscn" id="11_h7rtx"]
-[ext_resource type="Script" uid="uid://3ddie3cwu05n" path="res://Scripts/GUI/Inventory/InventoryManager.gd" id="12_ho05q"]
+[ext_resource type="Script" uid="uid://3ddie3cwu05n" path="res://Scripts/GUI/Inventory/Inventory.gd" id="12_ho05q"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cix2o"]
 resource_name = "maria_M1"

@@ -12,12 +12,12 @@ class_name StatModifier extends Resource
 
 ## -1 means infinite duration until removed
 ## TODO: allow for setting round duration instead of turns
-@export var turn_duration: int = 1
+@export_range(-1, 100) var turn_duration: int = 1
 var turns_left: int = turn_duration
 @export var can_stack: bool = true
 ## If true, this modifier will override any other modifiers of the same type
 ## (This only applies to non-stackable modifiers)
-@export var stack_override: bool = false
+@export var override: bool = false
 
 ## This modifier does not reset on combat end
 @export var apply_out_of_combat: bool = false
@@ -25,9 +25,3 @@ var turns_left: int = turn_duration
 var modifier_active: bool = true
 ## The character this modifier is applied to
 var character: BattleCharacter = null
-
-# A unique ID for each instance
-var unique_id: String = ""
-
-func _init() -> void:
-    unique_id = generate_scene_unique_id()

@@ -76,8 +76,8 @@ var item_id: int = -1
 @export var modifier: StatModifier
 
 @export_group("Dice Roll Settings")
-## The dice roll used to determine the item's power when used on a target. (This is not the attack roll!)
 var _default_spell_power_rolls: Array[DiceRoll] = [DiceRoll.roll(8)]
+## The dice roll used to determine the item's power when used on a target. (i.e. damage - this is not the attack roll!)
 @export var spell_power_rolls: Array[DiceRoll] = []:
     get:
         return spell_power_rolls if spell_power_rolls.size() > 0 \
@@ -304,7 +304,7 @@ func activate(user: BattleCharacter, target: BattleCharacter, update_inventory: 
                         target.stats.add_modifier(modifier)
                         print("[SPELL] %s applied %s to %s" % [user.character_name, modifier, target.character_name])
                     else:
-                        print("[SPELL] No modifier set for %s" % [Util.get_enum_name(BattleEnums.EAffinityElement, spell_element)])
+                        push_warning("[SPELL] No modifier set for %s" % [Util.get_enum_name(BattleEnums.EAffinityElement, spell_element)])
 
                 # other spell affinities deal damage
                 # take_damage() doesn't take a spell result, because we use it for basic attacks too

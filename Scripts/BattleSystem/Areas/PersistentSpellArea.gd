@@ -94,7 +94,7 @@ func _physics_process(_delta: float) -> void:
         last_selected_nodes = current_nodes
 
 func _on_character_entered(battle_character: BattleCharacter) -> void:
-    print("[AOE TRIGGER] %s entered AOE area: %s" % battle_character.character_name, m_spell_item.item_name)
+    print("[AOE TRIGGER] %s entered AOE area: %s" % [battle_character.character_name, m_spell_item.item_name])
     
     # Check if the character was already affected at their current position (prevents re-triggering on movement cancel)
     if battle_character in _has_been_affected:
@@ -206,6 +206,10 @@ func _apply_effect_to_character(character: BattleCharacter) -> void:
         print("[PERSISTENT SPELL AREA] ERROR: Spell item is null when trying to apply effect!")
         return
     
+    print("[AOE DEBUG] Checking if %s can use %s on %s" % [caster.character_name, m_spell_item.item_name, character.character_name])
+    print("[AOE DEBUG] Caster type: %s, Target type: %s" % [BattleEnums.ECharacterType.keys()[caster.character_type], BattleEnums.ECharacterType.keys()[character.character_type]])
+    print("[AOE DEBUG] Can use on allies: %s, Can use on enemies: %s" % [m_spell_item.can_use_on_allies, m_spell_item.can_use_on_enemies])
+    
     if m_spell_item.can_use_on(caster, character, true): # Ignore costs for AOE
         m_spell_item.activate(caster, character, false, false)  # Don't consume item for AOE, and don't use actions for every application of the effect
         print("[AOE TRIGGER] %s used %s on %s" % [caster.character_name, m_spell_item.item_name, character.character_name])
@@ -219,16 +223,21 @@ func _apply_effect_to_character(character: BattleCharacter) -> void:
 
 func _apply_effect_to_nodes_in_area() -> void:
     var nodes_in_area: Array[Node3D] = get_nodes_in_area()
+    print("[AOE DEBUG] Found %d nodes in area" % nodes_in_area.size())
     for node in nodes_in_area:
         var battle_character := node.get_node_or_null("BattleCharacter") as BattleCharacter
         if battle_character:
+            print("[AOE DEBUG] Found character: %s" % battle_character.character_name)
             # Only apply effect to characters not currently moving
             var character_controller := battle_character.character_controller
-            if character_controller and character_controller.free_movement:
+            if character_controller and character_controller.is_moving():
+                print("[AOE DEBUG] %s is moving, skipping" % battle_character.character_name)
                 continue
 
             print("[AOE TRIGGER] %s is in AOE area, applying effect" % battle_character.character_name)
             _apply_effect_to_character(battle_character)
+        else:
+            print("[AOE DEBUG] Node %s has no BattleCharacter" % node.name)
 
 func _on_turn_started(_turn_character: BattleCharacter = null) -> void:
     if m_turns_left != -1:

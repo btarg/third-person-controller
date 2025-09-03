@@ -79,6 +79,7 @@ func _ready() -> void:
     Console.add_command("set_dmg_element", _command_set_dmg_element, 1)
 
     Console.add_command("print_modifiers", _print_modifiers_command, 1)
+    Console.add_command("characters", _print_characters_command, 0)
     Console.add_command("print_stat", _print_stat_command, 2)
     Console.add_command("print_inventory", _print_inventory_command, 1)
 
@@ -91,6 +92,11 @@ func _ready() -> void:
 
     current_character = player.battle_character
     player_selected_character = current_character
+
+func _print_characters_command() -> void:
+    Console.print_line("Characters in battle:", true)
+    for character: BattleCharacter in get_tree().get_nodes_in_group("BattleCharacter"):
+        Console.print_line("- %s (%s): Level %s, %s XP" % [character.character_name, character.character_internal_name, character.level, character.experience], true)
 
 func _print_xp_command(character_name: String) -> void:
     for character: BattleCharacter in get_tree().get_nodes_in_group("BattleCharacter"):

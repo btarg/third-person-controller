@@ -381,11 +381,37 @@ func ready_next_turn() -> void:
         else:
             # This character's turn has ended, so process end-of-turn effects
             current_character.stats.active_modifiers_on_turn(false)
+            current_character.has_finished_turn = true
             
             current_character.actions_left = 0 # cap at 0 minimum
             current_character_index += 1 # move to next character
             current_character.behaviour_state_machine.set_state("IdleState")
             movement_locked_in = false
+
+
+    # Check if all characters have finished their turn before we start a new one
+    var all_characters_finished := true
+    for character in turn_order:
+        if not character.has_finished_turn:
+            all_characters_finished = false
+
+
+    # All characters have played, start a new round
+    if all_characters_finished:
+        # reset vars
+        turns_played_this_round = 0
+        total_rounds_played += 1
+        all_characters_finished = false
+
+        for character in turn_order:
+            character.has_finished_turn = false
+
+            # Update modifiers for all characters
+            await character.stats.active_modifiers_on_round()
+            current_character.stats.update_modifiers(BattleEnums.EDurationType.ROUNDS)
+
+        BattleSignalBus.OnRoundStarted.emit(total_rounds_played)
+        print("[BATTLE STATE] New round started")
 
     # Prevent overflow
     if current_character_index >= turn_order.size():
@@ -393,6 +419,8 @@ func ready_next_turn() -> void:
 
     # Set the new current character
     current_character = turn_order[current_character_index]
+    current_character.has_finished_turn = false
+    
     # Update modifiers
     current_character.stats.active_modifiers_on_turn(true)
     current_character.stats.update_modifiers(BattleEnums.EDurationType.TURNS)
@@ -415,19 +443,6 @@ func ready_next_turn() -> void:
     turns_played_this_round += 1
     total_turns_played += 1
 
-
-    if turns_played_this_round >= turn_order.size():
-        # We've gone through all characters, so it's a new round
-        turns_played_this_round = 0
-        total_rounds_played += 1
-        print("[BATTLE STATE] New round started")
-        current_character.stats.update_modifiers(BattleEnums.EDurationType.ROUNDS)
-        
-        # Rounds starting applies to all characters
-        for character in turn_order:
-            await character.stats.active_modifiers_on_round()
-
-        BattleSignalBus.OnRoundStarted.emit(total_rounds_played)
 
 
 func select_character(character: BattleCharacter, focus_camera: bool = true) -> void:

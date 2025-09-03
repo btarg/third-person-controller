@@ -80,6 +80,9 @@ var actions_left := 0
 ## Used for effects like Silence
 var can_use_spells := true
 
+## Has this character finished their turn?
+var has_finished_turn := false
+
 func _ready() -> void:
 
     if not inventory:
@@ -150,6 +153,7 @@ func on_join_battle() -> void:
     BattleSignalBus.OnCharacterJoinedBattle.emit(self)
 
 func on_leave_battle() -> void:
+    has_finished_turn = false
     character_name = default_character_name
     behaviour_state_machine.set_state("IdleState")
 

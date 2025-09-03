@@ -25,6 +25,9 @@ var current_character: BattleCharacter
 var _last_available_actions := BattleEnums.EAvailableCombatActions.NONE
 
 var turns_played := -1
+var current_round_turns_played := 0
+var rounds_played := 0
+
 var movement_locked_in := false
 
 var _available_actions : BattleEnums.EAvailableCombatActions = BattleEnums.EAvailableCombatActions.SELF
@@ -373,6 +376,7 @@ func ready_next_turn() -> void:
             await message_ui.show_messages(["%s gets %s more actions!" % [current_character.character_name, current_character.actions_left]])
             return
         else:
+            # This character's turn has ended, so process end-of-turn effects
             current_character.stats.active_modifiers_on_turn(false)
             
             current_character.actions_left = 0 # cap at 0 minimum
@@ -384,7 +388,12 @@ func ready_next_turn() -> void:
     if current_character_index >= turn_order.size():
         current_character_index = 0
 
+    # Set the new current character
     current_character = turn_order[current_character_index]
+    # Update modifiers
+    current_character.stats.active_modifiers_on_turn(true)
+    current_character.stats.update_modifiers(BattleEnums.EDurationType.TURNS)
+
     print("Turn order: " + str(current_character_index) + " is " + current_character.character_name)
     _focus_character(current_character)
 
@@ -399,7 +408,21 @@ func ready_next_turn() -> void:
 
     BattleSignalBus.OnTurnStarted.emit(current_character)
     print("[BATTLE STATE] New turn started for %s" % current_character.character_name)
+
+    current_round_turns_played += 1
     turns_played += 1
+
+
+    if current_round_turns_played >= turn_order.size():
+        # We've gone through all characters, so it's a new round
+        current_round_turns_played = 0
+        rounds_played += 1
+        print("[BATTLE STATE] New round started")
+        current_character.stats.update_modifiers(BattleEnums.EDurationType.ROUNDS)
+        
+        # Rounds starting applies to all characters
+        for character in turn_order:
+            await character.stats.active_modifiers_on_round()
 
 
 func select_character(character: BattleCharacter, focus_camera: bool = true) -> void:
@@ -464,6 +487,10 @@ func print_turn_order() -> void:
         # Print the entity with the highest initiative
         Console.print_line(turn_order.front().character_name + " has the highest initiative", true)
         
+        # print round count and turn count
+        Console.print_line("Rounds played: %s, Total turns played: %s" % [rounds_played, turns_played], true)
+    
+
 func spawn_enemy() -> void:
     if not player:
         return

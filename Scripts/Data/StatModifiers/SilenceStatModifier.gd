@@ -17,6 +17,9 @@ func on_turn_start() -> void:
 func on_turn_finished() -> void: 
     print("%s turn has finished!" % character.character_name)
 
+func on_round_start() -> void:
+    print("%s round has started!" % character.character_name)
+
 ## When the modifier is removed (depleted or actively removed)
 func on_modifier_removed() -> void:
     character.can_use_spells = true

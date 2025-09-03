@@ -9,11 +9,14 @@ class_name StatModifier extends Resource
 @export var is_multiplier: bool = false
 @export var stat_value: float = 1.0
 
+@export var duration_type := BattleEnums.EDurationType.TURNS
 
-## -1 means infinite duration until removed
-## TODO: allow for setting round duration instead of turns
-@export_range(-1, 100) var turn_duration: int = 1
-var turns_left: int = turn_duration
+@export_range(1, 100) var turn_duration: int = 1
+var remaining_duration: int
+
+func _init():
+    remaining_duration = turn_duration
+
 @export var can_stack: bool = true
 ## If true, this modifier will override any other modifiers of the same type
 ## (This only applies to non-stackable modifiers)

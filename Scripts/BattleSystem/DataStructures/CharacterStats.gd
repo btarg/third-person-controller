@@ -50,6 +50,9 @@ func add_modifier(modifier: StatModifier) -> void:
     # Modifiers now know which character they are applied to
     modifier.character = this_character
     
+    # Reset the remaining duration to the full turn duration for new modifiers
+    modifier.remaining_duration = modifier.turn_duration
+    
     var modifier_string := "[Modifier] ADDING MODIFIER: " + modifier.name + " WITH VALUE: " + str(modifier.stat_value)
     if modifier.stat == CharacterStatEntry.ECharacterStat.NONE:
         modifier_string += " (No stat)"
@@ -100,22 +103,30 @@ func remove_modifier(modifier: StatModifier) -> void:
 
     stat_modifiers.erase(modifier)
 
-func update_modifiers() -> void:
-    for i in range(stat_modifiers.size()):
+func update_modifiers(duration_type: BattleEnums.EDurationType) -> void:
+    # Process in reverse order to safely remove elements during iteration
+    for i in range(stat_modifiers.size() - 1, -1, -1):
         var modifier := stat_modifiers[i] as StatModifier
-        if modifier.turns_left >= 0:
-            modifier.turns_left -= 1
-            print("[Modifier] TURNS LEFT FOR " + modifier.name + ": " + str(modifier.turns_left))
-        elif modifier.turns_left != -1: # -1 means infinite duration
-            print("[Modifier] REMOVING MODIFIER: " + modifier.name)
-            stat_modifiers.remove_at(i)
 
-            if modifier is ActiveStatModifier:
-                var active_modifier := modifier as ActiveStatModifier
-                active_modifier.on_modifier_removed()
-
-        else:
-            print("[Modifier] MODIFIER " + modifier.name + " HAS INFINITE DURATION")
+        # Skip infinite duration modifiers
+        if modifier.duration_type == BattleEnums.EDurationType.INFINITE:
+            continue
+            
+        # If we are the same duration type as the update was called with
+        if modifier.duration_type == duration_type:
+            modifier.remaining_duration -= 1
+            print("[Modifier] TURNS LEFT FOR " + modifier.name + ": " + str(modifier.remaining_duration))
+            
+            # Remove modifier if duration is expired
+            if modifier.remaining_duration <= 0:
+                print("[Modifier] REMOVING MODIFIER: " + modifier.name)
+                
+                if modifier is ActiveStatModifier:
+                    var active_modifier := modifier as ActiveStatModifier
+                    active_modifier.on_modifier_removed()
+                
+                stat_modifiers.remove_at(i)
+        
 
 ## Use true for the start of the turn and false for the end of the turn
 func active_modifiers_on_turn(start: bool = true) -> void:
@@ -129,6 +140,14 @@ func active_modifiers_on_turn(start: bool = true) -> void:
             else:
                 @warning_ignore("redundant_await")
                 await active_modifier.on_turn_finished()
+
+## When a new round starts. A new round starts and ends at the same time for all characters.
+func active_modifiers_on_round() -> void:
+    for modifier: StatModifier in stat_modifiers:
+        if modifier is ActiveStatModifier:
+            var active_modifier := modifier as ActiveStatModifier
+            @warning_ignore("redundant_await")
+            await active_modifier.on_round_start()
 
 ## Remove all modifiers that are not supposed to be applied out of combat
 func reset_modifiers() -> void:
@@ -153,7 +172,7 @@ func get_stat(stat: CharacterStatEntry.ECharacterStat, with_modifiers: bool = tr
     # sort stat modifiers by turns left
     stat_modifiers_copy.sort_custom(
         func(a: StatModifier, b: StatModifier) -> bool:
-            return true if a.turns_left < b.turns_left else false)
+            return true if a.remaining_duration < b.remaining_duration else false)
 
     for modifier: StatModifier in stat_modifiers_copy:
         if not modifier.modifier_active:

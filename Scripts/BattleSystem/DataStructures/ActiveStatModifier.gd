@@ -5,8 +5,8 @@ func on_modifier_applied() -> void: pass
 
 ## Run at the start of every turn while the modifier is active
 func on_turn_start() -> void: pass
-
 func on_turn_finished() -> void: pass
 
+func on_round_start() -> void: pass
 ## When the modifier is removed (depleted or actively removed)
 func on_modifier_removed() -> void: pass

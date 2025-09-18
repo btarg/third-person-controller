@@ -1,25 +1,17 @@
-[gd_resource type="Resource" script_class="SpellItem" load_steps=3 format=3 uid="uid://vsq3uksjmk3k"]
+[gd_resource type="Resource" script_class="Item" load_steps=3 format=3 uid="uid://vsq3uksjmk3k"]
 
 [ext_resource type="Script" uid="uid://c12nymc8vauu3" path="res://Scripts/BattleSystem/DataStructures/Item.gd" id="1_23vso"]
 [ext_resource type="Script" uid="uid://dymhc7pcpegip" path="res://Scripts/BattleSystem/DataStructures/DiceRoll.gd" id="2_hj35q"]
 
 [resource]
 script = ExtResource("1_23vso")
-area_of_effect_radius = 0.0
-ttl_turns = -1
-spell_element = 2
-spell_power_rolls = Array[ExtResource("2_hj35q")]([])
+item_type = 0
+element = 2
+item_name = "Bufula"
+item_description = "Deals moderate ICE dmg to one enemy."
+can_use_on_allies = false
 junction_table = Dictionary[int, float]({
 0: 2.0,
 2: 1.005,
 5: 1.005
 })
-item_type = 0
-item_name = "Bufula"
-item_description = "Deals moderate ICE dmg to one enemy."
-max_stack = 999
-can_use_on_enemies = true
-can_use_on_allies = false
-effective_range = 5
-actions_cost = 1
-mp_cost = 0

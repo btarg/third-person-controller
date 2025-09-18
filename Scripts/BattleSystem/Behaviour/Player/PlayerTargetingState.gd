@@ -477,6 +477,9 @@ func _use_character_targeting_spell() -> void:
         if (distance > battle_character.stats.get_stat(CharacterStatEntry.ECharacterStat.AttackRange)
         or distance > selected_spell_item.effective_range):
             print("[TARGETING] Target is out of range (distance: " + str(distance) + ", range: " + str(selected_spell_item.effective_range) + ")")
+            
+            battle_state.message_ui.show_messages(["Target is out of range!"])
+            
             # Reset flag since spell wasn't actually used
             _spell_used = false
             player_think_ui.show()
@@ -561,6 +564,6 @@ func _update_spell_targeting() -> void:
             spell_area_indicator.update_fixed_target(mouse_world_pos)
     
 
-    
+
 func _state_process(_delta: float) -> void: pass
 func _state_input(_event: InputEvent) -> void: pass

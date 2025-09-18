@@ -1,5 +1,6 @@
-extends State
-class_name PlayerChooseSpellItemState
+## The player chooses an item before moving to the Targeting State.
+## Backing out of the targeting state returns to here.
+class_name PlayerChooseSpellItemState extends State
 
 @onready var battle_state := GameModeStateMachine.get_node("BattleState") as BattleState
 @onready var battle_character := state_machine.get_parent() as BattleCharacter

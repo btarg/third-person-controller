@@ -6,23 +6,10 @@
 [resource]
 script = ExtResource("1_0rvvm")
 item_type = 0
+element = 3
 item_name = "Thundara"
 item_description = "Deals moderate ELEC dmg to one enemy."
-has_count = true
-max_stack = 999
-actions_cost = 1
-mp_cost = 0
-target_type = 0
-area_type = 0
-area_of_effect_radius = 0.0
-line_width = 0.0
-cone_angle_degrees = 60.0
-ttl_turns = -1
-can_use_on_enemies = true
 can_use_on_allies = false
-effective_range = 5
-spell_element = 3
-spell_power_rolls = Array[ExtResource("2_1pkbe")]([])
 junction_table = Dictionary[int, float]({
 0: 2.0,
 2: 1.005,

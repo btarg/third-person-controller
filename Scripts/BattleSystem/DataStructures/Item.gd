@@ -1,5 +1,4 @@
-class_name Item
-extends Resource
+class_name Item extends Resource
 
 enum ItemType {
     BATTLE_ITEM, ## Used on another character directly, in battle
@@ -28,15 +27,16 @@ enum UseStatus {
     ALREADY_EQUIPPED
 }
 
-@export_group("Inventory")
-
 ## item_type should be BATTLE_SPELL or FIELD_SPELL for spell items
 @export var item_type: ItemType = ItemType.WEAPON
+@export var element := BattleEnums.EAffinityElement.FIRE
 
 var item_id: int = -1
 
 @export var item_name: String = "???"
 @export var item_description: String = "Test Description"
+
+@export_group("Inventory")
 ## If this item has no count, it can be used infinitely (e.g. skills)
 @export var has_count := true
 @export var max_stack: int = 999
@@ -46,10 +46,15 @@ var item_id: int = -1
 @export var actions_cost: int = 1
 @export var mp_cost: int = 0
 
-
 ## AOE targeting for spells and items
 @export_group("Item Targeting")
+@export_custom(PROPERTY_HINT_GROUP_ENABLE, "") var targeting_enabled: bool = true
+
+## If true, the spell/item is cast instantly without a projectile
+@export var instant_cast: bool = false
+
 @export var target_type := TargetType.NONE
+
 @export var area_type := AreaUtils.SpellAreaType.CIRCLE
 
 ## How far away a target can be to activate this item (does not apply to self)
@@ -59,7 +64,9 @@ var item_id: int = -1
 @export var can_use_on_allies: bool = true
 @export var only_on_dead_characters: bool = false ## Primarily for revive items
 
-@export_group("AOE Spells")
+@export_group("AOE Properties")
+@export_custom(PROPERTY_HINT_GROUP_ENABLE, "") var aoe_enabled: bool = false
+
 ## Radius also acts as the length for line and cone area types
 @export var area_of_effect_radius: float = 0.0
 ## only applies to line area type
@@ -70,12 +77,26 @@ var item_id: int = -1
 ## Time to live for AOEs in turns: -1 means sustained spell, 0 means we do the effect once and then remove the spell
 @export var ttl_turns: int = -1
 
-@export_group("Spell")
-@export var spell_element := BattleEnums.EAffinityElement.FIRE
+@export_group("Projectile Properties")
+@export_custom(PROPERTY_HINT_GROUP_ENABLE, "") var projectile_enabled: bool = false
+
+## Speed of the projectile when using projectile-based casting
+@export var projectile_speed: float = 15.0
+## Height of the projectile arc
+@export var projectile_arc_height: float = 3.0
+## Gravity applied to the projectile (affects visual trajectory)
+@export var projectile_gravity: float = 9.8
+## Travel time multiplier for safety timeout (higher = more lenient timing)
+@export var projectile_timeout_multiplier: float = 2.0
+
+@export_group("Spell Properties")
+@export_custom(PROPERTY_HINT_GROUP_ENABLE, "") var spell_enabled: bool = true
 ## The set modifier only applies if the affinity is a buff or debuff
 @export var modifier: StatModifier
 
 @export_group("Dice Roll Settings")
+@export_custom(PROPERTY_HINT_GROUP_ENABLE, "") var dice_enabled: bool = true
+
 var _default_spell_power_rolls: Array[DiceRoll] = [DiceRoll.roll(8)]
 ## The dice roll used to determine the item's power when used on a target. (i.e. damage - this is not the attack roll!)
 @export var spell_power_rolls: Array[DiceRoll] = []:
@@ -111,7 +132,7 @@ func _init(_item_name: String = "", _max_stack: int = 999) -> void:
 func get_spell_use_roll(caster: BattleCharacter, target: BattleCharacter) -> DiceRoll:
     if use_roll:
         return use_roll
-    if spell_element == BattleEnums.EAffinityElement.ALMIGHTY:
+    if element == BattleEnums.EAffinityElement.ALMIGHTY:
         return DiceRoll.roll(20, 1, 0) # DC 0: always hits
     
     if not target:
@@ -129,12 +150,12 @@ func get_item_description() -> String:
         var description_parts: Array[String] = []
 
         # Damage/healing effects
-        if spell_element == BattleEnums.EAffinityElement.HEAL:
+        if element == BattleEnums.EAffinityElement.HEAL:
             description_parts.append("Restores %s HP" % [DiceRoll.get_dice_array_as_string(spell_power_rolls)])
-        elif spell_element == BattleEnums.EAffinityElement.MANA:
+        elif element == BattleEnums.EAffinityElement.MANA:
             description_parts.append("Restores %s MP" % [DiceRoll.get_dice_array_as_string(spell_power_rolls)])
-        elif spell_element not in [BattleEnums.EAffinityElement.BUFF, BattleEnums.EAffinityElement.DEBUFF]:
-            description_parts.append("Deals %s %s damage" % [DiceRoll.get_dice_array_as_string(spell_power_rolls), Util.get_enum_name(BattleEnums.EAffinityElement, spell_element)])
+        elif element not in [BattleEnums.EAffinityElement.BUFF, BattleEnums.EAffinityElement.DEBUFF]:
+            description_parts.append("Deals %s %s damage" % [DiceRoll.get_dice_array_as_string(spell_power_rolls), Util.get_enum_name(BattleEnums.EAffinityElement, element)])
 
         # Modifier effects
         if modifier:
@@ -180,7 +201,7 @@ func get_icon_path() -> String:
     # For spells, use element-based icons
     if item_type in [ItemType.BATTLE_ITEM, ItemType.FIELD_ITEM]:
         var element_icon_path := "res://Assets/GUI/Icons/Items/elements/"
-        element_icon_path += Util.get_enum_name(BattleEnums.EAffinityElement, spell_element).to_lower()
+        element_icon_path += Util.get_enum_name(BattleEnums.EAffinityElement, element).to_lower()
         return element_icon_path + "_element.png"
     
     # For non-spells, use item type-based icons
@@ -194,7 +215,7 @@ func get_rich_name(icon_size: int = 64) -> String:
 
 func get_use_sound(_status: UseStatus = UseStatus.SUCCESS) -> AudioStream:
     if (item_type in [ItemType.BATTLE_ITEM, ItemType.FIELD_ITEM]
-    and spell_element == BattleEnums.EAffinityElement.HEAL):
+    and element == BattleEnums.EAffinityElement.HEAL):
             return heal_sound
     return null
     
@@ -237,6 +258,20 @@ func can_use_on(user: BattleCharacter, target: BattleCharacter, ignore_costs: bo
 
     return can_use_on_allies if same_side else can_use_on_enemies
 
+func should_use_instant_cast() -> bool:
+    """Check if this item should be cast instantly without a projectile"""
+    # Explicit instant cast setting
+    if instant_cast:
+        return true
+    
+    # AOE_FROM_PLAYER with cone/line spells should be instant
+    if (item_type == ItemType.FIELD_ITEM and 
+        target_type == TargetType.AOE_FROM_PLAYER and 
+        area_type in [AreaUtils.SpellAreaType.CONE, AreaUtils.SpellAreaType.LINE]):
+        return true
+    
+    return false
+
 func _update_inventory(inv_to_update: Inventory) -> void:
     if inv_to_update and has_count:
         inv_to_update.item_used_callback(self)
@@ -269,7 +304,7 @@ func activate(user: BattleCharacter, target: BattleCharacter, update_inventory: 
         var dice_status := DiceRoll.DiceStatus.ROLL_SUCCESS
 
         # Almighty damage never misses, but other attacks roll to hit
-        if spell_element != BattleEnums.EAffinityElement.ALMIGHTY:
+        if element != BattleEnums.EAffinityElement.ALMIGHTY:
             
             var spell_use_roll := get_spell_use_roll(user, target).reroll()
             print("[SPELL] Rolling %s for %s total" % [spell_use_roll.to_string(), str(spell_use_roll.total())])
@@ -287,8 +322,8 @@ func activate(user: BattleCharacter, target: BattleCharacter, update_inventory: 
                     spell_use_status = UseStatus.CRIT_FAIL
 
         
-        if target.get_affinity(spell_element) != BattleEnums.EAffinityType.IMMUNE:
-            match spell_element:
+        if target.get_affinity(element) != BattleEnums.EAffinityType.IMMUNE:
+            match element:
                 BattleEnums.EAffinityElement.HEAL:
                     target.heal(DiceRoll.roll_all(spell_power_rolls), false, spell_use_status)
                     status = spell_use_status
@@ -304,7 +339,7 @@ func activate(user: BattleCharacter, target: BattleCharacter, update_inventory: 
                         target.stats.add_modifier(modifier)
                         print("[SPELL] %s applied %s to %s" % [user.character_name, modifier, target.character_name])
                     else:
-                        push_warning("[SPELL] No modifier set for %s" % [Util.get_enum_name(BattleEnums.EAffinityElement, spell_element)])
+                        push_warning("[SPELL] No modifier set for %s" % [Util.get_enum_name(BattleEnums.EAffinityElement, element)])
 
                 # other spell affinities deal damage
                 # take_damage() doesn't take a spell result, because we use it for basic attacks too
@@ -315,7 +350,7 @@ func activate(user: BattleCharacter, target: BattleCharacter, update_inventory: 
                     var attack_roll := DiceRoll.roll(20, 1, ceil(target.stats.get_stat(CharacterStatEntry.ECharacterStat.ArmourClass)), magic_strength)
                     # TODO: attacks do damage based on a separate spawned node, like a projectile
                     # TODO: calculate damage more randomly
-                    target.take_damage(user, spell_power_rolls, attack_roll, spell_element)
+                    target.take_damage(user, spell_power_rolls, attack_roll, element)
                     
                     # reset cached roll so we can roll again
                     _roll_cache.clear()

@@ -17,7 +17,7 @@ enum EAffinityElement {
     DARK,
     HEAL,
     MANA,
-    ALMIGHTY,
+    ALMIGHTY, ## Ignores resistances
     BUFF,
     DEBUFF
 }

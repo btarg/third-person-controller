@@ -105,7 +105,7 @@ func _calculate_item_weight(context: AIDecisionContext) -> float:
             return 0.0
     else:
         # Trust SpellHelper's item selection and boost weight based on urgency
-        match best_item_to_use.spell_element:
+        match best_item_to_use.element:
             BattleEnums.EAffinityElement.HEAL:
                 # For healing items, check if we have a valid target and adjust weight accordingly
                 var healing_decision := SpellHelper.determine_healing_target(battle_character, context, best_item_to_use)
@@ -165,7 +165,7 @@ func _calculate_item_weight(context: AIDecisionContext) -> float:
             weight *= 1.25
     
     # CRITICAL SITUATION BOOST: If multiple characters are critically injured, healing becomes top priority
-    if (best_item_to_use and best_item_to_use.spell_element == BattleEnums.EAffinityElement.HEAL and
+    if (best_item_to_use and best_item_to_use.element == BattleEnums.EAffinityElement.HEAL and
         ((context.health_ratio < critical_health_threshold and context.critically_injured_ally_count > 0) or
          context.critically_injured_ally_count >= 2)):
         weight *= 2.0  # Extra boost when multiple critical injuries
@@ -189,7 +189,7 @@ func _calculate_defend_weight(context: AIDecisionContext) -> float:
     var weight := base_defend_weight
     
     # CRITICAL: If we have healing available and need it, heavily deprioritize defending
-    if best_item_to_use and best_item_to_use.spell_element == BattleEnums.EAffinityElement.HEAL:
+    if best_item_to_use and best_item_to_use.element == BattleEnums.EAffinityElement.HEAL:
         # Check if we have a valid healing target
         var healing_decision := SpellHelper.determine_healing_target(battle_character, context, best_item_to_use)
         var heal_target: BattleCharacter = healing_decision["target"]
@@ -299,7 +299,7 @@ func _can_execute_use_item(context: AIDecisionContext) -> bool:
             return false
         target_distance = battle_character.get_parent().global_position.distance_to(
             context.closest_dead_ally.get_parent().global_position)
-    elif best_item_to_use.spell_element == BattleEnums.EAffinityElement.HEAL:
+    elif best_item_to_use.element == BattleEnums.EAffinityElement.HEAL:
         # Use SpellHelper's intelligent healing target determination for range checking
         var healing_decision := SpellHelper.determine_healing_target(battle_character, context, best_item_to_use)
         var heal_target: BattleCharacter = healing_decision["target"]
@@ -357,10 +357,7 @@ func _execute_use_item() -> Item.UseStatus:
     
     print("Enemy using item: " + best_item_to_use.item_name)
     
-    # Store the action cost before activation
-    var item_actions_cost: int = best_item_to_use.actions_cost
-    
-    # Determine target based on item type
+    # Determine target based on item type and spawn projectile
     if best_item_to_use.only_on_dead_characters:
         # Revive item - target closest dead ally
         var dead_allies := get_tree().get_nodes_in_group("BattleCharacter")
@@ -379,14 +376,16 @@ func _execute_use_item() -> Item.UseStatus:
                     closest_dead_ally = battle_char
         
         if closest_dead_ally:
-            print("Enemy using revive item on dead ally: " + closest_dead_ally.character_name)
-            status = best_item_to_use.activate(battle_character, closest_dead_ally, false)
+            print("Enemy spawning revive projectile for: " + closest_dead_ally.character_name)
+            var target_pos: Vector3 = closest_dead_ally.get_parent().global_position
+            _spawn_ai_projectile(best_item_to_use, target_pos, closest_dead_ally)
+            status = Item.UseStatus.SUCCESS
         else:
             print("ERROR: No dead ally found for revive item!")
-            battle_character.spend_actions(item_actions_cost)
+            battle_character.spend_actions(best_item_to_use.actions_cost)
             return Item.UseStatus.CANNOT_USE
             
-    elif best_item_to_use.spell_element == BattleEnums.EAffinityElement.HEAL:
+    elif best_item_to_use.element == BattleEnums.EAffinityElement.HEAL:
         # Use SpellHelper's intelligent healing target determination
         var context := get_context()
         var healing_decision := SpellHelper.determine_healing_target(battle_character, context, best_item_to_use)
@@ -395,36 +394,169 @@ func _execute_use_item() -> Item.UseStatus:
         
         if heal_target:
             print("[%s AI] %s - %s" % [battle_character.character_name, heal_reason, heal_target.character_name])
-            status = best_item_to_use.activate(battle_character, heal_target)
+            var target_pos: Vector3 = heal_target.get_parent().global_position
+            _spawn_ai_projectile(best_item_to_use, target_pos, heal_target)
+            status = Item.UseStatus.SUCCESS
         else:
             print("ERROR: No valid heal target determined!")
-            battle_character.spend_actions(item_actions_cost)
+            battle_character.spend_actions(best_item_to_use.actions_cost)
             return Item.UseStatus.CANNOT_USE
     else:
-        print("Enemy using damage item on player target")
+        print("Enemy using damage/field item for target")
         if target_character:
-            status = best_item_to_use.activate(battle_character, target_character)
+            # Check for instant cast first
+            if best_item_to_use.should_use_instant_cast():
+                print("[AI] Applying %s instantly to %s" % [best_item_to_use.item_name, target_character.character_name])
+                
+                # For FIELD items that are AOE_FROM_PLAYER with cone/line, apply at AI position with direction
+                if (best_item_to_use.item_type == Item.ItemType.FIELD_ITEM and 
+                    best_item_to_use.target_type == Item.TargetType.AOE_FROM_PLAYER and 
+                    best_item_to_use.area_type in [AreaUtils.SpellAreaType.CONE, AreaUtils.SpellAreaType.LINE]):
+                    
+                    # Use AI's position as spawn position
+                    var spawn_position := Util.project_to_ground(battle_character.get_parent(), 1, 0.002)
+                    
+                    # Calculate aim direction toward target
+                    var target_pos: Vector3 = target_character.get_parent().global_position
+                    var aim_direction: Vector3 = (target_pos - spawn_position).normalized()
+                    aim_direction.y = 0  # Keep it horizontal
+                    
+                    # Apply the spell effect directly without projectile
+                    var spawned := SpellHelper.create_area_of_effect(best_item_to_use, battle_character, spawn_position, aim_direction)
+                    
+                    if spawned:
+                        print("[AI] Successfully applied %s at AI position" % best_item_to_use.item_name)
+                        # Spend resources
+                        status = best_item_to_use.activate(battle_character, battle_character, true, true)
+                        print("[AI] Activation status: %s" % Util.get_enum_name(Item.UseStatus, status))
+                    else:
+                        printerr("[AI] Failed to apply %s" % best_item_to_use.item_name)
+                        battle_character.spend_actions(best_item_to_use.actions_cost)
+                        return Item.UseStatus.CANNOT_USE
+                else:
+                    # For other instant cast items (BATTLE items), apply directly to target
+                    status = best_item_to_use.activate(battle_character, target_character, true, true)
+                    print("[AI] Instant cast activation status: %s" % Util.get_enum_name(Item.UseStatus, status))
+                    
+            elif best_item_to_use.item_type == Item.ItemType.FIELD_ITEM:
+                # For other field items, target ground near the player with projectile
+                var target_pos: Vector3 = target_character.get_parent().global_position
+                _spawn_ai_projectile(best_item_to_use, target_pos, null)
+                status = Item.UseStatus.SUCCESS
+            else:
+                # For battle items, target the character directly with projectile
+                var target_pos: Vector3 = target_character.get_parent().global_position
+                _spawn_ai_projectile(best_item_to_use, target_pos, target_character)
+                status = Item.UseStatus.SUCCESS
         else:
             print("ERROR: No target character available for damage item!")
             # Spend actions even if item fails to prevent infinite loops
-            battle_character.spend_actions(item_actions_cost)
+            battle_character.spend_actions(best_item_to_use.actions_cost)
             return Item.UseStatus.CANNOT_USE
-    
-    # # Ensure actions are spent (defensive programming)
-    # # The item's activate() method should handle this, but we add this as backup
-    # # Note: We don't double-spend if the item already spent actions correctly
-    # if battle_character.actions_left >= item_actions_cost:
-    #     printerr("[ERROR] Item %s didn't spend the correct amount of actions! Expected: %d, Actual: %d" % [
-    #         best_item_to_use.item_name, 
-    #         item_actions_cost, 
-    #         battle_character.actions_left
-    #     ])
-    #     # Force spending the correct amount of actions to prevent infinite loop
-    #     battle_character.spend_actions(item_actions_cost)
 
     print("[%s AI] Item use status: %s" % [battle_character.character_name, str(status)])
 
     return status
+
+func _spawn_ai_projectile(item: Item, target_pos: Vector3, target_char: BattleCharacter = null) -> void:
+    """Spawn a projectile for AI item usage"""
+    
+    # Create projectile instance
+    var projectile_scene := load("res://Scenes/BattleSystem/ItemProjectile.tscn") as PackedScene
+    var projectile := projectile_scene.instantiate()
+    
+    if not projectile:
+        printerr("[AI] Failed to create projectile!")
+        battle_character.spend_actions(item.actions_cost)
+        return
+    
+    # Position projectile at caster's position (slightly elevated) BEFORE initialization
+    var spawn_position: Vector3 = battle_character.get_parent().global_position
+    spawn_position.y += 1.5  # Spawn above character
+    
+    # Add to scene tree first
+    get_tree().get_root().add_child(projectile)
+    projectile.global_position = spawn_position
+    
+    # Initialize the projectile AFTER positioning
+    projectile.initialize(item, battle_character, target_pos, target_char)
+    
+    # Configure projectile physics based on item properties
+    _configure_ai_projectile_physics(projectile, item)
+    
+    # Connect projectile signals
+    _connect_ai_projectile_signals(projectile, item)
+    
+    print("[AI] Spawned %s projectile from %s" % [item.item_name, battle_character.character_name])
+
+func _configure_ai_projectile_physics(projectile, item: Item) -> void:
+    """Configure projectile physics based on item properties for AI"""
+    # Use item's projectile settings directly
+    projectile.speed = item.projectile_speed
+    projectile.arc_height = item.projectile_arc_height
+    projectile.projectile_gravity = item.projectile_gravity
+    
+    # Apply element-based overrides for special visual effects
+    match item.element:
+        BattleEnums.EAffinityElement.FIRE:
+            # Fire rises slightly - reduce gravity
+            projectile.projectile_gravity = item.projectile_gravity * 0.8
+        BattleEnums.EAffinityElement.ICE:
+            # Ice falls faster - increase gravity
+            projectile.projectile_gravity = item.projectile_gravity * 1.2
+        BattleEnums.EAffinityElement.ELEC:
+            # Lightning is much faster and straighter
+            projectile.speed = item.projectile_speed * 2.0
+            projectile.arc_height = item.projectile_arc_height * 0.3
+        BattleEnums.EAffinityElement.WIND:
+            # Wind is faster and has higher arc
+            projectile.speed = item.projectile_speed * 1.3
+            projectile.arc_height = item.projectile_arc_height * 1.2
+    
+    # Set travel time based on effective range, speed, and timeout multiplier for guaranteed hit
+    var distance: float = Vector2(projectile.start_position.x, projectile.start_position.z).distance_to(Vector2(projectile.target_position.x, projectile.target_position.z))
+    var calculated_time: float = max(1.0, distance / projectile.speed * item.projectile_timeout_multiplier)
+    projectile.set_travel_time(calculated_time)
+
+func _connect_ai_projectile_signals(projectile, item: Item) -> void:
+    """Connect projectile signals for AI usage"""
+    # Handle character hits (BATTLE items)
+    projectile.OnHitCharacter.connect(_on_ai_projectile_hit_character.bind(item))
+    
+    # Handle ground hits (FIELD items)
+    projectile.OnHitGround.connect(_on_ai_projectile_hit_ground.bind(item))
+    
+    # Handle projectile cleanup
+    projectile.OnProjectileDestroyed.connect(_on_ai_projectile_destroyed)
+
+func _on_ai_projectile_hit_character(character: BattleCharacter, _projectile, item: Item) -> void:
+    """Handle AI projectile hitting a character"""
+    print("[AI] %s projectile hit %s" % [item.item_name, character.character_name])
+    
+    # Apply the item effect directly to the character
+    var status := item.activate(battle_character, character, true, true)  # Consume item and spend actions
+    
+    print("[AI] Item activation status: %s" % Util.get_enum_name(Item.UseStatus, status))
+
+func _on_ai_projectile_hit_ground(position: Vector3, _projectile, item: Item) -> void:
+    """Handle AI projectile hitting the ground"""
+    print("[AI] %s projectile hit ground at %s" % [item.item_name, str(position)])
+    
+    # For FIELD items, spawn the area of effect at the impact position
+    if item.item_type == Item.ItemType.FIELD_ITEM:
+        # Create the AOE effect at impact position
+        var spawned := SpellHelper.create_area_of_effect(item, battle_character, position, Vector3.FORWARD)
+        
+        if spawned:
+            print("[AI] Successfully spawned AOE effect at impact")
+            # Spend the action cost - this will trigger battle callbacks
+            battle_character.spend_actions(item.actions_cost)
+        else:
+            printerr("[AI] Failed to spawn AOE effect at impact")
+
+func _on_ai_projectile_destroyed(_projectile) -> void:
+    """Handle AI projectile destruction cleanup"""
+    print("[AI] Projectile destroyed")
 
 func _execute_defend() -> void:
     print("Executing defend!")

@@ -112,8 +112,8 @@ func _on_character_entered(battle_character: BattleCharacter) -> void:
     if character_controller and character_controller.free_movement:
         # Character is in movement mode - connect to spend actions signal to apply effect when movement is locked in
         print("[AOE TRIGGER] %s entered AOE area while moving" % battle_character.character_name)
-        _disconnect_actions_signal(battle_character)
-        BattleSignalBus.OnSpendActions.connect(_on_spend_actions)
+        _disconnect_actions_signal()
+        BattleSignalBus.OnActionsUpdated.connect(_on_actions_updated)
     else:
         # Character is not moving, apply effect immediately
         _apply_effect_to_character(battle_character)
@@ -122,13 +122,13 @@ func _on_character_exited(battle_character: BattleCharacter) -> void:
     print("[PERSISTENT SPELL AREA] %s exited AOE area" % battle_character.character_name)
     
     # Disconnect signal when character exits the area
-    _disconnect_actions_signal(battle_character)
+    _disconnect_actions_signal()
     
     # Don't clear from _has_been_affected here - only clear when movement is locked in
     # This prevents re-triggering if they exit and re-enter during the same movement
 
-func _on_spend_actions(character: BattleCharacter) -> void:
-    print("[PERSISTENT SPELL AREA] %s spent actions" % character.character_name)
+func _on_actions_updated(character: BattleCharacter, actions_left: int) -> void:
+    print("[PERSISTENT SPELL AREA] %s updated actions (actions left: %d)" % [character.character_name, actions_left])
     
     # Check if character is still in the area when they spend actions
     if character in _characters_in_area:
@@ -141,11 +141,11 @@ func _on_spend_actions(character: BattleCharacter) -> void:
         print("[PERSISTENT SPELL AREA] %s cleared from tracking (locked in outside area)" % character.character_name)
     
     # Disconnect the signal after handling the action spend
-    _disconnect_actions_signal(character)
+    _disconnect_actions_signal()
 
-func _disconnect_actions_signal(battle_character: BattleCharacter) -> void:
-    if battle_character.OnSpendActions.is_connected(_on_spend_actions):
-        battle_character.OnSpendActions.disconnect(_on_spend_actions)
+func _disconnect_actions_signal() -> void:
+    if BattleSignalBus.OnActionsUpdated.is_connected(_on_actions_updated):
+        BattleSignalBus.OnActionsUpdated.disconnect(_on_actions_updated)
 
 func _setup_area_positioning() -> void:
     match m_spell_item.area_type:

@@ -82,8 +82,8 @@ func draw_spell(target_character: BattleCharacter, current_character: BattleChar
 
     # Mastery gives 2 d6 rolls for drawing instead of 1, but does not affect the draw_spell bonus
     var rolls := 1
-    if drawn_spell.spell_element in current_character.mastery_elements:
-        print("[DRAW] Character has mastery for %s" % [Util.get_enum_name(BattleEnums.EAffinityElement, drawn_spell.spell_element)])
+    if drawn_spell.element in current_character.mastery_elements:
+        print("[DRAW] Character has mastery for %s" % [Util.get_enum_name(BattleEnums.EAffinityElement, drawn_spell.element)])
         rolls = MASTERY_DRAW_ROLLS
 
     print("[DRAW] Draw bonus: " + str(draw_bonus))
@@ -101,7 +101,7 @@ func draw_spell(target_character: BattleCharacter, current_character: BattleChar
             current_character.inventory.add_item(drawn_spell, drawn_amount)
             print("[DRAW] Received %s %s!" % [str(drawn_amount), drawn_spell.item_name])
             var draw_display_string := "%s drew %s %ss"
-            if current_character.mastery_elements.has(drawn_spell.spell_element):
+            if current_character.mastery_elements.has(drawn_spell.element):
                 draw_display_string += " (Mastery)"
 
             await battle_state.message_ui.show_messages([draw_display_string % [current_character.character_name, str(drawn_amount), drawn_spell.item_name]])
@@ -138,12 +138,12 @@ func sort_items_by_usefulness(a: Item, b: Item) -> bool:
         var a_affinity_priority := 1
         var b_affinity_priority := 1
         
-        if AffinityLog.is_affinity_logged(target_internal_name, a_spell.spell_element):
-            var a_affinity := AffinityLog.get_affinity(target_internal_name, a_spell.spell_element)
+        if AffinityLog.is_affinity_logged(target_internal_name, a_spell.element):
+            var a_affinity := AffinityLog.get_affinity(target_internal_name, a_spell.element)
             a_affinity_priority = a_affinity as int
         
-        if AffinityLog.is_affinity_logged(target_internal_name, b_spell.spell_element):
-            var b_affinity := AffinityLog.get_affinity(target_internal_name, b_spell.spell_element)
+        if AffinityLog.is_affinity_logged(target_internal_name, b_spell.element):
+            var b_affinity := AffinityLog.get_affinity(target_internal_name, b_spell.element)
             b_affinity_priority = b_affinity as int
         
         # Prioritize lower priority values (WEAK first, then NEUTRAL, etc.)
@@ -155,10 +155,10 @@ func sort_items_by_usefulness(a: Item, b: Item) -> bool:
         var b_spell := b
         if battle_state.available_actions in ally_actions:
             var priority_elements := [BattleEnums.EAffinityElement.HEAL, BattleEnums.EAffinityElement.BUFF]
-            var a_priority := a_spell.spell_element in priority_elements
-            var b_priority := b_spell.spell_element in priority_elements
+            var a_priority := a_spell.element in priority_elements
+            var b_priority := b_spell.element in priority_elements
             if a_priority != b_priority: return a_priority
-        return a_spell.spell_element < b_spell.spell_element
+        return a_spell.element < b_spell.element
     
     return false
 
@@ -200,9 +200,9 @@ func select_best_items_for_context(character: BattleCharacter, context: AIDecisi
     for item in available_items:
         if item.only_on_dead_characters:
             revive_items.append(item)
-        elif item.spell_element == BattleEnums.EAffinityElement.HEAL:
+        elif item.element == BattleEnums.EAffinityElement.HEAL:
             heal_items.append(item)
-        elif item.spell_element not in [BattleEnums.EAffinityElement.BUFF, BattleEnums.EAffinityElement.DEBUFF]:
+        elif item.element not in [BattleEnums.EAffinityElement.BUFF, BattleEnums.EAffinityElement.DEBUFF]:
             damage_items.append(item)
     
     # Calculate effectiveness scores and find best items
@@ -412,8 +412,8 @@ func calculate_item_effectiveness_score(item: Item, character: BattleCharacter, 
     if target_character and target_character.character_type == BattleEnums.ECharacterType.ENEMY:
         if item.item_type in [Item.ItemType.BATTLE_ITEM, Item.ItemType.FIELD_ITEM]:
             var target_internal_name := target_character.character_internal_name
-            if AffinityLog.is_affinity_logged(target_internal_name, item.spell_element):
-                var affinity := AffinityLog.get_affinity(target_internal_name, item.spell_element)
+            if AffinityLog.is_affinity_logged(target_internal_name, item.element):
+                var affinity := AffinityLog.get_affinity(target_internal_name, item.element)
                 match affinity:
                     BattleEnums.EAffinityType.WEAK:
                         weakness_bonus = 2.0  # Double effectiveness against weak targets

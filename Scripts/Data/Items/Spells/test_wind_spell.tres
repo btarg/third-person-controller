@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="SpellItem" load_steps=4 format=3 uid="uid://sqdkambn23is"]
+[gd_resource type="Resource" script_class="Item" load_steps=4 format=3 uid="uid://sqdkambn23is"]
 
 [ext_resource type="Script" uid="uid://c12nymc8vauu3" path="res://Scripts/BattleSystem/DataStructures/Item.gd" id="1_3k22y"]
 [ext_resource type="Script" uid="uid://dymhc7pcpegip" path="res://Scripts/BattleSystem/DataStructures/DiceRoll.gd" id="2_0vsjh"]
@@ -6,24 +6,18 @@
 [sub_resource type="Resource" id="Resource_c3wc4"]
 script = ExtResource("2_0vsjh")
 die_sides = 100
-num_rolls = 1
 difficulty_class = 50
-bonus = 0
 
 [resource]
 script = ExtResource("1_3k22y")
-spell_element = 4
-spell_power_rolls = Array[ExtResource("2_0vsjh")]([])
+item_type = 0
+element = 4
+item_name = "Garula"
+item_description = "Deals moderate WIND dmg to one enemy."
+can_use_on_allies = false
 use_roll = SubResource("Resource_c3wc4")
-junction_table = {
+junction_table = Dictionary[int, float]({
 0: 2.0,
 2: 1.005,
 5: 1.005
-}
-item_type = 0
-item_name = "Garula"
-item_description = "Deals moderate WIND dmg to one enemy."
-max_stack = 999
-can_use_on_enemies = true
-can_use_on_allies = false
-spell_range = 5
+})

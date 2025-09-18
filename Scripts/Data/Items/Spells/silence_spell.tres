@@ -10,38 +10,13 @@ stat = 5
 modifier_id = "silence"
 name = "Silenced"
 description = "Can't use Skills"
-is_multiplier = false
 stat_value = -2.0
-duration_type = 0
 turn_duration = 3
-can_stack = true
-override = false
-apply_out_of_combat = false
 metadata/_custom_type_script = "uid://de54g0a7lhcrq"
 
 [resource]
 script = ExtResource("2_tan8b")
 item_type = 0
+element = 11
 item_name = "Silence"
-item_description = "Test Description"
-has_count = true
-max_stack = 999
-actions_cost = 1
-mp_cost = 0
-target_type = 0
-area_type = 0
-effective_range = 5
-can_use_on_enemies = true
-can_use_on_allies = true
-only_on_dead_characters = false
-area_of_effect_radius = 0.0
-line_width = 0.0
-cone_angle_degrees = 60.0
-ttl_turns = -1
-spell_element = 11
 modifier = SubResource("Resource_tan8b")
-spell_power_rolls = Array[ExtResource("3_svi6p")]([])
-junction_table = Dictionary[int, float]({
-2: 1.0,
-3: 1.0
-})

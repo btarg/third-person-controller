@@ -122,6 +122,7 @@ visible = false
 
 [node name="Area3D" type="Area3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.65923, 1.46926, 5.50419)
+visible = false
 collision_mask = 3
 script = ExtResource("12_sircd")
 

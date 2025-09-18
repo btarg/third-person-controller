@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://coue2qehpn4fr"]
+[gd_scene load_steps=25 format=3 uid="uid://coue2qehpn4fr"]
 
 [ext_resource type="Texture2D" uid="uid://b8q44ipg8a3cq" path="res://Assets/Textures/Black.png" id="1_hwes2"]
 [ext_resource type="Texture2D" uid="uid://doyodkg1ds7td" path="res://Assets/Textures/Sky.png" id="1_rrvcb"]
@@ -9,10 +9,9 @@
 [ext_resource type="PackedScene" uid="uid://c3n3msiln48rn" path="res://Scenes/Characters/Enemies/test_enemy.tscn" id="7_i4kkb"]
 [ext_resource type="PackedScene" uid="uid://lithrctytmps" path="res://Scenes/Characters/Party/test_ally.tscn" id="7_kmrsy"]
 [ext_resource type="PackedScene" uid="uid://dgy3c157wl5dn" path="res://Assets/GUI/fps_label.tscn" id="9_fe2w1"]
+[ext_resource type="Script" uid="uid://db5udiqxyap3p" path="res://Scripts/BattleSystem/Objects/ItemProjectile.gd" id="12_sircd"]
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_7qgmm"]
-vertices = PackedVector3Array(-5.25, 0.5, 1, -5, 0.5, -1.75, -5.5, 0.5, -2, -11.25, 0.5, 1, -5.5, 0.5, -3.75, -3.25, 0.5, -4, -3.25, 0.5, -24.5, -24.5, 0.5, 3.25, -11.5, 0.5, 3.25, -24.5, 0.5, -24.5, 3.5, 0.5, -4, 3.5, 0.5, -24.5, 5.5, 0.5, -4, 5.75, 0.5, -3, 24.5, 0.5, -3, 24.5, 0.5, -24.5, -2.25, 0.5, 4.5, -5, 0.75, 6.5, -5.25, 0.5, 7.25, -6.5, 0.5, 24.5, 1, 0.5, 4.25, -0.5, 0.5, -1.75, -0.75, 0.5, 3, 0.75, 0.5, 3, 5.25, 0.5, -1.75, 24.5, 0.5, 24.5, -6.75, 0.5, 7.25, -2.75, 0.5, 4.25, -5.25, 1, 6, -5, 0.75, 2, -2.75, 0.5, 3.25, -14, 3.75, 2, -14, 3.75, 6, -11.5, 0.5, 7, -10, 0.5, 24.5, -9.75, 0.5, 7.25, -24.5, 0.5, 24.5)
-polygons = [PackedInt32Array(1, 0, 2), PackedInt32Array(2, 0, 3), PackedInt32Array(6, 5, 4), PackedInt32Array(3, 4, 2), PackedInt32Array(3, 8, 7), PackedInt32Array(3, 7, 4), PackedInt32Array(4, 7, 6), PackedInt32Array(6, 7, 9), PackedInt32Array(6, 11, 5), PackedInt32Array(5, 11, 10), PackedInt32Array(13, 12, 14), PackedInt32Array(14, 12, 15), PackedInt32Array(15, 12, 11), PackedInt32Array(12, 10, 11), PackedInt32Array(17, 16, 18), PackedInt32Array(18, 16, 20), PackedInt32Array(18, 20, 19), PackedInt32Array(22, 21, 23), PackedInt32Array(23, 21, 24), PackedInt32Array(24, 14, 20), PackedInt32Array(20, 14, 25), PackedInt32Array(20, 25, 19), PackedInt32Array(24, 13, 14), PackedInt32Array(20, 23, 24), PackedInt32Array(19, 26, 18), PackedInt32Array(28, 27, 17), PackedInt32Array(17, 27, 16), PackedInt32Array(29, 0, 30), PackedInt32Array(30, 0, 22), PackedInt32Array(22, 0, 1), PackedInt32Array(22, 1, 21), PackedInt32Array(30, 27, 29), PackedInt32Array(29, 27, 28), PackedInt32Array(29, 28, 32), PackedInt32Array(29, 32, 31), PackedInt32Array(7, 8, 33), PackedInt32Array(33, 35, 34), PackedInt32Array(34, 36, 33), PackedInt32Array(33, 36, 7), PackedInt32Array(35, 26, 34), PackedInt32Array(34, 26, 19)]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ajchh"]
 albedo_texture = ExtResource("1_hwes2")
@@ -59,8 +58,9 @@ sky = SubResource("Sky_5ngqa")
 tonemap_mode = 2
 glow_enabled = true
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_sircd"]
+
 [node name="Prototype" type="Node3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.588483, -0.0221658, -0.501276)
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
 navigation_mesh = SubResource("NavigationMesh_7qgmm")
@@ -95,11 +95,6 @@ surface_material_override/0 = SubResource("StandardMaterial3D_pfpgv")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Slope/StaticBody3D"]
 shape = SubResource("ConcavePolygonShape3D_rit6o")
 
-[node name="CSGBox3D" type="CSGBox3D" parent="NavigationRegion3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.905481, 1.05733, 3.79841)
-use_collision = true
-size = Vector3(2.62207, 1.37744, 0.303833)
-
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_ctwiv")
 
@@ -124,3 +119,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.00987, 2.38419e-07, 4.04381
 
 [node name="FPSLabel" parent="." instance=ExtResource("9_fe2w1")]
 visible = false
+
+[node name="Area3D" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.65923, 1.46926, 5.50419)
+collision_mask = 3
+script = ExtResource("12_sircd")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+shape = SubResource("BoxShape3D_sircd")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Area3D"]

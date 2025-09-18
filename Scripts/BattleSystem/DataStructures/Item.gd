@@ -244,7 +244,7 @@ func _update_inventory(inv_to_update: Inventory) -> void:
         printerr("No inventory set or item has infinite uses, not updating inventory for %s" % item_name)
     
 
-## MAIN ACTIVATION FUNCTION
+## MAIN ACTIVATION FUNCTION (formerly `use`)
 ## Executes the spell/item's effect. Called when the item "connects" with a target.
 func activate(user: BattleCharacter, target: BattleCharacter, update_inventory: bool = true, use_actions: bool = true) -> UseStatus:
     var status: UseStatus

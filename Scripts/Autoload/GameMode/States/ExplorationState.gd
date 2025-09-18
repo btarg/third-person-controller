@@ -29,3 +29,5 @@ func _state_unhandled_input(event: InputEvent) -> void:
         get_tree().quit()
         
     player.input_update(event)
+    
+func _state_input(_event: InputEvent) -> void: pass

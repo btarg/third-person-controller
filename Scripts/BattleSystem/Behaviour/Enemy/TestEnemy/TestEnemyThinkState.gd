@@ -13,19 +13,7 @@ func _on_leave_battle() -> void:
         Transitioned.emit(self, "IdleState")
 
 func enter() -> void:
-    # Safety check to prevent infinite loops on state entry
-    if not battle_character:
-        print("[ERROR] ThinkState entered with no battle_character reference!")
-        Transitioned.emit(self, "IdleState")
-        return
-        
-    if battle_character.actions_left <= 0:
-        print("[ERROR] %s entered ThinkState with %d actions left, this should not happen! Transitioning to idle" % [battle_character.character_name, battle_character.actions_left])
-        print("[DEBUG] Character active: %s, Down turns: %d" % [battle_character.character_active, battle_character.down_turns])
-        Transitioned.emit(self, "IdleState")
-        return
-    
-    make_decision()
+    super.enter()
     _aggression_check()
 
 # TODO: multi-targeting logic for spells and items

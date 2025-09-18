@@ -73,7 +73,6 @@ func _back_to_think() -> void:
 
 func exit() -> void:
     inventory_ui.hide()
-    super.exit()
 
 func _state_process(_delta: float) -> void: pass
 func _state_physics_process(_delta: float) -> void: pass

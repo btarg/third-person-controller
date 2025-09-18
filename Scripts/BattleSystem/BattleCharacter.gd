@@ -34,8 +34,8 @@ var _familiar_spells: Array[Item] = []
 @onready var stats := $CharacterStats as CharacterStats
 @onready var inventory := get_node_or_null("../Inventory") as Inventory
 
-@onready var current_hp: int = ceil(stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP))
-@onready var current_mp: int = ceil(stats.get_stat(CharacterStatEntry.ECharacterStat.MaxMP))
+@onready var current_hp := ceili(stats.get_stat(CharacterStatEntry.ECharacterStat.MaxHP))
+@onready var current_mp := ceili(stats.get_stat(CharacterStatEntry.ECharacterStat.MaxMP))
 
 
 # The third person player controller extends from the BattleCharacterController to make this possible
@@ -67,7 +67,6 @@ var _current_xp_total: int = 0
 
 signal OnLeaveBattle
 signal OnCharacterTurnStarted
-signal OnSpendActions(character: BattleCharacter)
 
 var character_active := false
 var initiative: int = 0
@@ -75,7 +74,13 @@ var initiative: int = 0
 ## How many turns this character should be "down" for (when crit - ONE MORE system)
 var down_turns := 0
 ## How many turns this character has left before moving to the next character in the turn order
-var actions_left := 0
+var actions_left := 0:
+    set(value):
+
+        if value != actions_left:
+            BattleSignalBus.OnActionsUpdated.emit(self, value)
+        
+        actions_left = value
 
 ## Used for effects like Silence
 var can_use_spells := true
@@ -105,12 +110,8 @@ func spend_actions(actions: int) -> void:
     actions_left -= actions
     print(character_name + " has spent " + str(actions) + " actions")
     if actions_left <= 0:
-        print(character_name + " has no actions left")
         behaviour_state_machine.set_state("IdleState")
-    else:
-        print(character_name + " has " + str(actions_left) + " actions left")
     battle_state.ready_next_turn()
-    OnSpendActions.emit(self)
 
 func _on_inventory_updated(resource: Item, _count: int, is_new_item: bool) -> void:
     # if the player has a spell, they should know what it is when drawing it
@@ -256,10 +257,10 @@ func _on_down_recovery() -> void:
     # TODO  play an animation for recovering from being downed
     print("[DOWN] " + character_name + " has recovered from being downed")
 
-func award_turns(turns: int) -> void:
-    actions_left += turns
-    print("[ONE MORE] " + character_name + " has been awarded " + str(turns) + " turns")
-    BattleSignalBus.OnTurnsAwarded.emit(self, turns)
+func award_actions(actions: int) -> void:
+    actions_left += actions
+    print("[ONE MORE] " + character_name + " has been awarded " + str(actions) + " actions")
+    # BattleSignalBus.OnActionsAwarded.emit(self, actions)
 
 func get_affinity(element: BattleEnums.EAffinityElement) -> BattleEnums.EAffinityType:
     # Use get_or_add to prevent null values breaking this
@@ -325,7 +326,7 @@ func take_damage_flat(attacker: BattleCharacter, damage: int, damage_type: Battl
                 BattleSignalBus.OnDowned.emit(self, down_turns)
                 _on_downed()
                 # Give the attacker a ONE MORE turn
-                attacker.award_turns(1)
+                attacker.award_actions(1)
 
             # More crits will wake the enemy up rather than keeping them down
             # TODO: this event should be calulated based on a stat like vitality

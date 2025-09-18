@@ -117,11 +117,11 @@ func _process_radius_visual() -> void:
 
     # print("Processing radius visual: " + battle_character.character_name)
     radius_visual.global_position = battle_character.character_controller.global_position
-    radius_visual.global_position.y += 0.01 # prevent Z-fighting
+    radius_visual.global_position.y += 2
     
     # The mesh is 1mx1m, so we scale it to the movement range x 2
     var scalar := range_size * 2
-    radius_visual.scale = Vector3(scalar, 1, scalar)
+    radius_visual.scale = Vector3(scalar, scalar, scalar)
     radius_visual.visible = true
 
 

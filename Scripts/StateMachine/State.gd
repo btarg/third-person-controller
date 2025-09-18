@@ -1,5 +1,4 @@
-extends Node
-class_name State
+@abstract class_name State extends Node
 
 @onready var state_machine := get_parent() as StateMachine
 
@@ -8,18 +7,14 @@ signal Transitioned
 var active := false
 
 ## Called when the state is entered
-func enter() -> void: pass
+@abstract func enter() -> void
 ## Called when the state is exited
-func exit() -> void: pass
+@abstract func exit() -> void
 ## Updates every _process() update (When state is active)
-@warning_ignore("UNUSED_PARAMETER")
-func _state_process(delta: float) -> void: pass
+@abstract func _state_process(delta: float) -> void
 ## Updates every _physics_process() update (When state is active)
-@warning_ignore("UNUSED_PARAMETER")
-func _state_physics_process(delta: float) -> void: pass
+@abstract func _state_physics_process(delta: float) -> void
 ## Updates every _input() update (When state is active)
-@warning_ignore("UNUSED_PARAMETER")
-func _state_input(event: InputEvent) -> void: pass
+@abstract func _state_input(event: InputEvent) -> void
 ## Updates every _unhandled_input() update (When state is active)
-@warning_ignore("UNUSED_PARAMETER")
-func _state_unhandled_input(event: InputEvent) -> void: pass
+@abstract func _state_unhandled_input(event: InputEvent) -> void

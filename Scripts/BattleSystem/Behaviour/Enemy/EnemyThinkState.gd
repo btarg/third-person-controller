@@ -38,10 +38,32 @@ var target_character: BattleCharacter = null
 var ally_target_character: BattleCharacter = null
 
 var available_actions: Array[AIActionData] = []
-
-
 var debug_mode := ProjectSettings.get_setting("global/print_ai_debug_messages") as bool
 
+
+func enter() -> void:
+    # Safety check to prevent infinite loops on state entry
+    if not battle_character:
+        print("[ERROR] ThinkState entered with no battle_character reference!")
+        Transitioned.emit(self, "IdleState")
+        return
+        
+    if battle_character.actions_left <= 0:
+        print("[ERROR] %s entered ThinkState with %d actions left, this should not happen! Transitioning to idle" % [battle_character.character_name, battle_character.actions_left])
+        print("[DEBUG] Character active: %s, Down turns: %d" % [battle_character.character_active, battle_character.down_turns])
+        Transitioned.emit(self, "IdleState")
+        return
+    
+    make_decision()
+
+
+func exit() -> void:
+    print(battle_character.character_name + " has stopped thinking")
+    
+func _state_process(_delta: float) -> void: pass
+func _state_physics_process(_delta: float) -> void: pass
+func _state_input(_event: InputEvent) -> void: pass
+func _state_unhandled_input(_event: InputEvent) -> void: pass
 
 func _get_best_item_range() -> float:
     var max_range := 0.0

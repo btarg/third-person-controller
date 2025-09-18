@@ -1,4 +1,8 @@
 shader_type spatial;
+render_mode depth_draw_never;
+
+uniform vec3 projector_size = vec3(1.0);
+uniform sampler2D depth_tex : hint_depth_texture;
 
 uniform float ring_radius : hint_range(0.1, 0.5, 0.01) = 0.4;
 uniform float thickness = 0.05;
@@ -16,7 +20,19 @@ float range_lerp(float value, float min1, float min2, float max1, float max2){
 }
 
 void fragment() {
-    float dist = distance(UV, vec2(0.5, 0.5));
+    // Get world space position using depth buffer projection
+    float depth = texture(depth_tex, SCREEN_UV).x;
+    vec4 ndc = vec4(SCREEN_UV * 2.0 - 1.0, depth, 1.0);
+    vec4 view = INV_PROJECTION_MATRIX * ndc;
+    view /= view.w;
+
+    vec3 local_pos = (inverse(MODEL_MATRIX) * INV_VIEW_MATRIX * view).xyz;
+    vec3 uvw = local_pos / projector_size + 0.5;
+    if (any(lessThan(uvw, vec3(0.0))) || any(greaterThan(uvw, vec3(1.0)))) discard;
+
+    // Use projected UV coordinates (XZ plane) instead of regular UV
+    vec2 projected_uv = uvw.xz;
+    float dist = distance(projected_uv, vec2(0.5, 0.5));
     float o = cos(TIME * speed);
 
     // Ring calculation - remove smoothstep for hard edge

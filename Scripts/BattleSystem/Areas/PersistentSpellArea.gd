@@ -113,7 +113,7 @@ func _on_character_entered(battle_character: BattleCharacter) -> void:
         # Character is in movement mode - connect to spend actions signal to apply effect when movement is locked in
         print("[AOE TRIGGER] %s entered AOE area while moving" % battle_character.character_name)
         _disconnect_actions_signal(battle_character)
-        battle_character.OnSpendActions.connect(_on_spend_actions)
+        BattleSignalBus.OnSpendActions.connect(_on_spend_actions)
     else:
         # Character is not moving, apply effect immediately
         _apply_effect_to_character(battle_character)

@@ -17,6 +17,8 @@ signal OnBattleEnded
 
 # Characters in battle
 @warning_ignore("UNUSED_SIGNAL")
+signal OnActionsUpdated(character: BattleCharacter, actions_left: int)
+@warning_ignore("UNUSED_SIGNAL")
 signal OnHeal(character: BattleCharacter, amount: int)
 @warning_ignore("UNUSED_SIGNAL")
 signal OnRevive(character: BattleCharacter)
@@ -30,7 +32,5 @@ signal OnSkillResult(attacker: BattleCharacter, target: BattleCharacter, result:
 signal OnDowned(character: BattleCharacter, turns: int)
 @warning_ignore("UNUSED_SIGNAL")
 signal OnDownRecovery(character: BattleCharacter)
-@warning_ignore("UNUSED_SIGNAL")
-signal OnTurnsAwarded(character: BattleCharacter, turns: int)
 @warning_ignore("UNUSED_SIGNAL")
 signal OnAvailableCombatChoicesChanged

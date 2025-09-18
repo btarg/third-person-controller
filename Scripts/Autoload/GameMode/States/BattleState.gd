@@ -99,6 +99,12 @@ func _ready() -> void:
     current_character = player.battle_character
     player_selected_character = current_character
 
+    BattleSignalBus.OnActionsUpdated.connect(_on_actions_updated)
+
+func _on_actions_updated(character: BattleCharacter, actions_left: int) -> void:
+    print("[ACTIONS] %s: %s actions left" % [character.character_name, actions_left])
+
+
 func _print_characters_command() -> void:
     Console.print_line("Characters in battle:", true)
     for character: BattleCharacter in get_tree().get_nodes_in_group("BattleCharacter"):
@@ -371,11 +377,8 @@ func ready_next_turn() -> void:
 
         # This character still has actions left, so don't move to the next character yet
         if current_character.actions_left > 0:
-            print("[ONE MORE] %s gets %s more actions!" % [current_character.character_name, current_character.actions_left])
-            
             # Manually reinitialize the character's think state
             current_character.behaviour_state_machine.set_state("ThinkState")
-            
             await message_ui.show_messages(["%s gets %s more actions!" % [current_character.character_name, current_character.actions_left]])
             return
         else:
@@ -526,3 +529,5 @@ func selected_self() -> bool:
 
 func _state_unhandled_input(event: InputEvent) -> void:
     top_down_player.input_update_from_battle_state(event)
+
+func _state_input(_event: InputEvent) -> void: pass

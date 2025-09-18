@@ -521,8 +521,6 @@ func exit() -> void:
     if player_think_ui:
         player_think_ui.hide()
 
-func _state_process(_delta: float) -> void: pass
-
 func _get_mouse_world_position() -> Vector3:
     # Use existing utility function with fallback
     var result := Util.raycast_from_center_or_mouse(top_down_camera, [battle_state.top_down_player.get_rid()])
@@ -561,3 +559,8 @@ func _update_spell_targeting() -> void:
         AreaUtils.SpellAreaType.LINE:
             # For lines, update direction from caster to mouse position
             spell_area_indicator.update_fixed_target(mouse_world_pos)
+    
+
+    
+func _state_process(_delta: float) -> void: pass
+func _state_input(_event: InputEvent) -> void: pass

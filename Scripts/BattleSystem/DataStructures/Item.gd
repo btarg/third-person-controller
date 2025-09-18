@@ -78,7 +78,7 @@ var item_id: int = -1
 @export var ttl_turns: int = -1
 
 @export_group("Projectile Properties")
-@export_custom(PROPERTY_HINT_GROUP_ENABLE, "") var projectile_enabled: bool = false
+@export_custom(PROPERTY_HINT_GROUP_ENABLE, "") var projectile_section_shown: bool = false
 
 ## Speed of the projectile when using projectile-based casting
 @export var projectile_speed: float = 15.0
@@ -90,12 +90,12 @@ var item_id: int = -1
 @export var projectile_timeout_multiplier: float = 2.0
 
 @export_group("Spell Properties")
-@export_custom(PROPERTY_HINT_GROUP_ENABLE, "") var spell_enabled: bool = true
+@export_custom(PROPERTY_HINT_GROUP_ENABLE, "") var spell_section_shown: bool = true
 ## The set modifier only applies if the affinity is a buff or debuff
 @export var modifier: StatModifier
 
 @export_group("Dice Roll Settings")
-@export_custom(PROPERTY_HINT_GROUP_ENABLE, "") var dice_enabled: bool = true
+@export_custom(PROPERTY_HINT_GROUP_ENABLE, "") var dice_section_shown: bool = true
 
 var _default_spell_power_rolls: Array[DiceRoll] = [DiceRoll.roll(8)]
 ## The dice roll used to determine the item's power when used on a target. (i.e. damage - this is not the attack roll!)

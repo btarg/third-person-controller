@@ -396,7 +396,8 @@ func _state_unhandled_input(event: InputEvent) -> void:
         return
     
     # Handle character selection with mouse clicks
-    if event.is_action_pressed("combat_select_target"):
+    if (event.is_action_pressed("combat_select_target")
+    or event.is_action_pressed("ui_accept")):
         _use_selected_spell_item()
     
 
@@ -487,14 +488,21 @@ func _use_character_targeting_spell() -> void:
     
     # Use the spell/item
     await battle_state.message_ui.show_messages([selected_spell_item.item_name])
-    var status := selected_spell_item.activate(
-        battle_character, 
-        target_character, 
-        true,
-        true
-    )
     
-    print("[TARGETING] Final use status: " + Util.get_enum_name(Item.UseStatus, status))
+    # Check if this should be instant cast or use projectile
+    if selected_spell_item.should_use_instant_cast():
+        print("[TARGETING] Using instant cast for " + selected_spell_item.item_name)
+        var status := selected_spell_item.activate(
+            battle_character, 
+            target_character, 
+            true,
+            true
+        )
+        print("[TARGETING] Final use status: " + Util.get_enum_name(Item.UseStatus, status))
+    else:
+        print("[TARGETING] Spawning projectile for " + selected_spell_item.item_name)
+        _spawn_player_projectile(selected_spell_item, target_character.get_parent().global_position, target_character)
+    
     # Stay in this state and wait - battle system will handle transitions
 
 func _back_to_think() -> void:
@@ -563,6 +571,106 @@ func _update_spell_targeting() -> void:
             # For lines, update direction from caster to mouse position
             spell_area_indicator.update_fixed_target(mouse_world_pos)
     
+
+func _spawn_player_projectile(item: Item, target_pos: Vector3, target_char: BattleCharacter = null) -> void:
+    """Spawn a projectile for player item usage"""
+    
+    # Create projectile instance
+    var projectile_scene := load("res://Scenes/BattleSystem/ItemProjectile.tscn") as PackedScene
+    var projectile := projectile_scene.instantiate()
+    
+    if not projectile:
+        printerr("[PLAYER] Failed to create projectile!")
+        battle_character.spend_actions(item.actions_cost)
+        return
+    
+    # Position projectile at caster's position (slightly elevated) BEFORE initialization
+    var spawn_position: Vector3 = battle_character.get_parent().global_position
+    spawn_position.y += 1.5  # Spawn above character
+    
+    # Add to scene tree first
+    get_tree().get_root().add_child(projectile)
+    projectile.global_position = spawn_position
+    
+    # Initialize the projectile AFTER positioning
+    projectile.initialize(item, battle_character, target_pos, target_char)
+    
+    # Configure projectile physics based on item properties
+    _configure_player_projectile_physics(projectile, item)
+    
+    # Connect projectile signals
+    _connect_player_projectile_signals(projectile, item)
+    
+    print("[PLAYER] Spawned %s projectile from %s" % [item.item_name, battle_character.character_name])
+
+func _configure_player_projectile_physics(projectile, item: Item) -> void:
+    """Configure projectile physics based on item properties for player"""
+    # Use item's projectile settings directly
+    projectile.speed = item.projectile_speed
+    projectile.arc_height = item.projectile_arc_height
+    projectile.projectile_gravity = item.projectile_gravity
+    
+    # Apply element-based overrides for special visual effects
+    match item.element:
+        BattleEnums.EAffinityElement.FIRE:
+            # Fire rises slightly - reduce gravity
+            projectile.projectile_gravity = item.projectile_gravity * 0.8
+        BattleEnums.EAffinityElement.ICE:
+            # Ice falls faster - increase gravity
+            projectile.projectile_gravity = item.projectile_gravity * 1.2
+        BattleEnums.EAffinityElement.ELEC:
+            # Lightning is much faster and straighter
+            projectile.speed = item.projectile_speed * 2.0
+            projectile.arc_height = item.projectile_arc_height * 0.3
+        BattleEnums.EAffinityElement.WIND:
+            # Wind is faster and has higher arc
+            projectile.speed = item.projectile_speed * 1.3
+            projectile.arc_height = item.projectile_arc_height * 1.2
+    
+    # Set travel time based on effective range, speed, and timeout multiplier for guaranteed hit
+    var distance: float = Vector2(projectile.start_position.x, projectile.start_position.z).distance_to(Vector2(projectile.target_position.x, projectile.target_position.z))
+    var calculated_time: float = max(1.0, distance / projectile.speed * item.projectile_timeout_multiplier)
+    projectile.set_travel_time(calculated_time)
+
+func _connect_player_projectile_signals(projectile, item: Item) -> void:
+    """Connect projectile signals for player usage"""
+    # Handle character hits (BATTLE items)
+    projectile.OnHitCharacter.connect(_on_player_projectile_hit_character.bind(item))
+    
+    # Handle ground hits (FIELD items)
+    projectile.OnHitGround.connect(_on_player_projectile_hit_ground.bind(item))
+    
+    # Handle projectile cleanup
+    projectile.OnProjectileDestroyed.connect(_on_player_projectile_destroyed)
+
+func _on_player_projectile_hit_character(character: BattleCharacter, _projectile, item: Item) -> void:
+    """Handle player projectile hitting a character"""
+    print("[PLAYER] %s projectile hit %s" % [item.item_name, character.character_name])
+    
+    # Apply the item effect directly to the character
+    var status := item.activate(battle_character, character, true, true)  # Consume item and spend actions
+    
+    print("[PLAYER] Item activation status: %s" % Util.get_enum_name(Item.UseStatus, status))
+
+func _on_player_projectile_hit_ground(position: Vector3, _projectile, item: Item) -> void:
+    """Handle player projectile hitting the ground"""
+    print("[PLAYER] %s projectile hit ground at %s" % [item.item_name, str(position)])
+    
+    # For FIELD items, spawn the area of effect at the impact position
+    if item.item_type == Item.ItemType.FIELD_ITEM:
+        # Create the AOE effect at impact position
+        var spawned := SpellHelper.create_area_of_effect(item, battle_character, position, Vector3.FORWARD)
+        
+        if spawned:
+            print("[PLAYER] Successfully spawned AOE effect at impact")
+            # Spend the action cost - this will trigger battle callbacks
+            battle_character.spend_actions(item.actions_cost)
+        else:
+            printerr("[PLAYER] Failed to spawn AOE effect at impact")
+
+func _on_player_projectile_destroyed(_projectile) -> void:
+    """Handle player projectile destruction cleanup"""
+    print("[PLAYER] Projectile destroyed")
 
 
 func _state_process(_delta: float) -> void: pass

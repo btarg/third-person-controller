@@ -8,6 +8,9 @@ class_name PlayerChooseSpellItemState extends State
 @onready var inventory_ui := battle_state.get_node("PlayerChooseSpellitemUI") as Control
 @onready var inv_scroll_menu := inventory_ui.get_node("ButtonScrollMenu") as ButtonScrollMenu
 
+# Reference to turn order UI to hide it during spell selection
+@onready var turn_order_ui := battle_state.turn_order_ui
+
 # Store the selected spell for targeting
 var selected_spell_item: Item = null
 
@@ -22,6 +25,12 @@ func enter() -> void:
     inv_scroll_menu.item_inventory = battle_state.current_character.inventory
     inv_scroll_menu.update_labels()
     inventory_ui.show()
+    
+    # Hide turn order UI during spell selection
+    if turn_order_ui:
+        turn_order_ui.input_allowed = false
+        turn_order_ui.hide()
+    
     print("[SPELL/ITEM] " + str(battle_state.current_character.inventory.items.size()) + " items in inventory")
 
     # Focus the appropriate character and disable camera movement
@@ -70,10 +79,19 @@ func _choose_spell_item(chosen_item: Item) -> void:
 
 func _back_to_think() -> void:
     if active:
+        # Show turn order UI again when going back to think state
+        if turn_order_ui and battle_state.is_in_battle:
+            turn_order_ui.show()
+            turn_order_ui.input_allowed = true
         Transitioned.emit(self, "ThinkState")
 
 func exit() -> void:
     inventory_ui.hide()
+    
+    # Show turn order UI again when leaving spell selection
+    if turn_order_ui and battle_state.is_in_battle:
+        turn_order_ui.show()
+        turn_order_ui.input_allowed = true
 
 func _state_process(_delta: float) -> void: pass
 func _state_physics_process(_delta: float) -> void: pass
